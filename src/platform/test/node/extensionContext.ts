@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -63,7 +63,7 @@ function constructGlobalStoragePath(globalStoragePath: string): URI {
 
 export class MockExtensionContext implements BrandedService {
 	_serviceBrand = undefined;
-	extension = { id: 'GitHub.copilot-chat' } as any;
+	extension = { id: 'GitHub.darbot-copilot' } as any;
 	extensionMode = ExtensionMode.Test;
 	subscriptions = [];
 	globalStorageUri: Uri;

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as l10n from '@vscode/l10n';
@@ -104,7 +104,7 @@ export class InlineFix3Prompt extends PromptElement<InlineFixProps> {
 				<meta value={new ReplyInterpreterMetaData(replyInterpreter)} />
 				<SystemMessage priority={1000}>
 					You are an AI programming assistant.<br />
-					When asked for your name, you must respond with "GitHub Copilot".<br />
+					When asked for your name, you must respond with "Darbot Copilot".<br />
 					The user has a {language.languageId} file opened in a code editor.<br />
 					The user expects you to propose a fix for one or more problems in that file.<br />
 					<LegacySafetyRules />

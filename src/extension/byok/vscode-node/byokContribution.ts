@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { commands, Disposable as VSCodeDisposable, window } from 'vscode';
@@ -56,7 +56,7 @@ export class BYOKContrib extends Disposable implements IExtensionContribution {
 			}
 		}));
 
-		this._register(commands.registerCommand('github.copilot.chat.manageModels', () => this.registerModelCommand()));
+		this._register(commands.registerCommand('darbot.chat.manageModels', () => this.registerModelCommand()));
 	}
 
 	private async _authChange(authService: IAuthenticationService, instantiationService: IInstantiationService) {

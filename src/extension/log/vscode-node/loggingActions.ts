@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -52,10 +52,10 @@ export class LoggingActionsContrib {
 		@ICAPIClientService private readonly capiClientService: ICAPIClientService,
 		@ILogService private logService: ILogService,
 	) {
-		this._context.subscriptions.push(vscode.commands.registerCommand('github.copilot.debug.collectDiagnostics', async () => {
+		this._context.subscriptions.push(vscode.commands.registerCommand('darbot.debug.collectDiagnostics', async () => {
 			const document = await vscode.workspace.openTextDocument({ language: 'markdown' });
 			const editor = await vscode.window.showTextDocument(document);
-			await appendText(editor, `## GitHub Copilot Chat
+			await appendText(editor, `## Darbot Copilot Chat
 
 - Extension Version: ${this.envService.getVersion()} (${this.envService.getBuildType()})
 - VS Code: ${this.envService.getEditorInfo().format()}
@@ -66,9 +66,9 @@ export class LoggingActionsContrib {
 
 User Settings:
 \`\`\`json${getNonDefaultSettings()}
-  "github.copilot.advanced.debug.useElectronFetcher": ${this.configurationService.getConfig<boolean>(ConfigKey.Shared.DebugUseElectronFetcher)},
-  "github.copilot.advanced.debug.useNodeFetcher": ${this.configurationService.getConfig<boolean>(ConfigKey.Shared.DebugUseNodeFetcher)},
-  "github.copilot.advanced.debug.useNodeFetchFetcher": ${this.configurationService.getConfig<boolean>(ConfigKey.Shared.DebugUseNodeFetchFetcher)}
+  "darbot.advanced.debug.useElectronFetcher": ${this.configurationService.getConfig<boolean>(ConfigKey.Shared.DebugUseElectronFetcher)},
+  "darbot.advanced.debug.useNodeFetcher": ${this.configurationService.getConfig<boolean>(ConfigKey.Shared.DebugUseNodeFetcher)},
+  "darbot.advanced.debug.useNodeFetchFetcher": ${this.configurationService.getConfig<boolean>(ConfigKey.Shared.DebugUseNodeFetchFetcher)}
 \`\`\`${getProxyEnvVariables()}
 `);
 			const urls = [
@@ -206,7 +206,7 @@ User Settings:
 			await appendText(editor, `
 ## Documentation
 
-In corporate networks: [Troubleshooting firewall settings for GitHub Copilot](https://docs.github.com/en/copilot/troubleshooting-github-copilot/troubleshooting-firewall-settings-for-github-copilot).`);
+In corporate networks: [Troubleshooting firewall settings for Darbot Copilot](https://docs.github.com/en/copilot/troubleshooting-github-copilot/troubleshooting-firewall-settings-for-github-copilot).`);
 		}));
 	}
 }

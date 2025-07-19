@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -340,7 +340,7 @@ export namespace ConfigValueValidators {
 
 export interface BaseConfig<T> {
 	/**
-	 * Key as it appears in settings.json minus the "github.copilot." prefix.
+	 * Key as it appears in settings.json minus the "darbot." prefix.
 	 * e.g. "advanced.debug.overrideProxyUrl"
 	 */
 	readonly id: string;
@@ -351,13 +351,13 @@ export interface BaseConfig<T> {
 	readonly isPublic: boolean;
 
 	/**
-	 * The fully qualified id, e.g. "github.copilot.advanced.debug.overrideProxyUrl".
+	 * The fully qualified id, e.g. "darbot.advanced.debug.overrideProxyUrl".
 	 * Use this with `affectsConfiguration` from the ConfigurationChangeEvent
 	 */
 	readonly fullyQualifiedId: string;
 
 	/**
-	 * The `X` in `github.copilot.advanced.X` settings.
+	 * The `X` in `darbot.advanced.X` settings.
 	 */
 	readonly advancedSubKey: string | undefined;
 
@@ -450,13 +450,13 @@ function toBaseConfig<T>(key: string, defaultValue: T | DefaultValueWithTeamValu
 			throw new BugIndicatingError(`The rollout ratio for setting ${key} is invalid`);
 		}
 	}
-	const advancedSubKey = fullyQualifiedId.startsWith('github.copilot.advanced.') ? fullyQualifiedId.substring('github.copilot.advanced.'.length) : undefined;
+	const advancedSubKey = fullyQualifiedId.startsWith('darbot.advanced.') ? fullyQualifiedId.substring('darbot.advanced.'.length) : undefined;
 	return { id: key, isPublic, fullyQualifiedId, advancedSubKey, defaultValue, options };
 }
 
 class ConfigRegistry {
 	/**
-	 * A map of all registered configs, keyed by their full id, eg `github.copilot.advanced.debug.overrideProxyUrl`.
+	 * A map of all registered configs, keyed by their full id, eg `darbot.advanced.debug.overrideProxyUrl`.
 	 */
 	public readonly configs: Map<string, Config<any> | ExperimentBasedConfig<any>> = new Map();
 
@@ -482,16 +482,16 @@ function defineSetting<T>(key: string, defaultValue: T | DefaultValueWithTeamVal
 /**
  * Will define a setting which will be backed by an experiment. The experiment variable will be:
  * ```
- *     config.github.copilot.${key}
+ *     config.darbot.${key}
  *
  * e.g.
- *     config.github.copilot.chat.advanced.inlineEdits.internalRollout
+ *     config.darbot.chat.advanced.inlineEdits.internalRollout
  * ```
  */
 export function defineExpSetting<T extends ExperimentBasedConfigType>(key: string, defaultValue: T | DefaultValueWithTeamValue<T> | DefaultValueWithTeamAndInternalValue<T>, options?: ConfigOptions): ExperimentBasedConfig<T> {
 	const value: ExperimentBasedConfig<T> = { ...toBaseConfig(key, defaultValue, options), configType: ConfigType.ExperimentBased };
 	if (value.advancedSubKey) {
-		// This is a `github.copilot.advanced.*` setting
+		// This is a `darbot.advanced.*` setting
 		throw new BugIndicatingError('Shared settings cannot be experiment based');
 	}
 	globalConfigRegistry.registerConfig(value);

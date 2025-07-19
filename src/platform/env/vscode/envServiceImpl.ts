@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -94,7 +94,7 @@ export class EnvServiceImpl implements IEnvService {
 		return new NameAndVersion('vscode', vscode.version);
 	}
 	getEditorPluginInfo(): NameAndVersion {
-		return new NameAndVersion('copilot-chat', packageJson.version);
+		return new NameAndVersion('darbot-copilot', packageJson.version);
 	}
 
 	openExternal(target: vscode.Uri): Promise<boolean> {

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -17,8 +17,8 @@ import { XtabProvider } from '../../../xtab/node/xtabProvider';
 import { defaultNextEditProviderId } from '../../node/createNextEditProvider';
 import { DebugRecorder } from '../../node/debugRecorder';
 
-const reportFeedbackCommandId = 'github.copilot.debug.inlineEdit.reportFeedback';
-const pickProviderId = 'github.copilot.debug.inlineEdit.pickProvider';
+const reportFeedbackCommandId = 'darbot.debug.inlineEdit.reportFeedback';
+const pickProviderId = 'darbot.debug.inlineEdit.pickProvider';
 
 export type InlineCompletionCommand = { command: Command; icon: ThemeIcon };
 
@@ -94,10 +94,10 @@ export class InlineEditDebugComponent extends Disposable {
 
 			this._inlineEditsProviderId.set(selectedProvider, undefined);
 
-			const pick = await window.showWarningMessage(`Inline edits provider set to ${selectedProvider}. Reloading will undo this change. Set "github.copilot.${ConfigKey.Internal.InlineEditsProviderId.id}": "${selectedProvider}" in your settings file to make the change persistent.`, 'Open settings (JSON)');
+			const pick = await window.showWarningMessage(`Inline edits provider set to ${selectedProvider}. Reloading will undo this change. Set "darbot.${ConfigKey.Internal.InlineEditsProviderId.id}": "${selectedProvider}" in your settings file to make the change persistent.`, 'Open settings (JSON)');
 			if (!pick) { return; }
 
-			await commands.executeCommand('workbench.action.openSettingsJson', { revealSetting: { key: `github.copilot.${ConfigKey.Internal.InlineEditsProviderId.id}`, edit: true } });
+			await commands.executeCommand('workbench.action.openSettingsJson', { revealSetting: { key: `darbot.${ConfigKey.Internal.InlineEditsProviderId.id}`, edit: true } });
 		}));
 	}
 

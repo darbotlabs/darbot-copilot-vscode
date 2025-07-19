@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -191,7 +191,7 @@ class DocPrompt extends PromptElement<Props> {
 			<>
 				<SystemMessage>
 					You are an AI programming assistant.<br />
-					When asked for your name, you must respond with "GitHub Copilot".<br />
+					When asked for your name, you must respond with "Darbot Copilot".<br />
 					You must follow user's requirements carefully.<br />
 					You must follow Microsoft content policies.<br />
 					You must avoid content that violates copyrights.<br />

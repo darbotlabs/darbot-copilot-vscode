@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as vscode from 'vscode';
@@ -14,7 +14,7 @@ export class FeedbackCommandContribution extends Disposable {
 	) {
 		super();
 
-		this._register(vscode.commands.registerCommand('github.copilot.report', async (title: string = '') => {
+		this._register(vscode.commands.registerCommand('darbot.report', async (title: string = '') => {
 			const token = this.authenticationService.copilotToken;
 			const isTeamMember = token?.isVscodeTeamMember;
 			const isInternal = token?.isInternal;

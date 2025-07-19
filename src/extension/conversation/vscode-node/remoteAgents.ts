@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { RequestType } from '@vscode/copilot-api';
@@ -62,7 +62,7 @@ const GITHUB_PLATFORM_AGENT_SKILLS: { [key: string]: string } = {
 };
 
 const KNOWLEDGE_BASE_VARIABLE_PREFIX = 'kb:';
-const SELECT_KNOWLEDGE_BASE_COMMAND = 'github.copilot.chat.selectKnowledgeBase';
+const SELECT_KNOWLEDGE_BASE_COMMAND = 'darbot.chat.selectKnowledgeBase';
 type ICopilotKnowledgeBaseReferenceItem = ICopilotKnowledgeBaseReference & { label: string; name: string; description: string; organization: string };
 
 type IPlatformReference = IFileReference | ISelectionReference | IGitHubRepositoryReference;
@@ -322,11 +322,11 @@ export class RemoteAgentContribution implements IDisposable {
 				accessToken = this.authenticationService.permissiveGitHubSession?.accessToken;
 				if (!accessToken) {
 					if (this.authenticationService.isMinimalMode) {
-						responseStream.markdown(l10n.t('Minimal mode is enabled. You will need to change `github.copilot.advanced.authPermissions` to `default` to use this feature.'));
+						responseStream.markdown(l10n.t('Minimal mode is enabled. You will need to change `darbot.advanced.authPermissions` to `default` to use this feature.'));
 						responseStream.button({
 							title: l10n.t('Open Settings (JSON)'),
 							command: 'workbench.action.openSettingsJson',
-							arguments: [{ revealSetting: { key: 'github.copilot.advanced.authPermissions' } }]
+							arguments: [{ revealSetting: { key: 'darbot.advanced.authPermissions' } }]
 						});
 					} else {
 						// Otherwise, show the permissive session upgrade prompt because it's required

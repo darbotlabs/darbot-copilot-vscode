@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -209,7 +209,7 @@ class TrackedDocumentInfo extends Disposable {
 		const getEditCategory = (source: EditSource) => {
 			if (source.category === 'ai' && source.kind === 'nes') { return 'nes'; }
 			if (source.category === 'ai' && source.kind === 'completion' && source.extensionId === 'github.copilot') { return 'inlineCompletionsCopilot'; }
-			if (source.category === 'ai' && source.kind === 'completion' && source.extensionId === 'github.copilot-chat') { return 'inlineCompletionsNES'; }
+			if (source.category === 'ai' && source.kind === 'completion' && source.extensionId === 'github.darbot-copilot') { return 'inlineCompletionsNES'; }
 			if (source.category === 'ai' && source.kind === 'completion') { return 'inlineCompletionsOther'; }
 			if (source.category === 'ai') { return 'otherAI'; }
 			if (source.category === 'user') { return 'user'; }
@@ -313,7 +313,7 @@ class ArcTelemetrySender extends Disposable {
 					"reportInlineEditArc" : {
 						"owner": "hediet",
 						"comment": "Reports the accepted and retained character count for an inline completion/edit.",
-						"extensionId": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "The extension id (copilot or copilot-chat), which provided this inline completion." },
+						"extensionId": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "The extension id (copilot or darbot-copilot), which provided this inline completion." },
 						"opportunityId": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "Unique identifier for an opportunity to show an inline completion or NES." },
 
 						"didBranchChange": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "comment": "Indicates if the branch changed in the meantime. If the branch changed (value is 1), this event should probably be ignored." },

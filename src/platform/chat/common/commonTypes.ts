@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -282,8 +282,8 @@ export function getFilteredMessage(category: FilterReason, supportsMarkdown: boo
 			if (supportsMarkdown) {
 				return l10n.t({
 					message:
-						`Sorry, the response matched public code so it was blocked. Please rephrase your prompt. [Learn more](https://aka.ms/copilot-chat-filtered-docs).`,
-					comment: ["{Locked='](https://aka.ms/copilot-chat-filtered-docs)'}"]
+						`Sorry, the response matched public code so it was blocked. Please rephrase your prompt. [Learn more](https://aka.ms/darbot-copilot-filtered-docs).`,
+					comment: ["{Locked='](https://aka.ms/darbot-copilot-filtered-docs)'}"]
 				});
 			} else {
 				return l10n.t(`Sorry, the response matched public code so it was blocked. Please rephrase your prompt.`);
@@ -292,8 +292,8 @@ export function getFilteredMessage(category: FilterReason, supportsMarkdown: boo
 			if (supportsMarkdown) {
 				return l10n.t({
 					message:
-						`Sorry, the response was filtered by the Responsible AI Service. Please rephrase your prompt and try again. [Learn more](https://aka.ms/copilot-chat-filtered-docs).`,
-					comment: ["{Locked='](https://aka.ms/copilot-chat-filtered-docs)'}"]
+						`Sorry, the response was filtered by the Responsible AI Service. Please rephrase your prompt and try again. [Learn more](https://aka.ms/darbot-copilot-filtered-docs).`,
+					comment: ["{Locked='](https://aka.ms/darbot-copilot-filtered-docs)'}"]
 				});
 			} else {
 				return l10n.t(`Sorry, the response was filtered by the Responsible AI Service. Please rephrase your prompt and try again.`);

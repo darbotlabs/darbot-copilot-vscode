@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -19,7 +19,7 @@ export class SetupTestsContribution extends Disposable implements IExtensionCont
 				return workspaceMutationManager.get(uri.authority).get(uri.path, token);
 			},
 		}));
-		this._register(vscode.commands.registerCommand('github.copilot.tests.applyMutations', (requestId: string) => {
+		this._register(vscode.commands.registerCommand('darbot.tests.applyMutations', (requestId: string) => {
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
 				cancellable: true,

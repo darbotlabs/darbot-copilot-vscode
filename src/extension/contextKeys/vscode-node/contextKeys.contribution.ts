@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { commands, window } from 'vscode';
@@ -18,24 +18,24 @@ import { autorun } from '../../../util/vs/base/common/observableInternal';
 import { isBYOKEnabled } from '../../byok/common/byokProvider';
 
 const welcomeViewContextKeys = {
-	Activated: 'github.copilot-chat.activated',
-	Offline: 'github.copilot.offline',
-	IndividualDisabled: 'github.copilot.interactiveSession.individual.disabled',
-	IndividualExpired: 'github.copilot.interactiveSession.individual.expired',
-	ContactSupport: 'github.copilot.interactiveSession.contactSupport',
-	EnterpriseDisabled: 'github.copilot.interactiveSession.enterprise.disabled',
-	CopilotChatDisabled: 'github.copilot.interactiveSession.chatDisabled'
+	Activated: 'github.darbot-copilot.activated',
+	Offline: 'darbot.offline',
+	IndividualDisabled: 'darbot.interactiveSession.individual.disabled',
+	IndividualExpired: 'darbot.interactiveSession.individual.expired',
+	ContactSupport: 'darbot.interactiveSession.contactSupport',
+	EnterpriseDisabled: 'darbot.interactiveSession.enterprise.disabled',
+	CopilotChatDisabled: 'darbot.interactiveSession.chatDisabled'
 };
 
-const chatQuotaExceededContextKey = 'github.copilot.chat.quotaExceeded';
+const chatQuotaExceededContextKey = 'darbot.chat.quotaExceeded';
 
-const showLogViewContextKey = `github.copilot.chat.showLogView`;
-const debugReportFeedbackContextKey = 'github.copilot.debugReportFeedback';
+const showLogViewContextKey = `darbot.chat.showLogView`;
+const debugReportFeedbackContextKey = 'darbot.debugReportFeedback';
 
-const previewFeaturesDisabledContextKey = 'github.copilot.previewFeaturesDisabled';
-const byokEnabledContextKey = 'github.copilot.byokEnabled';
+const previewFeaturesDisabledContextKey = 'darbot.previewFeaturesDisabled';
+const byokEnabledContextKey = 'darbot.byokEnabled';
 
-const debugContextKey = 'github.copilot.chat.debug';
+const debugContextKey = 'darbot.chat.debug';
 
 export class ContextKeysContribution extends Disposable {
 
@@ -56,11 +56,11 @@ export class ContextKeysContribution extends Disposable {
 
 		void this._inspectContext().catch(console.error);
 		this._register(_authenticationService.onDidAuthenticationChange(async () => await this._onAuthenticationChange()));
-		this._register(commands.registerCommand('github.copilot.refreshToken', async () => await this._inspectContext()));
-		this._register(commands.registerCommand('github.copilot.debug.showChatLogView', async () => {
+		this._register(commands.registerCommand('darbot.refreshToken', async () => await this._inspectContext()));
+		this._register(commands.registerCommand('darbot.debug.showChatLogView', async () => {
 			this._showLogView = true;
 			await commands.executeCommand('setContext', showLogViewContextKey, true);
-			await commands.executeCommand('copilot-chat.focus');
+			await commands.executeCommand('darbot-copilot.focus');
 		}));
 		this._register({ dispose: () => this._cancelPendingOfflineCheck() });
 		this._register(window.onDidChangeWindowState(() => this._runOfflineCheck('Window state change')));
@@ -120,7 +120,7 @@ export class ContextKeysContribution extends Disposable {
 			const message =
 				reason === 'GitHubLoginFailed'
 					? SESSION_LOGIN_MESSAGE
-					: `GitHub Copilot could not connect to server. Extension activation failed: "${reason}"`;
+					: `Darbot Copilot could not connect to server. Extension activation failed: "${reason}"`;
 			this._logService.logger.error(message);
 		}
 

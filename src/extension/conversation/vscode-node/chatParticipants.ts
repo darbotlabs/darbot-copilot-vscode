@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as vscode from 'vscode';
@@ -131,7 +131,7 @@ class ChatAgents implements IDisposable {
 	}
 
 	private registerTerminalPanelAgent(): IDisposable {
-		const terminalPanelAgent = this.createAgent(terminalAgentName, Intent.Terminal, { id: 'github.copilot.terminalPanel' });
+		const terminalPanelAgent = this.createAgent(terminalAgentName, Intent.Terminal, { id: 'darbot.terminalPanel' });
 
 		terminalPanelAgent.iconPath = new vscode.ThemeIcon('terminal');
 
@@ -210,11 +210,11 @@ class ChatAgents implements IDisposable {
 
 You can also ask me questions about your editor selection by [starting an inline chat session](command:inlineChat.start).
 
-Learn more about [GitHub Copilot](https://docs.github.com/copilot/using-github-copilot/getting-started-with-github-copilot?tool=vscode&utm_source=editor&utm_medium=chat-panel&utm_campaign=2024q3-em-MSFT-getstarted) in [Visual Studio Code](https://code.visualstudio.com/docs/copilot/overview). Or explore the [Copilot walkthrough](command:github.copilot.open.walkthrough).`,
+Learn more about [Darbot Copilot](https://docs.github.com/copilot/using-github-copilot/getting-started-with-github-copilot?tool=vscode&utm_source=editor&utm_medium=chat-panel&utm_campaign=2024q3-em-MSFT-getstarted) in [Visual Studio Code](https://code.visualstudio.com/docs/copilot/overview). Or explore the [Copilot walkthrough](command:darbot.open.walkthrough).`,
 			comment: "{Locked='](command:inlineChat.start)'}"
 		});
 		const markdownString = new vscode.MarkdownString(helpPostfix);
-		markdownString.isTrusted = { enabledCommands: ['inlineChat.start', 'github.copilot.open.walkthrough'] };
+		markdownString.isTrusted = { enabledCommands: ['inlineChat.start', 'darbot.open.walkthrough'] };
 		defaultAgent.helpTextPostfix = markdownString;
 		defaultAgent.helpTextVariablesPrefix = vscode.l10n.t('You can also help me understand your question by using the following variables to give me extra context:');
 

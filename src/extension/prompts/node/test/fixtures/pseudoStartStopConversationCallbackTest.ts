@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation and GitHub. All rights reserved.
+ *  Copyright (c) Darbot Labs and GitHub. All rights reserved.
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';

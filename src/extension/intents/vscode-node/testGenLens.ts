@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as vscode from 'vscode';
@@ -127,7 +127,7 @@ class TestGenLensProvider implements vscode.CodeLensProvider<vscode.CodeLens>, I
 			range,
 			{
 				title: TestGenLensProvider.codeLensTitle,
-				command: 'github.copilot.chat.generateTests',
+				command: 'darbot.chat.generateTests',
 				arguments: [{ document, selection: range }],
 			}
 		);

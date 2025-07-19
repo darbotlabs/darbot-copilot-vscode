@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -1687,7 +1687,7 @@ class CachePopulationTrigger implements vscode.Disposable {
 	}
 }
 
-const showContextInspectorViewContextKey = `github.copilot.chat.showContextInspectorView`;
+const showContextInspectorViewContextKey = `darbot.chat.showContextInspectorView`;
 export class InlineCompletionContribution implements vscode.Disposable, TokenBudgetProvider {
 
 	private disposables: DisposableStore;
@@ -1710,7 +1710,7 @@ export class InlineCompletionContribution implements vscode.Disposable, TokenBud
 
 		this.disposables = new DisposableStore();
 		if (languageContextService instanceof LanguageContextServiceImpl) {
-			this.disposables.add(vscode.commands.registerCommand('github.copilot.debug.showContextInspectorView', async () => {
+			this.disposables.add(vscode.commands.registerCommand('darbot.debug.showContextInspectorView', async () => {
 				await vscode.commands.executeCommand('setContext', showContextInspectorViewContextKey, true);
 				await vscode.commands.executeCommand('context-inspector.focus');
 			}));

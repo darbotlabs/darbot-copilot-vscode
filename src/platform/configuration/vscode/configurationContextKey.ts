@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -21,7 +21,7 @@ export class ConfigContextKeyHelper extends DisposableStore {
 
 		this.add(configurationService.onDidChangeConfiguration(e => {
 			if (setting.advancedSubKey) {
-				// This is a `github.copilot.advanced.*` setting
+				// This is a `darbot.advanced.*` setting
 				if (e.affectsConfiguration(`${CopilotConfigPrefix}.advanced`)) {
 					this.updateContextKey();
 				}

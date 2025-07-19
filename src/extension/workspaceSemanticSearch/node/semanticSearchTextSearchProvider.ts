@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import type * as vscode from 'vscode';
@@ -60,7 +60,7 @@ export interface IRankResult {
 export class SemanticSearchTextSearchProvider implements vscode.AITextSearchProvider {
 	private _endpoint: IChatEndpoint | undefined = undefined;
 	public readonly name: string = 'Copilot';
-	public static feedBackSentKey = 'github.copilot.search.feedback.sent';
+	public static feedBackSentKey = 'darbot.search.feedback.sent';
 	public static latestQuery: string | undefined = undefined;
 	public static feedBackTelemetry: Partial<ISearchFeedbackTelemetry> = {};
 

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -26,7 +26,7 @@ export class LogWorkspaceStateContribution extends Disposable implements IExtens
 		super();
 
 		// register command "Developer: Log Workbench State"
-		this._register(vscode.commands.registerCommand('github.copilot.debug.workbenchState', async () => {
+		this._register(vscode.commands.registerCommand('darbot.debug.workbenchState', async () => {
 			const symbolQueries = await vscode.window.showInputBox({
 				prompt: 'Enter a comma-separated list of symbol queries. Can be left blank if not using WorkspaceSymbols',
 			});

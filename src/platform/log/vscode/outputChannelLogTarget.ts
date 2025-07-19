@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -10,7 +10,7 @@ export let outputChannel: OutputChannel;
 
 export class NewOutputChannelLogTarget implements ILogTarget {
 
-	private readonly _outputChannel = window.createOutputChannel('GitHub Copilot Chat', { log: true });
+	private readonly _outputChannel = window.createOutputChannel('Darbot Copilot Chat', { log: true });
 
 	constructor(extensionContext: ExtensionContext) {
 		outputChannel = this._outputChannel;

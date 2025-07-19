@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -12,7 +12,7 @@ export interface IPackageJson {
 		debuggers?: IDebugConfigSchema[];
 	};
 
-	// Copilot contribution section https://github.com/microsoft/vscode-copilot-chat/wiki/Package.json-Copilot-Contributions
+	// Copilot contribution section https://github.com/microsoft/vscode-darbot-copilot/wiki/Package.json-Copilot-Contributions
 	copilot?: {
 		tests?: {
 			setupTests?: string;
