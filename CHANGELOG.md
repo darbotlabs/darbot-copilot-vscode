@@ -1,3 +1,19 @@
+## 0.30.0 (2025-01-19) - Darbot Copilot Fork
+
+### Major Changes
+
+#### Rebranded as Darbot Copilot
+
+This version represents a complete rebrand from GitHub Copilot Chat to **Darbot Copilot**:
+
+* **New Publisher**: Published by Darbot Labs as `@darbotlabs/darbot-copilot`
+* **Updated Branding**: All references updated from "GitHub Copilot" to "Darbot Copilot"
+* **New URLs**: Repository and documentation moved to `https://github.com/darbotlabs/darbot-copilot-vscode`
+* **Maintained Functionality**: All original features and capabilities preserved
+* **Open Source**: Continues under MIT license with Darbot Labs copyright
+
+This is a research and development fork that maintains full compatibility with the original extension while providing a foundation for future Darbot-specific enhancements.
+
 ## 0.29 (2025-07-09)
 
 GitHub Copilot updates from [June 2025](https://code.visualstudio.com/updates/v1_102):

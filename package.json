@@ -1280,8 +1280,8 @@
 		"chatParticipants": [
 			{
 				"id": "darbot.default",
-				"name": "GitHubCopilot",
-				"fullName": "GitHub Copilot",
+				"name": "DarbotCopilot",
+				"fullName": "Darbot Copilot",
 				"description": "%darbot.description%",
 				"isDefault": true,
 				"locations": [
@@ -1316,8 +1316,8 @@
 			},
 			{
 				"id": "darbot.editingSession",
-				"name": "GitHubCopilot",
-				"fullName": "GitHub Copilot",
+				"name": "DarbotCopilot",
+				"fullName": "Darbot Copilot",
 				"description": "%darbot.edits.description%",
 				"isDefault": true,
 				"locations": [
@@ -1330,8 +1330,8 @@
 			},
 			{
 				"id": "darbot.editingSessionEditor",
-				"name": "GitHubCopilot",
-				"fullName": "GitHub Copilot",
+				"name": "DarbotCopilot",
+				"fullName": "Darbot Copilot",
 				"description": "%darbot.edits.description%",
 				"isDefault": true,
 				"when": "config.inlineChat.enableV2 || config.darbot.chat.advanced.inlineChat2",
@@ -1386,8 +1386,8 @@
 			},
 			{
 				"id": "darbot.editingSession2",
-				"name": "GitHubCopilot",
-				"fullName": "GitHub Copilot",
+				"name": "DarbotCopilot",
+				"fullName": "Darbot Copilot",
 				"description": "%darbot.edits.description%",
 				"isDefault": true,
 				"locations": [
@@ -1401,7 +1401,7 @@
 			{
 				"id": "darbot.editsAgent",
 				"name": "agent",
-				"fullName": "GitHub Copilot",
+				"fullName": "Darbot Copilot",
 				"description": "%darbot.agent.description%",
 				"locations": [
 					"panel"
@@ -1426,7 +1426,7 @@
 			{
 				"id": "darbot.editor",
 				"name": "Copilot",
-				"fullName": "GitHub Copilot",
+				"fullName": "Darbot Copilot",
 				"description": "%darbot.description%",
 				"isDefault": true,
 				"locations": [
@@ -1530,8 +1530,8 @@
 			},
 			{
 				"id": "darbot.notebook",
-				"name": "GitHubCopilot",
-				"fullName": "GitHub Copilot",
+				"name": "DarbotCopilot",
+				"fullName": "Darbot Copilot",
 				"description": "%darbot.description%",
 				"isDefault": true,
 				"locations": [
