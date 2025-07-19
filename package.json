@@ -1,25 +1,25 @@
 {
-	"name": "copilot-chat",
-	"displayName": "GitHub Copilot Chat",
-	"description": "AI chat features powered by Copilot",
+	"name": "darbot-copilot",
+	"displayName": "Darbot Copilot",
+	"description": "AI chat features powered by Darbot Copilot",
 	"version": "0.30.0",
 	"build": "1",
 	"internalAIKey": "1058ec22-3c95-4951-8443-f26c1f325911",
 	"internalLargeStorageAriaKey": "ec712b3202c5462fb6877acae7f1f9d7-c19ad55e-3e3c-4f99-984b-827f6d95bd9e-6917",
 	"ariaKey": "0c6ae279ed8443289764825290e4f9e2-1a736e7c-1324-4338-be46-fc2a58ae4d14-7255",
 	"buildType": "dev",
-	"publisher": "GitHub",
-	"homepage": "https://github.com/features/copilot?editor=vscode",
+	"publisher": "darbotlabs",
+	"homepage": "https://github.com/darbotlabs/darbot-copilot-vscode",
 	"license": "SEE LICENSE IN LICENSE.txt",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/microsoft/vscode-copilot-chat"
+		"url": "https://github.com/darbotlabs/darbot-copilot-vscode"
 	},
 	"bugs": {
-		"url": "https://github.com/microsoft/vscode/issues"
+		"url": "https://github.com/darbotlabs/darbot-copilot-vscode/issues"
 	},
-	"qna": "https://github.com/github-community/community/discussions/categories/copilot",
-	"icon": "assets/copilot.png",
+	"qna": "https://github.com/darbotlabs/darbot-copilot-vscode/discussions",
+	"icon": "assets/darbot.png",
 	"pricing": "Trial",
 	"engines": {
 		"vscode": "^1.103.0-insider",
@@ -36,7 +36,7 @@
 		"ai",
 		"openai",
 		"codex",
-		"pilot",
+		"darbot",
 		"snippets",
 		"documentation",
 		"autocomplete",
@@ -53,33 +53,28 @@
 		"c#",
 		"java",
 		"kotlin",
-		"co-pilot"
+		"darbot-copilot"
 	],
 	"badges": [
 		{
-			"url": "https://img.shields.io/badge/GitHub%20Copilot-Subscription%20Required-orange",
-			"href": "https://github.com/github-copilot/signup?editor=vscode",
-			"description": "%github.copilot.badge.signUp%"
+			"url": "https://img.shields.io/badge/Darbot%20Copilot-Available-green",
+			"href": "https://github.com/darbotlabs/darbot-copilot-vscode",
+			"description": "%darbot.copilot.badge.available%"
 		},
 		{
-			"url": "https://img.shields.io/github/stars/github/copilot-docs?style=social",
-			"href": "https://github.com/github/copilot-docs",
-			"description": "%github.copilot.badge.star%"
+			"url": "https://img.shields.io/github/stars/darbotlabs/darbot-copilot-vscode?style=social",
+			"href": "https://github.com/darbotlabs/darbot-copilot-vscode",
+			"description": "%darbot.copilot.badge.star%"
 		},
 		{
-			"url": "https://img.shields.io/youtube/channel/views/UC7c3Kb6jYCRj4JOHHZTxKsQ?style=social",
-			"href": "https://www.youtube.com/@GitHub/search?query=copilot",
-			"description": "%github.copilot.badge.youtube%"
-		},
-		{
-			"url": "https://img.shields.io/twitter/follow/github?style=social",
-			"href": "https://twitter.com/github",
-			"description": "%github.copilot.badge.twitter%"
+			"url": "https://img.shields.io/twitter/follow/darbotlabs?style=social",
+			"href": "https://twitter.com/darbotlabs",
+			"description": "%darbot.copilot.badge.twitter%"
 		}
 	],
 	"activationEvents": [
 		"onStartupFinished",
-		"onLanguageModelChat:copilot",
+		"onLanguageModelChat:darbot",
 		"onUri",
 		"onFileSystem:ccreq",
 		"onFileSystem:ccsettings"
@@ -134,12 +129,12 @@
 	"contributes": {
 		"languageModelTools": [
 			{
-				"name": "copilot_searchCodebase",
+				"name": "darbot_searchCodebase",
 				"toolReferenceName": "codebase",
-				"displayName": "%copilot.tools.searchCodebase.name%",
+				"displayName": "%darbot.tools.searchCodebase.name%",
 				"icon": "$(folder)",
 				"canBeReferencedInPrompt": true,
-				"userDescription": "%copilot.codebase.tool.description%",
+				"userDescription": "%darbot.codebase.tool.description%",
 				"modelDescription": "Run a natural language search for relevant code or documentation comments from the user's current workspace. Returns relevant code snippets from the user's current workspace if it is large, or the full contents of the workspace if it is small.",
 				"tags": [
 					"codesearch",
@@ -159,11 +154,11 @@
 				}
 			},
 			{
-				"name": "copilot_searchWorkspaceSymbols",
+				"name": "darbot_searchWorkspaceSymbols",
 				"toolReferenceName": "symbols",
-				"displayName": "%copilot.tools.searchWorkspaceSymbols.name%",
+				"displayName": "%darbot.tools.searchWorkspaceSymbols.name%",
 				"icon": "$(symbol)",
-				"userDescription": "%copilot.workspaceSymbols.tool.description%",
+				"userDescription": "%darbot.workspaceSymbols.tool.description%",
 				"modelDescription": "Search the user's workspace for code symbols using language services. Use this tool when the user is looking for a specific symbol in their workspace.",
 				"tags": [
 					"vscode_codesearch"
@@ -182,12 +177,12 @@
 				}
 			},
 			{
-				"name": "copilot_listCodeUsages",
+				"name": "darbot_listCodeUsages",
 				"toolReferenceName": "usages",
-				"displayName": "%copilot.tools.listCodeUsages.name%",
+				"displayName": "%darbot.tools.listCodeUsages.name%",
 				"icon": "$(references)",
 				"canBeReferencedInPrompt": true,
-				"userDescription": "%copilot.listCodeUsages.tool.description%",
+				"userDescription": "%darbot.listCodeUsages.tool.description%",
 				"modelDescription": "Request to list all usages (references, definitions, implementations etc) of a function, class, method, variable etc. Use this tool when \n1. Looking for a sample implementation of an interface or class\n2. Checking how a function is used throughout the codebase.\n3. Including and updating all usages when changing a function, method, or constructor",
 				"tags": [
 					"vscode_codesearch"
@@ -213,11 +208,11 @@
 				}
 			},
 			{
-				"name": "copilot_getVSCodeAPI",
+				"name": "darbot_getVSCodeAPI",
 				"toolReferenceName": "vscodeAPI",
-				"displayName": "%copilot.tools.getVSCodeAPI.name%",
+				"displayName": "%darbot.tools.getVSCodeAPI.name%",
 				"icon": "$(references)",
-				"userDescription": "%copilot.vscode.tool.description%",
+				"userDescription": "%darbot.vscode.tool.description%",
 				"modelDescription": "Get relevant VS Code API references to answer questions about VS Code extension development. Use this tool when the user asks about VS Code APIs, capabilities, or best practices related to developing VS Code extensions. Use it in all VS Code extension development workspaces.",
 				"inputSchema": {
 					"type": "object",
@@ -235,10 +230,10 @@
 				"canBeReferencedInPrompt": true
 			},
 			{
-				"displayName": "%copilot.tools.think.name%",
-				"name": "copilot_think",
+				"displayName": "%darbot.tools.think.name%",
+				"name": "darbot_think",
 				"tags": [],
-				"when": "config.github.copilot.chat.agent.thinkingTool",
+				"when": "config.darbot.chat.agent.thinkingTool",
 				"modelDescription": "Use this tool to think deeply about the user's request and organize your thoughts. This tool helps improve response quality by allowing the model to consider the request carefully, brainstorm solutions, and plan complex tasks. It's particularly useful for:\n\n1. Exploring repository issues and brainstorming bug fixes\n2. Analyzing test results and planning fixes\n3. Planning complex refactoring approaches\n4. Designing new features and architecture\n5. Organizing debugging hypotheses\n\nThe tool logs your thought process for transparency but doesn't execute any code or make changes.",
 				"inputSchema": {
 					"type": "object",
@@ -254,9 +249,9 @@
 				}
 			},
 			{
-				"name": "copilot_findFiles",
+				"name": "darbot_findFiles",
 				"toolReferenceName": "fileSearch",
-				"displayName": "%copilot.tools.findFiles.name%",
+				"displayName": "%darbot.tools.findFiles.name%",
 				"modelDescription": "Search for files in the workspace by glob pattern. This only returns the paths of matching files. Use this tool when you know the exact filename pattern of the files you're searching for. Glob patterns match from the root of the workspace folder. Examples:\n- **/*.{js,ts} to match all js/ts files in the workspace.\n- src/** to match all files under the top-level src folder.\n- **/foo/**/*.js to match all js files under any foo folder in the workspace.",
 				"tags": [
 					"vscode_codesearch"
@@ -279,9 +274,9 @@
 				}
 			},
 			{
-				"name": "copilot_findTextInFiles",
+				"name": "darbot_findTextInFiles",
 				"toolReferenceName": "textSearch",
-				"displayName": "%copilot.tools.findTextInFiles.name%",
+				"displayName": "%darbot.tools.findTextInFiles.name%",
 				"modelDescription": "Do a fast text search in the workspace. Use this tool when you want to search with an exact string or regex. If you are not sure what words will appear in the workspace, prefer using regex patterns with alternation (|) or character classes to search for multiple potential words at once instead of making separate searches. For example, use 'function|method|procedure' to look for all of those words at once. Use includePattern to search within files matching a specific pattern, or in a specific file, using a relative path. Use this tool when you want to see an overview of a particular file, instead of using read_file many times to look for code within a file.",
 				"tags": [
 					"vscode_codesearch"
@@ -313,10 +308,10 @@
 				}
 			},
 			{
-				"name": "copilot_applyPatch",
-				"displayName": "%copilot.tools.applyPatch.name%",
+				"name": "darbot_applyPatch",
+				"displayName": "%darbot.tools.applyPatch.name%",
 				"toolReferenceName": "applyPatch",
-				"userDescription": "%copilot.tools.applyPatch.description%",
+				"userDescription": "%darbot.tools.applyPatch.description%",
 				"modelDescription": "Edit text files. Do not use this tool to edit Jupyter notebooks. `apply_patch` allows you to execute a diff/patch against a text file, but the format of the diff specification is unique to this task, so pay careful attention to these instructions. To use the `apply_patch` command, you should pass a message of the following structure as \"input\":\n\n*** Begin Patch\n[YOUR_PATCH]\n*** End Patch\n\nWhere [YOUR_PATCH] is the actual content of your patch, specified in the following V4A diff format.\n\n*** [ACTION] File: [/absolute/path/to/file] -> ACTION can be one of Add, Update, or Delete.\nAn example of a message that you might pass as \"input\" to this function, in order to apply a patch, is shown below.\n\n*** Begin Patch\n*** Update File: /Users/someone/pygorithm/searching/binary_search.py\n@@class BaseClass\n@@    def search():\n-        pass\n+        raise NotImplementedError()\n\n@@class Subclass\n@@    def search():\n-        pass\n+        raise NotImplementedError()\n\n*** End Patch\nDo not use line numbers in this diff format.",
 				"inputSchema": {
 					"type": "object",
@@ -337,9 +332,9 @@
 				}
 			},
 			{
-				"name": "copilot_readFile",
+				"name": "darbot_readFile",
 				"toolReferenceName": "readFile",
-				"displayName": "%copilot.tools.readFile.name%",
+				"displayName": "%darbot.tools.readFile.name%",
 				"modelDescription": "Read the contents of a file.\n\nYou must specify the line range you're interested in. Line numbers are 1-indexed. If the file contents returned are insufficient for your task, you may call this tool again to retrieve more content. Prefer reading larger ranges over doing many small reads.",
 				"tags": [
 					"vscode_codesearch"
@@ -368,9 +363,9 @@
 				}
 			},
 			{
-				"name": "copilot_listDirectory",
+				"name": "darbot_listDirectory",
 				"toolReferenceName": "listDirectory",
-				"displayName": "%copilot.tools.listDirectory.name%",
+				"displayName": "%darbot.tools.listDirectory.name%",
 				"modelDescription": "List the contents of a directory. Result will have the name of the child. If the name ends in /, it's a folder, otherwise a file",
 				"tags": [
 					"vscode_codesearch"
@@ -389,9 +384,9 @@
 				}
 			},
 			{
-				"name": "copilot_runInTerminal",
+				"name": "darbot_runInTerminal",
 				"toolReferenceName": "runInTerminal",
-				"displayName": "%copilot.tools.runInTerminal.name%",
+				"displayName": "%darbot.tools.runInTerminal.name%",
 				"modelDescription": "This tool allows you to execute shell commands in a persistent terminal session, preserving environment variables, working directory, and other context across multiple commands.\n\nCommand Execution:\n- Supports multi-line commands \n\nDirectory Management:\n- Must use absolute paths to avoid navigation issues.\n\nProgram Execution:\n- Supports Python, Node.js, and other executables.\n- Install dependencies via pip, npm, etc.\n\nBackground Processes:\n- For long-running tasks (e.g., servers), set isBackground=true.\n- Returns a terminal ID for checking status and runtime later.\n\nOutput Management:\n- Output is automatically truncated if longer than 60KB to prevent context overflow\n- Use filters like 'head', 'tail', 'grep' to limit output size\n- For pager commands, disable paging: use 'git --no-pager' or add '| cat'\n\nBest Practices:\n- Be specific with commands to avoid excessive output\n- Use targeted queries instead of broad scans\n- Consider using 'wc -l' to count before listing many items",
 				"tags": [],
 				"inputSchema": {
@@ -418,9 +413,9 @@
 				}
 			},
 			{
-				"name": "copilot_getTerminalOutput",
+				"name": "darbot_getTerminalOutput",
 				"toolReferenceName": "getTerminalOutput",
-				"displayName": "%copilot.tools.getTerminalOutput.name%",
+				"displayName": "%darbot.tools.getTerminalOutput.name%",
 				"modelDescription": "Get the output of a terminal command previously started with runInTerminal",
 				"tags": [],
 				"inputSchema": {
@@ -437,9 +432,9 @@
 				}
 			},
 			{
-				"name": "copilot_getTaskOutput",
+				"name": "darbot_getTaskOutput",
 				"toolReferenceName": "getTaskOutput",
-				"displayName": "%copilot.tools.getTaskOutput.name%",
+				"displayName": "%darbot.tools.getTaskOutput.name%",
 				"modelDescription": "Retrieves the output of a VS Code task.\n- Use this tool when the user is trying to understand the current project state, debug issues, or analyze task-related errors, output, or status.",
 				"tags": [],
 				"inputSchema": {
@@ -465,12 +460,12 @@
 				}
 			},
 			{
-				"name": "copilot_getErrors",
-				"displayName": "%copilot.tools.getErrors.name%",
+				"name": "darbot_getErrors",
+				"displayName": "%darbot.tools.getErrors.name%",
 				"toolReferenceName": "problems",
 				"canBeReferencedInPrompt": true,
 				"icon": "$(error)",
-				"userDescription": "%copilot.tools.errors.description%",
+				"userDescription": "%darbot.tools.errors.description%",
 				"modelDescription": "Get any compile or lint errors in a code file. If the user mentions errors or problems in a file, they may be referring to these. Use the tool to see the same errors that the user is seeing. Also use this tool after editing a file to validate the change.",
 				"tags": [],
 				"inputSchema": {
@@ -490,18 +485,18 @@
 				}
 			},
 			{
-				"name": "copilot_readProjectStructure",
-				"displayName": "%copilot.tools.readProjectStructure.name%",
+				"name": "darbot_readProjectStructure",
+				"displayName": "%darbot.tools.readProjectStructure.name%",
 				"modelDescription": "Get a file tree representation of the workspace.",
 				"tags": []
 			},
 			{
-				"name": "copilot_getChangedFiles",
-				"displayName": "%copilot.tools.getChangedFiles.name%",
+				"name": "darbot_getChangedFiles",
+				"displayName": "%darbot.tools.getChangedFiles.name%",
 				"toolReferenceName": "changes",
 				"icon": "$(diff)",
 				"canBeReferencedInPrompt": true,
-				"userDescription": "%copilot.tools.changes.description%",
+				"userDescription": "%darbot.tools.changes.description%",
 				"modelDescription": "Get git diffs of current file changes in a git repository. Don't forget that you can use copilot_runInTerminal to run git commands in a terminal as well.",
 				"tags": [
 					"vscode_codesearch"
@@ -529,11 +524,11 @@
 				}
 			},
 			{
-				"name": "copilot_testFailure",
+				"name": "darbot_testFailure",
 				"toolReferenceName": "testFailure",
-				"displayName": "%copilot.tools.testFailure.name%",
+				"displayName": "%darbot.tools.testFailure.name%",
 				"icon": "$(beaker)",
-				"userDescription": "%copilot.testFailure.tool.description%",
+				"userDescription": "%darbot.testFailure.tool.description%",
 				"modelDescription": "Includes test failure information in the prompt.",
 				"inputSchema": {},
 				"tags": [
@@ -546,9 +541,9 @@
 				"canBeReferencedInPrompt": true
 			},
 			{
-				"name": "copilot_updateUserPreferences",
+				"name": "darbot_updateUserPreferences",
 				"toolReferenceName": "updateUserPreferences",
-				"displayName": "%copilot.tools.updateUserPreferences.name%",
+				"displayName": "%darbot.tools.updateUserPreferences.name%",
 				"modelDescription": "Update the user's preferences file with new information about the user and their coding preferences, based on the current chat history.",
 				"canBeReferencedInPrompt": true,
 				"tags": [],
@@ -567,13 +562,13 @@
 						"facts"
 					]
 				},
-				"when": "config.github.copilot.chat.enableUserPreferences"
+				"when": "config.darbot.chat.enableUserPreferences"
 			},
 			{
-				"name": "copilot_runTests",
+				"name": "darbot_runTests",
 				"toolReferenceName": "runTests",
 				"canBeReferencedInPrompt": true,
-				"displayName": "%copilot.tools.runTests.name%",
+				"displayName": "%darbot.tools.runTests.name%",
 				"modelDescription": "Runs unit tests in files. Use this tool if the user asks to run tests or when you want to validate changes using unit tests. When possible, always try to provide `files` paths containing the relevant unit tests in order to avoid unnecessarily long test runs.",
 				"inputSchema": {
 					"type": "object",
@@ -596,30 +591,30 @@
 				]
 			},
 			{
-				"name": "copilot_getTerminalSelection",
+				"name": "darbot_getTerminalSelection",
 				"toolReferenceName": "terminalSelection",
-				"displayName": "%github.copilot.tools.terminalSelection.name%",
+				"displayName": "%darbot.tools.terminalSelection.name%",
 				"modelDescription": "Get the user's current selection in the active terminal.",
-				"userDescription": "%github.copilot.tools.terminalSelection.description%",
+				"userDescription": "%darbot.tools.terminalSelection.description%",
 				"canBeReferencedInPrompt": true,
 				"icon": "$(terminal)"
 			},
 			{
-				"name": "copilot_getTerminalLastCommand",
+				"name": "darbot_getTerminalLastCommand",
 				"toolReferenceName": "terminalLastCommand",
-				"displayName": "%github.copilot.tools.terminalLastCommand.name%",
+				"displayName": "%darbot.tools.terminalLastCommand.name%",
 				"modelDescription": "Get the active terminal's last run command.",
-				"userDescription": "%github.copilot.tools.terminalLastCommand.description%",
+				"userDescription": "%darbot.tools.terminalLastCommand.description%",
 				"canBeReferencedInPrompt": true,
 				"icon": "$(terminal)"
 			},
 			{
-				"name": "copilot_createNewWorkspace",
-				"displayName": "%github.copilot.tools.createNewWorkspace.name%",
+				"name": "darbot_createNewWorkspace",
+				"displayName": "%darbot.tools.createNewWorkspace.name%",
 				"toolReferenceName": "newWorkspace",
 				"icon": "$(new-folder)",
-				"userDescription": "%github.copilot.tools.createNewWorkspace.userDescription%",
-				"when": "config.github.copilot.chat.newWorkspaceCreation.enabled",
+				"userDescription": "%darbot.tools.createNewWorkspace.userDescription%",
+				"when": "config.darbot.chat.newWorkspaceCreation.enabled",
 				"modelDescription": "Get steps to help the user create any project in a VS Code workspace. Use this tool to help users set up new projects, including TypeScript-based projects, Model Context Protocol (MCP) servers, VS Code extensions, Next.js projects, Vite projects, or any other project.",
 				"inputSchema": {
 					"type": "object",
@@ -639,13 +634,13 @@
 				]
 			},
 			{
-				"name": "copilot_createAndRunTask",
-				"displayName": "%github.copilot.tools.createAndRunTask.name%",
+				"name": "darbot_createAndRunTask",
+				"displayName": "%darbot.tools.createAndRunTask.name%",
 				"toolReferenceName": "createAndRunTask",
 				"canBeReferencedInPrompt": false,
 				"icon": "$(json)",
-				"userDescription": "%github.copilot.tools.createAndRunTask.userDescription%",
-				"when": "config.github.copilot.chat.agent.runTasks",
+				"userDescription": "%darbot.tools.createAndRunTask.userDescription%",
+				"when": "config.darbot.chat.agent.runTasks",
 				"modelDescription": "For a workspace, this tool will create a task based on the package.json, README.md, and project structure so that the project can be built and run.",
 				"inputSchema": {
 					"type": "object",
@@ -713,9 +708,9 @@
 				]
 			},
 			{
-				"name": "copilot_getProjectSetupInfo",
-				"displayName": "%github.copilot.tools.getProjectSetupInfo.name%",
-				"when": "config.github.copilot.chat.newWorkspaceCreation.enabled",
+				"name": "darbot_getProjectSetupInfo",
+				"displayName": "%darbot.tools.getProjectSetupInfo.name%",
+				"when": "config.darbot.chat.newWorkspaceCreation.enabled",
 				"toolReferenceName": "getProjectSetupInfo",
 				"modelDescription": "Do not call this tool without first calling the tool to create a workspace. This tool provides a project setup information for a Visual Studio Code workspace based on a project type and programming language.",
 				"inputSchema": {
@@ -737,9 +732,9 @@
 				"tags": []
 			},
 			{
-				"name": "copilot_installExtension",
+				"name": "darbot_installExtension",
 				"displayName": "Install Extension in VS Code",
-				"when": "config.github.copilot.chat.newWorkspaceCreation.enabled",
+				"when": "config.darbot.chat.newWorkspaceCreation.enabled",
 				"toolReferenceName": "installExtension",
 				"modelDescription": "Install an extension in VS Code. Use this tool to install an extension in Visual Studio Code as part of a new workspace creation process only.",
 				"inputSchema": {
@@ -762,9 +757,9 @@
 				"tags": []
 			},
 			{
-				"name": "copilot_runVscodeCommand",
+				"name": "darbot_runVscodeCommand",
 				"displayName": "Run VS Code Command",
-				"when": "config.github.copilot.chat.newWorkspaceCreation.enabled",
+				"when": "config.darbot.chat.newWorkspaceCreation.enabled",
 				"toolReferenceName": "runVscodeCommand",
 				"modelDescription": "Run a command in VS Code. Use this tool to run a command in Visual Studio Code as part of a new workspace creation process only.",
 				"inputSchema": {
@@ -794,12 +789,12 @@
 				"tags": []
 			},
 			{
-				"name": "copilot_createNewJupyterNotebook",
+				"name": "darbot_createNewJupyterNotebook",
 				"displayName": "Create New Jupyter Notebook",
 				"icon": "$(notebook)",
 				"toolReferenceName": "newJupyterNotebook",
 				"modelDescription": "Generates a new Jupyter Notebook (.ipynb) in VS Code. Jupyter Notebooks are interactive documents commonly used for data exploration, analysis, visualization, and combining code with narrative text. This tool should only be called when the user explicitly requests to create a new Jupyter Notebook.",
-				"userDescription": "%copilot.tools.newJupyterNotebook.description%",
+				"userDescription": "%darbot.tools.newJupyterNotebook.description%",
 				"inputSchema": {
 					"type": "object",
 					"properties": {
@@ -815,7 +810,7 @@
 				"tags": []
 			},
 			{
-				"name": "copilot_runVsCodeTask",
+				"name": "darbot_runVsCodeTask",
 				"displayName": "runVsCodeTask",
 				"toolReferenceName": "runTask",
 				"modelDescription": "Runs a VS Code task.\n\n- If you see that an appropriate task exists for building or running code, prefer to use this tool to run the task instead of using the run_in_terminal tool.\n- Make sure that any appropriate build or watch task is running before trying to run tests or execute code.\n- If the user asks to run a task, use this tool to do so.",
@@ -838,9 +833,9 @@
 				}
 			},
 			{
-				"name": "copilot_insertEdit",
+				"name": "darbot_insertEdit",
 				"toolReferenceName": "insertEdit",
-				"displayName": "%copilot.tools.insertEdit.name%",
+				"displayName": "%darbot.tools.insertEdit.name%",
 				"modelDescription": "Insert new code into an existing file in the workspace. Use this tool once per file that needs to be modified, even if there are multiple changes for a file. Generate the \"explanation\" property first.\nThe system is very smart and can understand how to apply your edits to the files, you just need to provide minimal hints.\nAvoid repeating existing code, instead use comments to represent regions of unchanged code. Be as concise as possible. For example:\n// ...existing code...\n{ changed code }\n// ...existing code...\n{ changed code }\n// ...existing code...\n\nHere is an example of how you should use format an edit to an existing Person class:\nclass Person {\n\t// ...existing code...\n\tage: number;\n\t// ...existing code...\n\tgetAge() {\n\treturn this.age;\n\t}\n}",
 				"tags": [],
 				"inputSchema": {
@@ -867,9 +862,9 @@
 				}
 			},
 			{
-				"name": "copilot_createFile",
+				"name": "darbot_createFile",
 				"toolReferenceName": "createFile",
-				"displayName": "%copilot.tools.createFile.name%",
+				"displayName": "%darbot.tools.createFile.name%",
 				"modelDescription": "This is a tool for creating a new file in the workspace. The file will be created with the specified content. The directory will be created if it does not already exist. Never use this tool to edit a file that already exists.",
 				"tags": [],
 				"inputSchema": {
@@ -891,9 +886,9 @@
 				}
 			},
 			{
-				"name": "copilot_createDirectory",
+				"name": "darbot_createDirectory",
 				"toolReferenceName": "createDirectory",
-				"displayName": "%copilot.tools.createDirectory.name%",
+				"displayName": "%darbot.tools.createDirectory.name%",
 				"modelDescription": "Create a new directory structure in the workspace. Will recursively create all directories in the path, like mkdir -p. You do not need to use this tool before using create_file, that tool will automatically create the needed directories.",
 				"tags": [],
 				"inputSchema": {
@@ -910,10 +905,10 @@
 				}
 			},
 			{
-				"name": "copilot_openSimpleBrowser",
-				"displayName": "%copilot.tools.openSimpleBrowser.name%",
+				"name": "darbot_openSimpleBrowser",
+				"displayName": "%darbot.tools.openSimpleBrowser.name%",
 				"modelDescription": "Preview a website or open a URL in the editor's Simple Browser. Useful for quickly viewing locally hosted websites, demos, or resources without leaving the coding environment.",
-				"userDescription": "%copilot.tools.openSimpleBrowser.description%",
+				"userDescription": "%darbot.tools.openSimpleBrowser.description%",
 				"toolReferenceName": "openSimpleBrowser",
 				"canBeReferencedInPrompt": true,
 				"tags": [],
@@ -931,11 +926,11 @@
 				}
 			},
 			{
-				"name": "copilot_replaceString",
+				"name": "darbot_replaceString",
 				"toolReferenceName": "replaceString",
-				"displayName": "%copilot.tools.replaceString.name%",
+				"displayName": "%darbot.tools.replaceString.name%",
 				"modelDescription": "This is a tool for making edits in an existing file in the workspace. For moving or renaming files, use run in terminal tool with the 'mv' command instead. For larger edits, split them into smaller edits and call the edit tool multiple times to ensure accuracy. Before editing, always ensure you have the context to understand the file's contents and context. To edit a file, provide: 1) filePath (absolute path), 2) oldString (must exactly match, including whitespace and indentation, uniquely identifying a single occurrence), and 3) newString (replacement text). Each use of this tool replaces exactly ONE occurrence of oldString. CRITICAL REQUIREMENTS: ensure oldString uniquely identifies the change by including at least 3-5 lines of context both before and after the target text, preserving whitespace and indentation exactly. Never use ...existing code... comments in the oldString or newString. Edits must result in valid, idiomatic code and not leave the file broken!",
-				"when": "!config.github.copilot.chat.disableReplaceTool",
+				"when": "!config.darbot.chat.disableReplaceTool",
 				"inputSchema": {
 					"type": "object",
 					"properties": {
@@ -960,9 +955,9 @@
 				}
 			},
 			{
-				"name": "copilot_editNotebook",
+				"name": "darbot_editNotebook",
 				"toolReferenceName": "editNotebook",
-				"displayName": "%copilot.tools.editNotebook.name%",
+				"displayName": "%darbot.tools.editNotebook.name%",
 				"modelDescription": "This is a tool for editing an existing Notebook file in the workspace. Generate the \"explanation\" property first.\nThe system is very smart and can understand how to apply your edits to the notebooks.\nWhen updating the content of an existing cell, ensure newCode includes at least 3-5 lines of context both before and after the new changes, preserving whitespace and indentation exactly.",
 				"tags": [],
 				"inputSchema": {
@@ -1017,12 +1012,12 @@
 				}
 			},
 			{
-				"name": "copilot_runNotebookCell",
-				"displayName": "%copilot.tools.runNotebookCell.name%",
+				"name": "darbot_runNotebookCell",
+				"displayName": "%darbot.tools.runNotebookCell.name%",
 				"toolReferenceName": "runCell",
 				"icon": "$(play)",
 				"modelDescription": "This is a tool for running a code cell in a notebook file directly in the notebook editor. The output from the execution will be returned. Code cells should be run as they are added or edited when working through a problem to bring the kernel state up to date and ensure the code executes successfully. Code cells are ready to run and don't require any pre-processing. If asked to run the first cell in a notebook, you should run the first code cell since markdown cells cannot be executed. NOTE: Avoid executing Markdown cells or providing Markdown cell IDs, as Markdown cells cannot be  executed.",
-				"userDescription": "%copilot.tools.runNotebookCell.description%",
+				"userDescription": "%darbot.tools.runNotebookCell.description%",
 				"tags": [
 					"enable_other_tool_copilot_getNotebookSummary"
 				],
@@ -1053,7 +1048,7 @@
 				}
 			},
 			{
-				"name": "copilot_getNotebookSummary",
+				"name": "darbot_getNotebookSummary",
 				"toolReferenceName": "getNotebookSummary",
 				"displayName": "Get the structure of a notebook",
 				"modelDescription": "This is a tool returns the list of the Notebook cells along with the id, cell types, language, execution information and output mime types for each cell. This is useful to get Cell Ids when executing a notebook or determine what cells have been executed and what order, or what cells have outputs. Requery this tool if the contents of the notebook change.",
@@ -1072,13 +1067,13 @@
 				}
 			},
 			{
-				"name": "copilot_readNotebookCellOutput",
-				"displayName": "%copilot.tools.getNotebookCellOutput.name%",
+				"name": "darbot_readNotebookCellOutput",
+				"displayName": "%darbot.tools.getNotebookCellOutput.name%",
 				"toolReferenceName": "readNotebookCellOutput",
 				"canBeReferencedInPrompt": true,
 				"icon": "$(notebook-render-output)",
 				"modelDescription": "This tool will retrieve the output for a notebook cell from its most recent execution or restored from disk. The cell may have output even when it has not been run in the current kernel session. This tool has a higher token limit for output length than the runNotebookCell tool.",
-				"userDescription": "%copilot.tools.getNotebookCellOutput.description%",
+				"userDescription": "%darbot.tools.getNotebookCellOutput.description%",
 				"when": "userHasOpenedNotebook",
 				"tags": [],
 				"inputSchema": {
@@ -1100,13 +1095,13 @@
 				}
 			},
 			{
-				"name": "copilot_fetchWebPage",
-				"displayName": "%copilot.tools.fetchWebPage.name%",
+				"name": "darbot_fetchWebPage",
+				"displayName": "%darbot.tools.fetchWebPage.name%",
 				"toolReferenceName": "fetch",
 				"when": "!isWeb",
 				"canBeReferencedInPrompt": true,
 				"icon": "$(globe)",
-				"userDescription": "%copilot.tools.fetchWebPage.description%",
+				"userDescription": "%darbot.tools.fetchWebPage.description%",
 				"modelDescription": "Fetches the main content from a web page. This tool is useful for summarizing or analyzing the content of a webpage. You should use this tool when you think the user is looking for information from a specific webpage.",
 				"tags": [],
 				"inputSchema": {
@@ -1131,12 +1126,12 @@
 				}
 			},
 			{
-				"name": "copilot_findTestFiles",
-				"displayName": "%copilot.tools.findTestFiles.name%",
+				"name": "darbot_findTestFiles",
+				"displayName": "%darbot.tools.findTestFiles.name%",
 				"icon": "$(beaker)",
 				"canBeReferencedInPrompt": true,
 				"toolReferenceName": "findTestFiles",
-				"userDescription": "%copilot.tools.findTestFiles.description%",
+				"userDescription": "%darbot.tools.findTestFiles.description%",
 				"modelDescription": "For a source code file, find the file that contains the tests. For a test file find the file that contains the code under test.",
 				"tags": [],
 				"inputSchema": {
@@ -1155,12 +1150,12 @@
 				}
 			},
 			{
-				"name": "copilot_getDocInfo",
-				"displayName": "%copilot.tools.getDocInfo.name%",
+				"name": "darbot_getDocInfo",
+				"displayName": "%darbot.tools.getDocInfo.name%",
 				"icon": "$(beaker)",
 				"canBeReferencedInPrompt": false,
 				"toolReferenceName": "docInfo",
-				"userDescription": "%copilot.tools.getDocInfo.description%",
+				"userDescription": "%darbot.tools.getDocInfo.description%",
 				"modelDescription": "Find information about how to document it a symbol like a class or function. This tool is useful for generating documentation comments for code symbols. You should use this tool when you think the user is looking for information about how to document a specific code symbol.",
 				"tags": [],
 				"inputSchema": {
@@ -1180,20 +1175,20 @@
 				}
 			},
 			{
-				"name": "copilot_getSearchResults",
+				"name": "darbot_getSearchResults",
 				"toolReferenceName": "searchResults",
-				"displayName": "%github.copilot.tools.searchResults.name%",
+				"displayName": "%darbot.tools.searchResults.name%",
 				"icon": "$(search)",
-				"userDescription": "%github.copilot.tools.searchResults.description%",
+				"userDescription": "%darbot.tools.searchResults.description%",
 				"modelDescription": "The results from the search view",
 				"canBeReferencedInPrompt": true
 			},
 			{
-				"name": "copilot_githubRepo",
+				"name": "darbot_githubRepo",
 				"toolReferenceName": "githubRepo",
-				"displayName": "%github.copilot.tools.githubRepo.name%",
+				"displayName": "%darbot.tools.githubRepo.name%",
 				"modelDescription": "Searches a GitHub repository for relevant source code snippets. Only use this tool if the user is very clearly asking for code snippets from a specific GitHub repository. Do not use this tool for Github repos that the user has open in their workspace.",
-				"userDescription": "%github.copilot.tools.githubRepo.userDescription%",
+				"userDescription": "%darbot.tools.githubRepo.userDescription%",
 				"icon": "$(repo)",
 				"canBeReferencedInPrompt": true,
 				"inputSchema": {
@@ -1218,7 +1213,7 @@
 		"languageModelToolSets": [
 			{
 				"name": "editFiles",
-				"description": "%copilot.toolSet.editing.description%",
+				"description": "%darbot.toolSet.editing.description%",
 				"icon": "$(pencil)",
 				"tools": [
 					"insertEdit",
@@ -1232,7 +1227,7 @@
 			},
 			{
 				"name": "runNotebooks",
-				"description": "%copilot.toolSet.runNotebook.description%",
+				"description": "%darbot.toolSet.runNotebook.description%",
 				"icon": "$(notebook)",
 				"tools": [
 					"runCell",
@@ -1242,7 +1237,7 @@
 			},
 			{
 				"name": "runCommands",
-				"description": "%copilot.toolSet.runCommand.description%",
+				"description": "%darbot.toolSet.runCommand.description%",
 				"icon": "$(terminal)",
 				"tools": [
 					"runInTerminal",
@@ -1251,7 +1246,7 @@
 			},
 			{
 				"name": "search",
-				"description": "%copilot.toolSet.search.description%",
+				"description": "%darbot.toolSet.search.description%",
 				"icon": "$(search)",
 				"tools": [
 					"fileSearch",
@@ -1263,7 +1258,7 @@
 			},
 			{
 				"name": "new",
-				"description": "%copilot.toolSet.new.description%",
+				"description": "%darbot.toolSet.new.description%",
 				"icon": "$(new-folder)",
 				"tools": [
 					"newWorkspace",
@@ -1274,7 +1269,7 @@
 			},
 			{
 				"name": "runTasks",
-				"description": "%copilot.toolSet.runTasks.description%",
+				"description": "%darbot.toolSet.runTasks.description%",
 				"tools": [
 					"createAndRunTask",
 					"runTask",
@@ -1284,10 +1279,10 @@
 		],
 		"chatParticipants": [
 			{
-				"id": "github.copilot.default",
+				"id": "darbot.default",
 				"name": "GitHubCopilot",
 				"fullName": "GitHub Copilot",
-				"description": "%copilot.description%",
+				"description": "%darbot.description%",
 				"isDefault": true,
 				"locations": [
 					"panel"
@@ -1320,10 +1315,10 @@
 				]
 			},
 			{
-				"id": "github.copilot.editingSession",
+				"id": "darbot.editingSession",
 				"name": "GitHubCopilot",
 				"fullName": "GitHub Copilot",
-				"description": "%copilot.edits.description%",
+				"description": "%darbot.edits.description%",
 				"isDefault": true,
 				"locations": [
 					"panel"
@@ -1334,12 +1329,12 @@
 				"when": "!config.chat.edits2.enabled"
 			},
 			{
-				"id": "github.copilot.editingSessionEditor",
+				"id": "darbot.editingSessionEditor",
 				"name": "GitHubCopilot",
 				"fullName": "GitHub Copilot",
-				"description": "%copilot.edits.description%",
+				"description": "%darbot.edits.description%",
 				"isDefault": true,
-				"when": "config.inlineChat.enableV2 || config.github.copilot.chat.advanced.inlineChat2",
+				"when": "config.inlineChat.enableV2 || config.darbot.chat.advanced.inlineChat2",
 				"locations": [
 					"editor",
 					"notebook"
@@ -1347,8 +1342,8 @@
 				"commands": [
 					{
 						"name": "fix",
-						"description": "%copilot.workspace.fix.description%",
-						"when": "config.inlineChat.enableV2 || config.github.copilot.chat.advanced.inlineChat2",
+						"description": "%darbot.workspace.fix.description%",
+						"when": "config.inlineChat.enableV2 || config.darbot.chat.advanced.inlineChat2",
 						"disambiguation": [
 							{
 								"category": "fix",
@@ -1361,8 +1356,8 @@
 					},
 					{
 						"name": "tests",
-						"description": "%copilot.workspace.tests.description%",
-						"when": "config.inlineChat.enableV2 || config.github.copilot.chat.advanced.inlineChat2",
+						"description": "%darbot.workspace.tests.description%",
+						"when": "config.inlineChat.enableV2 || config.darbot.chat.advanced.inlineChat2",
 						"disambiguation": [
 							{
 								"category": "tests",
@@ -1375,8 +1370,8 @@
 					},
 					{
 						"name": "doc",
-						"description": "%copilot.workspace.doc.description%",
-						"when": "config.inlineChat.enableV2 || config.github.copilot.chat.advanced.inlineChat2",
+						"description": "%darbot.workspace.doc.description%",
+						"when": "config.inlineChat.enableV2 || config.darbot.chat.advanced.inlineChat2",
 						"disambiguation": [
 							{
 								"category": "doc",
@@ -1390,10 +1385,10 @@
 				]
 			},
 			{
-				"id": "github.copilot.editingSession2",
+				"id": "darbot.editingSession2",
 				"name": "GitHubCopilot",
 				"fullName": "GitHub Copilot",
-				"description": "%copilot.edits.description%",
+				"description": "%darbot.edits.description%",
 				"isDefault": true,
 				"locations": [
 					"panel"
@@ -1404,10 +1399,10 @@
 				"when": "config.chat.edits2.enabled"
 			},
 			{
-				"id": "github.copilot.editsAgent",
+				"id": "darbot.editsAgent",
 				"name": "agent",
 				"fullName": "GitHub Copilot",
-				"description": "%copilot.agent.description%",
+				"description": "%darbot.agent.description%",
 				"locations": [
 					"panel"
 				],
@@ -1424,20 +1419,20 @@
 					{
 						"name": "error",
 						"description": "Make a model request which will result in an error",
-						"when": "github.copilot.chat.debug"
+						"when": "darbot.chat.debug"
 					}
 				]
 			},
 			{
-				"id": "github.copilot.editor",
+				"id": "darbot.editor",
 				"name": "Copilot",
 				"fullName": "GitHub Copilot",
-				"description": "%copilot.description%",
+				"description": "%darbot.description%",
 				"isDefault": true,
 				"locations": [
 					"editor"
 				],
-				"when": "!config.inlineChat.enableV2 && !config.github.copilot.chat.advanced.inlineChat2",
+				"when": "!config.inlineChat.enableV2 && !config.darbot.chat.advanced.inlineChat2",
 				"disambiguation": [
 					{
 						"category": "unknown",
@@ -1450,7 +1445,7 @@
 				"commands": [
 					{
 						"name": "generate",
-						"description": "%copilot.workspace.generate.description%",
+						"description": "%darbot.workspace.generate.description%",
 						"disambiguation": [
 							{
 								"category": "generate",
@@ -1463,7 +1458,7 @@
 					},
 					{
 						"name": "edit",
-						"description": "%copilot.workspace.edit.inline.description%",
+						"description": "%darbot.workspace.edit.inline.description%",
 						"disambiguation": [
 							{
 								"category": "edit",
@@ -1476,7 +1471,7 @@
 					},
 					{
 						"name": "doc",
-						"description": "%copilot.workspace.doc.description%",
+						"description": "%darbot.workspace.doc.description%",
 						"disambiguation": [
 							{
 								"category": "doc",
@@ -1489,7 +1484,7 @@
 					},
 					{
 						"name": "fix",
-						"description": "%copilot.workspace.fix.description%",
+						"description": "%darbot.workspace.fix.description%",
 						"disambiguation": [
 							{
 								"category": "fix",
@@ -1502,7 +1497,7 @@
 					},
 					{
 						"name": "explain",
-						"description": "%copilot.workspace.explain.description%",
+						"description": "%darbot.workspace.explain.description%",
 						"disambiguation": [
 							{
 								"category": "explain",
@@ -1515,12 +1510,12 @@
 					},
 					{
 						"name": "review",
-						"description": "%copilot.workspace.review.description%",
-						"when": "github.copilot.advanced.review.intent"
+						"description": "%darbot.workspace.review.description%",
+						"when": "darbot.advanced.review.intent"
 					},
 					{
 						"name": "tests",
-						"description": "%copilot.workspace.tests.description%",
+						"description": "%darbot.workspace.tests.description%",
 						"disambiguation": [
 							{
 								"category": "tests",
@@ -1534,32 +1529,32 @@
 				]
 			},
 			{
-				"id": "github.copilot.notebook",
+				"id": "darbot.notebook",
 				"name": "GitHubCopilot",
 				"fullName": "GitHub Copilot",
-				"description": "%copilot.description%",
+				"description": "%darbot.description%",
 				"isDefault": true,
 				"locations": [
 					"notebook"
 				],
-				"when": "!config.inlineChat.enableV2 && !config.github.copilot.chat.advanced.inlineChat2",
+				"when": "!config.inlineChat.enableV2 && !config.darbot.chat.advanced.inlineChat2",
 				"commands": [
 					{
 						"name": "fix",
-						"description": "%copilot.workspace.fix.description%"
+						"description": "%darbot.workspace.fix.description%"
 					},
 					{
 						"name": "explain",
-						"description": "%copilot.workspace.explain.description%"
+						"description": "%darbot.workspace.explain.description%"
 					}
 				]
 			},
 			{
-				"id": "github.copilot.workspace",
+				"id": "darbot.workspace",
 				"name": "workspace",
 				"fullName": "Workspace",
-				"description": "%copilot.workspace.description%",
-				"sampleRequest": "%copilot.workspace.sampleRequest%",
+				"description": "%darbot.workspace.description%",
+				"sampleRequest": "%darbot.workspace.sampleRequest%",
 				"locations": [
 					"panel"
 				],
@@ -1589,16 +1584,16 @@
 				"commands": [
 					{
 						"name": "explain",
-						"description": "%copilot.workspace.explain.description%"
+						"description": "%darbot.workspace.explain.description%"
 					},
 					{
 						"name": "review",
-						"description": "%copilot.workspace.review.description%",
-						"when": "github.copilot.advanced.review.intent"
+						"description": "%darbot.workspace.review.description%",
+						"when": "darbot.advanced.review.intent"
 					},
 					{
 						"name": "tests",
-						"description": "%copilot.workspace.tests.description%",
+						"description": "%darbot.workspace.tests.description%",
 						"disambiguation": [
 							{
 								"category": "create_tests",
@@ -1611,13 +1606,13 @@
 					},
 					{
 						"name": "fix",
-						"description": "%copilot.workspace.fix.description%",
-						"sampleRequest": "%copilot.workspace.fix.sampleRequest%"
+						"description": "%darbot.workspace.fix.description%",
+						"sampleRequest": "%darbot.workspace.fix.sampleRequest%"
 					},
 					{
 						"name": "new",
-						"description": "%copilot.workspace.new.description%",
-						"sampleRequest": "%copilot.workspace.new.sampleRequest%",
+						"description": "%darbot.workspace.new.description%",
+						"sampleRequest": "%darbot.workspace.new.sampleRequest%",
 						"isSticky": true,
 						"disambiguation": [
 							{
@@ -1633,8 +1628,8 @@
 					},
 					{
 						"name": "newNotebook",
-						"description": "%copilot.workspace.newNotebook.description%",
-						"sampleRequest": "%copilot.workspace.newNotebook.sampleRequest%",
+						"description": "%darbot.workspace.newNotebook.description%",
+						"sampleRequest": "%darbot.workspace.newNotebook.sampleRequest%",
 						"disambiguation": [
 							{
 								"category": "create_jupyter_notebook",
@@ -1647,15 +1642,15 @@
 					},
 					{
 						"name": "semanticSearch",
-						"description": "%copilot.workspace.semanticSearch.description%",
-						"sampleRequest": "%copilot.workspace.semanticSearch.sampleRequest%",
-						"when": "config.github.copilot.semanticSearch.enabled"
+						"description": "%darbot.workspace.semanticSearch.description%",
+						"sampleRequest": "%darbot.workspace.semanticSearch.sampleRequest%",
+						"when": "config.darbot.semanticSearch.enabled"
 					},
 					{
 						"name": "setupTests",
-						"description": "%copilot.vscode.setupTests.description%",
-						"sampleRequest": "%copilot.vscode.setupTests.sampleRequest%",
-						"when": "config.github.copilot.chat.setupTests.enabled",
+						"description": "%darbot.vscode.setupTests.description%",
+						"sampleRequest": "%darbot.vscode.setupTests.sampleRequest%",
+						"when": "config.darbot.chat.setupTests.enabled",
 						"disambiguation": [
 							{
 								"category": "set_up_tests",
@@ -1669,11 +1664,11 @@
 				]
 			},
 			{
-				"id": "github.copilot.vscode",
+				"id": "darbot.vscode",
 				"name": "vscode",
 				"fullName": "VS Code",
-				"description": "%copilot.vscode.description%",
-				"sampleRequest": "%copilot.vscode.sampleRequest%",
+				"description": "%darbot.vscode.description%",
+				"sampleRequest": "%darbot.vscode.sampleRequest%",
 				"locations": [
 					"panel"
 				],
@@ -1699,23 +1694,23 @@
 				"commands": [
 					{
 						"name": "search",
-						"description": "%copilot.vscode.search.description%",
-						"sampleRequest": "%copilot.vscode.search.sampleRequest%"
+						"description": "%darbot.vscode.search.description%",
+						"sampleRequest": "%darbot.vscode.search.sampleRequest%"
 					},
 					{
 						"name": "startDebugging",
-						"description": "%copilot.vscode.startDebugging.description%",
-						"sampleRequest": "%copilot.vscode.startDebugging.sampleRequest%",
-						"when": "config.github.copilot.chat.startDebugging.enabled"
+						"description": "%darbot.vscode.startDebugging.description%",
+						"sampleRequest": "%darbot.vscode.startDebugging.sampleRequest%",
+						"when": "config.darbot.chat.startDebugging.enabled"
 					}
 				]
 			},
 			{
-				"id": "github.copilot.terminal",
+				"id": "darbot.terminal",
 				"name": "terminal",
 				"fullName": "Terminal",
-				"description": "%copilot.terminal.description%",
-				"sampleRequest": "%copilot.terminal.sampleRequest%",
+				"description": "%darbot.terminal.description%",
+				"sampleRequest": "%darbot.terminal.sampleRequest%",
 				"isDefault": true,
 				"locations": [
 					"terminal"
@@ -1723,25 +1718,25 @@
 				"commands": [
 					{
 						"name": "explain",
-						"description": "%copilot.terminal.explain.description%",
-						"sampleRequest": "%copilot.terminal.explain.sampleRequest%"
+						"description": "%darbot.terminal.explain.description%",
+						"sampleRequest": "%darbot.terminal.explain.sampleRequest%"
 					}
 				]
 			},
 			{
-				"id": "github.copilot.terminalPanel",
+				"id": "darbot.terminalPanel",
 				"name": "terminal",
 				"fullName": "Terminal",
-				"description": "%copilot.terminalPanel.description%",
-				"sampleRequest": "%copilot.terminal.sampleRequest%",
+				"description": "%darbot.terminalPanel.description%",
+				"sampleRequest": "%darbot.terminal.sampleRequest%",
 				"locations": [
 					"panel"
 				],
 				"commands": [
 					{
 						"name": "explain",
-						"description": "%copilot.terminal.explain.description%",
-						"sampleRequest": "%copilot.terminal.explain.sampleRequest%",
+						"description": "%darbot.terminal.explain.description%",
+						"sampleRequest": "%darbot.terminal.explain.sampleRequest%",
 						"disambiguation": [
 							{
 								"category": "terminal_state_questions",
@@ -1768,421 +1763,421 @@
 				"label": "GitHub Copilot",
 				"id": "copilot",
 				"icon": "",
-				"when": "!github.copilot.interactiveSession.disabled"
+				"when": "!darbot.interactiveSession.disabled"
 			}
 		],
 		"viewsWelcome": [
 			{
 				"view": "debug",
 				"when": "github.copilot-chat.activated",
-				"contents": "%github.copilot.viewsWelcome.debug%"
+				"contents": "%darbot.viewsWelcome.debug%"
 			}
 		],
 		"chatViewsWelcome": [
 			{
 				"icon": "$(copilot-large)",
 				"title": "Ask Copilot",
-				"content": "%github.copilot.viewsWelcome.signIn%",
-				"when": "!github.copilot-chat.activated && !github.copilot.offline && !github.copilot.interactiveSession.individual.expired && !github.copilot.interactiveSession.enterprise.disabled && !github.copilot.interactiveSession.contactSupport && !github.copilot.interactiveSession.chatDisabled && !github.copilot.interactiveSession.switchToReleaseChannel"
+				"content": "%darbot.viewsWelcome.signIn%",
+				"when": "!github.copilot-chat.activated && !darbot.offline && !darbot.interactiveSession.individual.expired && !darbot.interactiveSession.enterprise.disabled && !darbot.interactiveSession.contactSupport && !darbot.interactiveSession.chatDisabled && !darbot.interactiveSession.switchToReleaseChannel"
 			},
 			{
 				"icon": "$(copilot-large)",
 				"title": "Ask Copilot",
-				"content": "%github.copilot.viewsWelcome.individual.expired%",
-				"when": "github.copilot.interactiveSession.individual.expired"
+				"content": "%darbot.viewsWelcome.individual.expired%",
+				"when": "darbot.interactiveSession.individual.expired"
 			},
 			{
 				"icon": "$(copilot-large)",
 				"title": "Ask Copilot",
-				"content": "%github.copilot.viewsWelcome.enterprise%",
-				"when": "github.copilot.interactiveSession.enterprise.disabled"
+				"content": "%darbot.viewsWelcome.enterprise%",
+				"when": "darbot.interactiveSession.enterprise.disabled"
 			},
 			{
 				"icon": "$(copilot-large)",
 				"title": "Ask Copilot",
-				"content": "%github.copilot.viewsWelcome.offline%",
-				"when": "github.copilot.offline"
+				"content": "%darbot.viewsWelcome.offline%",
+				"when": "darbot.offline"
 			},
 			{
 				"icon": "$(copilot-large)",
 				"title": "Ask Copilot",
-				"content": "%github.copilot.viewsWelcome.contactSupport%",
-				"when": "github.copilot.interactiveSession.contactSupport"
+				"content": "%darbot.viewsWelcome.contactSupport%",
+				"when": "darbot.interactiveSession.contactSupport"
 			},
 			{
 				"icon": "$(copilot-large)",
 				"title": "Ask Copilot",
-				"content": "%github.copilot.viewsWelcome.chatDisabled%",
-				"when": "github.copilot.interactiveSession.chatDisabled"
+				"content": "%darbot.viewsWelcome.chatDisabled%",
+				"when": "darbot.interactiveSession.chatDisabled"
 			},
 			{
 				"icon": "$(copilot-large)",
 				"title": "Ask Copilot",
-				"content": "%github.copilot.viewsWelcome.switchToReleaseChannel%",
-				"when": "github.copilot.interactiveSession.switchToReleaseChannel"
+				"content": "%darbot.viewsWelcome.switchToReleaseChannel%",
+				"when": "darbot.interactiveSession.switchToReleaseChannel"
 			}
 		],
 		"commands": [
 			{
-				"command": "github.copilot.chat.explain",
-				"title": "%github.copilot.command.explainThis%",
-				"enablement": "!github.copilot.interactiveSession.disabled",
+				"command": "darbot.chat.explain",
+				"title": "%darbot.command.explainThis%",
+				"enablement": "!darbot.interactiveSession.disabled",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.explain.palette",
-				"title": "%github.copilot.command.explainThis%",
-				"enablement": "!github.copilot.interactiveSession.disabled && !editorReadonly",
+				"command": "darbot.chat.explain.palette",
+				"title": "%darbot.command.explainThis%",
+				"enablement": "!darbot.interactiveSession.disabled && !editorReadonly",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review",
-				"title": "%github.copilot.command.reviewAndComment%",
-				"enablement": "github.copilot.chat.reviewSelection.enabled && !github.copilot.interactiveSession.disabled",
+				"command": "darbot.chat.review",
+				"title": "%darbot.command.reviewAndComment%",
+				"enablement": "darbot.chat.reviewSelection.enabled && !darbot.interactiveSession.disabled",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.apply",
-				"title": "%github.copilot.command.applyReviewSuggestion%",
+				"command": "darbot.chat.review.apply",
+				"title": "%darbot.command.applyReviewSuggestion%",
 				"icon": "$(sparkle)",
 				"enablement": "commentThread =~ /hasSuggestion/",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.applyAndNext",
-				"title": "%github.copilot.command.applyReviewSuggestionAndNext%",
+				"command": "darbot.chat.review.applyAndNext",
+				"title": "%darbot.command.applyReviewSuggestionAndNext%",
 				"icon": "$(sparkle)",
 				"enablement": "commentThread =~ /hasSuggestion/",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.discard",
-				"title": "%github.copilot.command.discardReviewSuggestion%",
+				"command": "darbot.chat.review.discard",
+				"title": "%darbot.command.discardReviewSuggestion%",
 				"icon": "$(close)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.discardAndNext",
-				"title": "%github.copilot.command.discardReviewSuggestionAndNext%",
+				"command": "darbot.chat.review.discardAndNext",
+				"title": "%darbot.command.discardReviewSuggestionAndNext%",
 				"icon": "$(close)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.discardAll",
-				"title": "%github.copilot.command.discardAllReviewSuggestion%",
+				"command": "darbot.chat.review.discardAll",
+				"title": "%darbot.command.discardAllReviewSuggestion%",
 				"icon": "$(close-all)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.stagedChanges",
-				"title": "%github.copilot.command.reviewStagedChanges%",
+				"command": "darbot.chat.review.stagedChanges",
+				"title": "%darbot.command.reviewStagedChanges%",
 				"icon": "$(code-review)",
-				"enablement": "github.copilot.chat.reviewDiff.enabled && !github.copilot.interactiveSession.disabled",
+				"enablement": "darbot.chat.reviewDiff.enabled && !darbot.interactiveSession.disabled",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.unstagedChanges",
-				"title": "%github.copilot.command.reviewUnstagedChanges%",
+				"command": "darbot.chat.review.unstagedChanges",
+				"title": "%darbot.command.reviewUnstagedChanges%",
 				"icon": "$(code-review)",
-				"enablement": "github.copilot.chat.reviewDiff.enabled && !github.copilot.interactiveSession.disabled",
+				"enablement": "darbot.chat.reviewDiff.enabled && !darbot.interactiveSession.disabled",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.changes",
-				"title": "%github.copilot.command.reviewChanges%",
+				"command": "darbot.chat.review.changes",
+				"title": "%darbot.command.reviewChanges%",
 				"icon": "$(code-review)",
-				"enablement": "github.copilot.chat.reviewDiff.enabled && !github.copilot.interactiveSession.disabled",
+				"enablement": "darbot.chat.reviewDiff.enabled && !darbot.interactiveSession.disabled",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.changes.cancel",
-				"title": "%github.copilot.command.reviewChanges.cancel%",
+				"command": "darbot.chat.review.changes.cancel",
+				"title": "%darbot.command.reviewChanges.cancel%",
 				"icon": "$(stop-circle)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.previous",
-				"title": "%github.copilot.command.gotoPreviousReviewSuggestion%",
+				"command": "darbot.chat.review.previous",
+				"title": "%darbot.command.gotoPreviousReviewSuggestion%",
 				"icon": "$(arrow-up)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.next",
-				"title": "%github.copilot.command.gotoNextReviewSuggestion%",
+				"command": "darbot.chat.review.next",
+				"title": "%darbot.command.gotoNextReviewSuggestion%",
 				"icon": "$(arrow-down)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.continueInInlineChat",
-				"title": "%github.copilot.command.continueReviewInInlineChat%",
+				"command": "darbot.chat.review.continueInInlineChat",
+				"title": "%darbot.command.continueReviewInInlineChat%",
 				"icon": "$(comment-discussion)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.continueInChat",
-				"title": "%github.copilot.command.continueReviewInChat%",
+				"command": "darbot.chat.review.continueInChat",
+				"title": "%darbot.command.continueReviewInChat%",
 				"icon": "$(comment-discussion)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.review.markHelpful",
-				"title": "%github.copilot.command.helpfulReviewSuggestion%",
+				"command": "darbot.chat.review.markHelpful",
+				"title": "%darbot.command.helpfulReviewSuggestion%",
 				"icon": "$(thumbsup)",
 				"enablement": "!(commentThread =~ /markedAsHelpful/)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.openUserPreferences",
-				"title": "%github.copilot.command.openUserPreferences%",
+				"command": "darbot.chat.openUserPreferences",
+				"title": "%darbot.command.openUserPreferences%",
 				"category": "GitHub Copilot",
-				"enablement": "config.github.copilot.chat.enableUserPreferences"
+				"enablement": "config.darbot.chat.enableUserPreferences"
 			},
 			{
-				"command": "github.copilot.chat.review.markUnhelpful",
-				"title": "%github.copilot.command.unhelpfulReviewSuggestion%",
+				"command": "darbot.chat.review.markUnhelpful",
+				"title": "%darbot.command.unhelpfulReviewSuggestion%",
 				"icon": "$(thumbsdown)",
 				"enablement": "!(commentThread =~ /markedAsUnhelpful/)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.generate",
-				"title": "%github.copilot.command.generateThis%",
+				"command": "darbot.chat.generate",
+				"title": "%darbot.command.generateThis%",
 				"icon": "$(sparkle)",
-				"enablement": "!github.copilot.interactiveSession.disabled && !editorReadonly",
+				"enablement": "!darbot.interactiveSession.disabled && !editorReadonly",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.generateDocs",
-				"title": "%github.copilot.command.generateDocs%",
-				"enablement": "!github.copilot.interactiveSession.disabled && !editorReadonly",
+				"command": "darbot.chat.generateDocs",
+				"title": "%darbot.command.generateDocs%",
+				"enablement": "!darbot.interactiveSession.disabled && !editorReadonly",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.generateTests",
-				"title": "%github.copilot.command.generateTests%",
-				"enablement": "!github.copilot.interactiveSession.disabled && !editorReadonly",
+				"command": "darbot.chat.generateTests",
+				"title": "%darbot.command.generateTests%",
+				"enablement": "!darbot.interactiveSession.disabled && !editorReadonly",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.fix",
-				"title": "%github.copilot.command.fixThis%",
-				"enablement": "!github.copilot.interactiveSession.disabled && !editorReadonly",
+				"command": "darbot.chat.fix",
+				"title": "%darbot.command.fixThis%",
+				"enablement": "!darbot.interactiveSession.disabled && !editorReadonly",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.interactiveSession.feedback",
-				"title": "%github.copilot.command.sendChatFeedback%",
-				"enablement": "github.copilot-chat.activated && !github.copilot.interactiveSession.disabled",
+				"command": "darbot.interactiveSession.feedback",
+				"title": "%darbot.command.sendChatFeedback%",
+				"enablement": "github.copilot-chat.activated && !darbot.interactiveSession.disabled",
 				"icon": "$(feedback)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.debug.workbenchState",
-				"title": "%github.copilot.command.logWorkbenchState%",
+				"command": "darbot.debug.workbenchState",
+				"title": "%darbot.command.logWorkbenchState%",
 				"category": "Developer"
 			},
 			{
-				"command": "github.copilot.debug.showChatLogView",
-				"title": "%github.copilot.command.showChatLogView%",
+				"command": "darbot.debug.showChatLogView",
+				"title": "%darbot.command.showChatLogView%",
 				"category": "Developer"
 			},
 			{
-				"command": "github.copilot.debug.showContextInspectorView",
-				"title": "%github.copilot.command.showContextInspectorView%",
+				"command": "darbot.debug.showContextInspectorView",
+				"title": "%darbot.command.showContextInspectorView%",
 				"icon": "$(inspect)",
 				"category": "Developer"
 			},
 			{
-				"command": "github.copilot.terminal.explainTerminalSelection",
-				"title": "%github.copilot.command.explainTerminalSelection%",
+				"command": "darbot.terminal.explainTerminalSelection",
+				"title": "%darbot.command.explainTerminalSelection%",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.terminal.explainTerminalSelectionContextMenu",
-				"title": "%github.copilot.command.explainTerminalSelectionContextMenu%",
+				"command": "darbot.terminal.explainTerminalSelectionContextMenu",
+				"title": "%darbot.command.explainTerminalSelectionContextMenu%",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.terminal.explainTerminalLastCommand",
-				"title": "%github.copilot.command.explainTerminalLastCommand%",
+				"command": "darbot.terminal.explainTerminalLastCommand",
+				"title": "%darbot.command.explainTerminalLastCommand%",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.terminal.attachTerminalSelection",
-				"title": "%github.copilot.command.attachTerminalSelection%",
+				"command": "darbot.terminal.attachTerminalSelection",
+				"title": "%darbot.command.attachTerminalSelection%",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.git.generateCommitMessage",
-				"title": "%github.copilot.git.generateCommitMessage%",
+				"command": "darbot.git.generateCommitMessage",
+				"title": "%darbot.git.generateCommitMessage%",
 				"icon": "$(sparkle)",
-				"enablement": "!github.copilot.interactiveSession.disabled",
+				"enablement": "!darbot.interactiveSession.disabled",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.devcontainer.generateDevContainerConfig",
-				"title": "%github.copilot.devcontainer.generateDevContainerConfig%",
+				"command": "darbot.devcontainer.generateDevContainerConfig",
+				"title": "%darbot.devcontainer.generateDevContainerConfig%",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.tests.fixTestFailure",
+				"command": "darbot.tests.fixTestFailure",
 				"icon": "$(sparkle)",
-				"title": "%github.copilot.command.fixTestFailure%",
+				"title": "%darbot.command.fixTestFailure%",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.tests.fixTestFailure.fromInline",
+				"command": "darbot.tests.fixTestFailure.fromInline",
 				"icon": "$(sparkle)",
-				"title": "%github.copilot.command.fixTestFailure%"
+				"title": "%darbot.command.fixTestFailure%"
 			},
 			{
-				"command": "github.copilot.chat.attachSelection",
-				"title": "%github.copilot.chat.attachSelection%",
+				"command": "darbot.chat.attachSelection",
+				"title": "%darbot.chat.attachSelection%",
 				"icon": "$(comment-discussion)",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.debug.collectDiagnostics",
-				"title": "%github.copilot.command.collectDiagnostics%",
+				"command": "darbot.debug.collectDiagnostics",
+				"title": "%darbot.command.collectDiagnostics%",
 				"category": "Developer"
 			},
 			{
-				"command": "github.copilot.debug.generateSTest",
-				"title": "%github.copilot.command.generateSTest%",
-				"enablement": "github.copilot.debugReportFeedback",
+				"command": "darbot.debug.generateSTest",
+				"title": "%darbot.command.generateSTest%",
+				"enablement": "darbot.debugReportFeedback",
 				"category": "GitHub Copilot Developer"
 			},
 			{
-				"command": "github.copilot.debug.generateConfiguration",
-				"title": "%github.copilot.command.generateConfiguration%",
+				"command": "darbot.debug.generateConfiguration",
+				"title": "%darbot.command.generateConfiguration%",
 				"category": "GitHub Copilot",
-				"enablement": "config.github.copilot.chat.startDebugging.enabled",
+				"enablement": "config.darbot.chat.startDebugging.enabled",
 				"tags": [
 					"experimental"
 				]
 			},
 			{
-				"command": "github.copilot.open.walkthrough",
-				"title": "%github.copilot.command.openWalkthrough%",
+				"command": "darbot.open.walkthrough",
+				"title": "%darbot.command.openWalkthrough%",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.debug.generateInlineEditTests",
+				"command": "darbot.debug.generateInlineEditTests",
 				"title": "Generate Inline Edit Tests",
 				"category": "GitHub Copilot",
 				"enablement": "resourceScheme == 'ccreq'"
 			},
 			{
-				"command": "github.copilot.buildLocalWorkspaceIndex",
-				"title": "%github.copilot.command.buildLocalWorkspaceIndex%",
+				"command": "darbot.buildLocalWorkspaceIndex",
+				"title": "%darbot.command.buildLocalWorkspaceIndex%",
 				"category": "GitHub Copilot",
 				"enablement": "github.copilot-chat.activated"
 			},
 			{
-				"command": "github.copilot.buildRemoteWorkspaceIndex",
-				"title": "%github.copilot.command.buildRemoteWorkspaceIndex%",
+				"command": "darbot.buildRemoteWorkspaceIndex",
+				"title": "%darbot.command.buildRemoteWorkspaceIndex%",
 				"category": "GitHub Copilot",
 				"enablement": "github.copilot-chat.activated"
 			},
 			{
-				"command": "github.copilot.report",
+				"command": "darbot.report",
 				"title": "Report Issue",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.rerunWithCopilotDebug",
-				"title": "%github.copilot.command.rerunWithCopilotDebug%",
+				"command": "darbot.chat.rerunWithCopilotDebug",
+				"title": "%darbot.command.rerunWithCopilotDebug%",
 				"category": "GitHub Copilot"
 			},
 			{
-				"command": "github.copilot.chat.startCopilotDebugCommand",
+				"command": "darbot.chat.startCopilotDebugCommand",
 				"title": "Start Copilot Debug"
 			},
 			{
-				"command": "github.copilot.chat.clearTemporalContext",
+				"command": "darbot.chat.clearTemporalContext",
 				"title": "Clear Temporal Context",
 				"category": "GitHub Copilot (Developer)"
 			},
 			{
-				"command": "github.copilot.search.markHelpful",
+				"command": "darbot.search.markHelpful",
 				"title": "Helpful",
 				"icon": "$(thumbsup)",
-				"enablement": "!github.copilot.search.feedback.sent"
+				"enablement": "!darbot.search.feedback.sent"
 			},
 			{
-				"command": "github.copilot.search.markUnhelpful",
+				"command": "darbot.search.markUnhelpful",
 				"title": "Unhelpful",
 				"icon": "$(thumbsdown)",
-				"enablement": "!github.copilot.search.feedback.sent"
+				"enablement": "!darbot.search.feedback.sent"
 			},
 			{
-				"command": "github.copilot.search.feedback",
+				"command": "darbot.search.feedback",
 				"title": "Feedback",
 				"icon": "$(feedback)",
-				"enablement": "!github.copilot.search.feedback.sent"
+				"enablement": "!darbot.search.feedback.sent"
 			},
 			{
-				"command": "github.copilot.chat.manageModels",
+				"command": "darbot.chat.manageModels",
 				"title": "Manage Models...",
 				"icon": "$(settings-gear)",
 				"category": "GitHub Copilot",
-				"enablement": "github.copilot.byokEnabled"
+				"enablement": "darbot.byokEnabled"
 			},
 			{
-				"command": "github.copilot.chat.debug.showElements",
+				"command": "darbot.chat.debug.showElements",
 				"title": "Show Rendered Elements"
 			},
 			{
-				"command": "github.copilot.chat.debug.hideElements",
+				"command": "darbot.chat.debug.hideElements",
 				"title": "Hide Rendered Elements"
 			},
 			{
-				"command": "github.copilot.chat.debug.showTools",
+				"command": "darbot.chat.debug.showTools",
 				"title": "Show Tools"
 			},
 			{
-				"command": "github.copilot.chat.debug.hideTools",
+				"command": "darbot.chat.debug.hideTools",
 				"title": "Hide Tools"
 			},
 			{
-				"command": "github.copilot.chat.debug.exportLogItem",
+				"command": "darbot.chat.debug.exportLogItem",
 				"title": "Export as...",
 				"icon": "$(export)"
 			},
 			{
-				"command": "github.copilot.chat.debug.exportPromptArchive",
+				"command": "darbot.chat.debug.exportPromptArchive",
 				"title": "Export All as Archive...",
 				"icon": "$(archive)"
 			},
 			{
-				"command": "github.copilot.debug.collectWorkspaceIndexDiagnostics",
-				"title": "%github.copilot.command.collectWorkspaceIndexDiagnostics%",
+				"command": "darbot.debug.collectWorkspaceIndexDiagnostics",
+				"title": "%darbot.command.collectWorkspaceIndexDiagnostics%",
 				"category": "Developer"
 			},
 			{
-				"command": "github.copilot.chat.mcp.setup.check",
+				"command": "darbot.chat.mcp.setup.check",
 				"title": "MCP Check: is supported"
 			},
 			{
-				"command": "github.copilot.chat.mcp.setup.validatePackage",
+				"command": "darbot.chat.mcp.setup.validatePackage",
 				"title": "MCP Check: validate package"
 			},
 			{
-				"command": "github.copilot.chat.mcp.setup.flow",
+				"command": "darbot.chat.mcp.setup.flow",
 				"title": "MCP Check: do prompts"
 			},
 			{
-				"command": "github.copilot.chat.generateAltText",
+				"command": "darbot.chat.generateAltText",
 				"title": "Generate/Refine Alt Text"
 			},
 			{
-				"command": "github.copilot.chat.notebook.enableFollowCellExecution",
+				"command": "darbot.chat.notebook.enableFollowCellExecution",
 				"title": "Enable Follow Cell Execution from Chat",
 				"shortTitle": "Follow",
 				"icon": "$(pinned)"
 			},
 			{
-				"command": "github.copilot.chat.notebook.disableFollowCellExecution",
+				"command": "darbot.chat.notebook.disableFollowCellExecution",
 				"title": "Disable Follow Cell Execution from Chat",
 				"shortTitle": "Unfollow",
 				"icon": "$(pinned-dirty)"
@@ -2193,22 +2188,22 @@
 				"title": "GitHub Copilot Chat",
 				"id": "stable",
 				"properties": {
-					"github.copilot.chat.codeGeneration.useInstructionFiles": {
+					"darbot.chat.codeGeneration.useInstructionFiles": {
 						"type": "boolean",
 						"default": true,
-						"markdownDescription": "%github.copilot.config.codeGeneration.useInstructionFiles%"
+						"markdownDescription": "%darbot.config.codeGeneration.useInstructionFiles%"
 					},
-					"github.copilot.editor.enableCodeActions": {
+					"darbot.editor.enableCodeActions": {
 						"type": "boolean",
 						"default": true,
-						"description": "%github.copilot.config.enableCodeActions%"
+						"description": "%darbot.config.enableCodeActions%"
 					},
-					"github.copilot.renameSuggestions.triggerAutomatically": {
+					"darbot.renameSuggestions.triggerAutomatically": {
 						"type": "boolean",
 						"default": true,
-						"description": "%github.copilot.config.renameSuggestions.triggerAutomatically%"
+						"description": "%darbot.config.renameSuggestions.triggerAutomatically%"
 					},
-					"github.copilot.chat.localeOverride": {
+					"darbot.chat.localeOverride": {
 						"type": "string",
 						"enum": [
 							"auto",
@@ -2245,16 +2240,16 @@
 							"polski"
 						],
 						"default": "auto",
-						"markdownDescription": "%github.copilot.config.localeOverride%"
+						"markdownDescription": "%darbot.config.localeOverride%"
 					},
-					"github.copilot.chat.terminalChatLocation": {
+					"darbot.chat.terminalChatLocation": {
 						"type": "string",
 						"default": "chatView",
-						"markdownDescription": "%github.copilot.config.terminalChatLocation%",
+						"markdownDescription": "%darbot.config.terminalChatLocation%",
 						"markdownEnumDescriptions": [
-							"%github.copilot.config.terminalChatLocation.chatView%",
-							"%github.copilot.config.terminalChatLocation.quickChat%",
-							"%github.copilot.config.terminalChatLocation.terminal%"
+							"%darbot.config.terminalChatLocation.chatView%",
+							"%darbot.config.terminalChatLocation.quickChat%",
+							"%darbot.config.terminalChatLocation.terminal%"
 						],
 						"enum": [
 							"chatView",
@@ -2262,45 +2257,45 @@
 							"terminal"
 						]
 					},
-					"github.copilot.chat.scopeSelection": {
+					"darbot.chat.scopeSelection": {
 						"type": "boolean",
 						"default": false,
-						"markdownDescription": "%github.copilot.config.scopeSelection%"
+						"markdownDescription": "%darbot.config.scopeSelection%"
 					},
-					"github.copilot.chat.useProjectTemplates": {
+					"darbot.chat.useProjectTemplates": {
 						"type": "boolean",
 						"default": true,
-						"markdownDescription": "%github.copilot.config.useProjectTemplates%"
+						"markdownDescription": "%darbot.config.useProjectTemplates%"
 					},
-					"github.copilot.chat.agent.runTasks": {
+					"darbot.chat.agent.runTasks": {
 						"type": "boolean",
 						"default": true,
-						"description": "%github.copilot.config.agent.runTasks%"
+						"description": "%darbot.config.agent.runTasks%"
 					},
-					"github.copilot.nextEditSuggestions.enabled": {
+					"darbot.nextEditSuggestions.enabled": {
 						"type": "boolean",
 						"default": false,
 						"tags": [
 							"nextEditSuggestions",
 							"onExp"
 						],
-						"markdownDescription": "%github.copilot.nextEditSuggestions.enabled%",
+						"markdownDescription": "%darbot.nextEditSuggestions.enabled%",
 						"scope": "language-overridable"
 					},
-					"github.copilot.nextEditSuggestions.fixes": {
+					"darbot.nextEditSuggestions.fixes": {
 						"type": "boolean",
 						"default": true,
 						"tags": [
 							"nextEditSuggestions",
 							"onExp"
 						],
-						"markdownDescription": "%github.copilot.nextEditSuggestions.fixes%",
+						"markdownDescription": "%darbot.nextEditSuggestions.fixes%",
 						"scope": "language-overridable"
 					},
-					"github.copilot.chat.agent.autoFix": {
+					"darbot.chat.agent.autoFix": {
 						"type": "boolean",
 						"default": true,
-						"description": "%github.copilot.config.autoFix%"
+						"description": "%darbot.config.autoFix%"
 					}
 				}
 			},
@@ -2308,29 +2303,29 @@
 				"title": "Preview",
 				"id": "preview",
 				"properties": {
-					"github.copilot.chat.startDebugging.enabled": {
+					"darbot.chat.startDebugging.enabled": {
 						"type": "boolean",
 						"default": true,
-						"markdownDescription": "%github.copilot.config.startDebugging.enabled%",
+						"markdownDescription": "%darbot.config.startDebugging.enabled%",
 						"tags": [
 							"preview"
 						]
 					},
-					"github.copilot.chat.reviewSelection.enabled": {
+					"darbot.chat.reviewSelection.enabled": {
 						"type": "boolean",
 						"default": true,
-						"description": "%github.copilot.config.reviewSelection.enabled%",
+						"description": "%darbot.config.reviewSelection.enabled%",
 						"tags": [
 							"preview"
 						]
 					},
-					"github.copilot.chat.reviewSelection.instructions": {
+					"darbot.chat.reviewSelection.instructions": {
 						"type": "array",
 						"items": {
 							"oneOf": [
 								{
 									"type": "object",
-									"markdownDescription": "%github.copilot.config.reviewSelection.instruction.file%",
+									"markdownDescription": "%darbot.config.reviewSelection.instruction.file%",
 									"properties": {
 										"file": {
 											"type": "string",
@@ -2353,7 +2348,7 @@
 								},
 								{
 									"type": "object",
-									"markdownDescription": "%github.copilot.config.reviewSelection.instruction.text%",
+									"markdownDescription": "%darbot.config.reviewSelection.instruction.text%",
 									"properties": {
 										"text": {
 											"type": "string",
@@ -2380,7 +2375,7 @@
 							]
 						},
 						"default": [],
-						"markdownDescription": "%github.copilot.config.reviewSelection.instructions%",
+						"markdownDescription": "%darbot.config.reviewSelection.instructions%",
 						"examples": [
 							[
 								{
@@ -2395,37 +2390,37 @@
 							"preview"
 						]
 					},
-					"github.copilot.chat.copilotDebugCommand.enabled": {
+					"darbot.chat.copilotDebugCommand.enabled": {
 						"type": "boolean",
 						"default": true,
 						"tags": [
 							"preview"
 						],
-						"description": "%github.copilot.chat.copilotDebugCommand.enabled%"
+						"description": "%darbot.chat.copilotDebugCommand.enabled%"
 					},
-					"github.copilot.chat.codesearch.enabled": {
+					"darbot.chat.codesearch.enabled": {
 						"type": "boolean",
 						"default": false,
 						"tags": [
 							"preview"
 						],
-						"markdownDescription": "%github.copilot.config.codesearch.enabled%"
+						"markdownDescription": "%darbot.config.codesearch.enabled%"
 					},
-					"github.copilot.chat.edits.codesearch.enabled": {
+					"darbot.chat.edits.codesearch.enabled": {
 						"type": "boolean",
 						"default": false,
 						"tags": [
 							"preview"
 						],
-						"markdownDeprecationMessage": "%github.copilot.config.edits.codesearch.enabled%"
+						"markdownDeprecationMessage": "%darbot.config.edits.codesearch.enabled%"
 					},
-					"github.copilot.chat.byok.ollamaEndpoint": {
+					"darbot.chat.byok.ollamaEndpoint": {
 						"type": "string",
 						"default": "http://localhost:11434",
 						"tags": [
 							"preview"
 						],
-						"markdownDescription": "%github.copilot.config.byok.ollamaEndpoint%"
+						"markdownDescription": "%darbot.config.byok.ollamaEndpoint%"
 					}
 				}
 			},
@@ -2433,38 +2428,38 @@
 				"title": "Experimental",
 				"id": "experimental",
 				"properties": {
-					"github.copilot.chat.agent.thinkingTool": {
+					"darbot.chat.agent.thinkingTool": {
 						"type": "boolean",
 						"default": false,
 						"tags": [
 							"experimental"
 						],
-						"markdownDescription": "%github.copilot.config.agent.thinkingTool%"
+						"markdownDescription": "%darbot.config.agent.thinkingTool%"
 					},
-					"github.copilot.chat.edits.suggestRelatedFilesFromGitHistory": {
+					"darbot.chat.edits.suggestRelatedFilesFromGitHistory": {
 						"type": "boolean",
 						"default": true,
 						"tags": [
 							"experimental"
 						],
-						"markdownDescription": "%github.copilot.config.edits.suggestRelatedFilesFromGitHistory%"
+						"markdownDescription": "%darbot.config.edits.suggestRelatedFilesFromGitHistory%"
 					},
-					"github.copilot.chat.edits.suggestRelatedFilesForTests": {
+					"darbot.chat.edits.suggestRelatedFilesForTests": {
 						"type": "boolean",
 						"default": true,
 						"tags": [
 							"experimental"
 						],
-						"markdownDescription": "%github.copilot.chat.edits.suggestRelatedFilesForTests%"
+						"markdownDescription": "%darbot.chat.edits.suggestRelatedFilesForTests%"
 					},
-					"github.copilot.chat.codeGeneration.instructions": {
-						"markdownDeprecationMessage": "%github.copilot.config.codeGeneration.instructions.deprecated%",
+					"darbot.chat.codeGeneration.instructions": {
+						"markdownDeprecationMessage": "%darbot.config.codeGeneration.instructions.deprecated%",
 						"type": "array",
 						"items": {
 							"oneOf": [
 								{
 									"type": "object",
-									"markdownDescription": "%github.copilot.config.codeGeneration.instruction.file%",
+									"markdownDescription": "%darbot.config.codeGeneration.instruction.file%",
 									"properties": {
 										"file": {
 											"type": "string",
@@ -2487,7 +2482,7 @@
 								},
 								{
 									"type": "object",
-									"markdownDescription": "%github.copilot.config.codeGeneration.instruction.text%",
+									"markdownDescription": "%darbot.config.codeGeneration.instruction.text%",
 									"properties": {
 										"text": {
 											"type": "string",
@@ -2514,7 +2509,7 @@
 							]
 						},
 						"default": [],
-						"markdownDescription": "%github.copilot.config.codeGeneration.instructions%",
+						"markdownDescription": "%darbot.config.codeGeneration.instructions%",
 						"examples": [
 							[
 								{
@@ -2529,14 +2524,14 @@
 							"experimental"
 						]
 					},
-					"github.copilot.chat.testGeneration.instructions": {
-						"markdownDeprecationMessage": "%github.copilot.config.testGeneration.instructions.deprecated%",
+					"darbot.chat.testGeneration.instructions": {
+						"markdownDeprecationMessage": "%darbot.config.testGeneration.instructions.deprecated%",
 						"type": "array",
 						"items": {
 							"oneOf": [
 								{
 									"type": "object",
-									"markdownDescription": "%github.copilot.config.experimental.testGeneration.instruction.file%",
+									"markdownDescription": "%darbot.config.experimental.testGeneration.instruction.file%",
 									"properties": {
 										"file": {
 											"type": "string",
@@ -2559,7 +2554,7 @@
 								},
 								{
 									"type": "object",
-									"markdownDescription": "%github.copilot.config.experimental.testGeneration.instruction.text%",
+									"markdownDescription": "%darbot.config.experimental.testGeneration.instruction.text%",
 									"properties": {
 										"text": {
 											"type": "string",
@@ -2583,7 +2578,7 @@
 							]
 						},
 						"default": [],
-						"markdownDescription": "%github.copilot.config.testGeneration.instructions%",
+						"markdownDescription": "%darbot.config.testGeneration.instructions%",
 						"examples": [
 							[
 								{
@@ -2598,13 +2593,13 @@
 							"experimental"
 						]
 					},
-					"github.copilot.chat.commitMessageGeneration.instructions": {
+					"darbot.chat.commitMessageGeneration.instructions": {
 						"type": "array",
 						"items": {
 							"oneOf": [
 								{
 									"type": "object",
-									"markdownDescription": "%github.copilot.config.commitMessageGeneration.instruction.file%",
+									"markdownDescription": "%darbot.config.commitMessageGeneration.instruction.file%",
 									"properties": {
 										"file": {
 											"type": "string",
@@ -2624,7 +2619,7 @@
 								},
 								{
 									"type": "object",
-									"markdownDescription": "%github.copilot.config.commitMessageGeneration.instruction.text%",
+									"markdownDescription": "%darbot.config.commitMessageGeneration.instruction.text%",
 									"properties": {
 										"text": {
 											"type": "string",
@@ -2645,7 +2640,7 @@
 							]
 						},
 						"default": [],
-						"markdownDescription": "%github.copilot.config.commitMessageGeneration.instructions%",
+						"markdownDescription": "%darbot.config.commitMessageGeneration.instructions%",
 						"examples": [
 							[
 								{
@@ -2660,13 +2655,13 @@
 							"experimental"
 						]
 					},
-					"github.copilot.chat.pullRequestDescriptionGeneration.instructions": {
+					"darbot.chat.pullRequestDescriptionGeneration.instructions": {
 						"type": "array",
 						"items": {
 							"oneOf": [
 								{
 									"type": "object",
-									"markdownDescription": "%github.copilot.config.pullRequestDescriptionGeneration.instruction.file%",
+									"markdownDescription": "%darbot.config.pullRequestDescriptionGeneration.instruction.file%",
 									"properties": {
 										"file": {
 											"type": "string",
@@ -2686,7 +2681,7 @@
 								},
 								{
 									"type": "object",
-									"markdownDescription": "%github.copilot.config.pullRequestDescriptionGeneration.instruction.text%",
+									"markdownDescription": "%darbot.config.pullRequestDescriptionGeneration.instruction.text%",
 									"properties": {
 										"text": {
 											"type": "string",
@@ -2707,7 +2702,7 @@
 							]
 						},
 						"default": [],
-						"markdownDescription": "%github.copilot.config.pullRequestDescriptionGeneration.instructions%",
+						"markdownDescription": "%darbot.config.pullRequestDescriptionGeneration.instructions%",
 						"examples": [
 							[
 								{
@@ -2722,41 +2717,41 @@
 							"experimental"
 						]
 					},
-					"github.copilot.chat.generateTests.codeLens": {
+					"darbot.chat.generateTests.codeLens": {
 						"type": "boolean",
 						"default": false,
-						"description": "%github.copilot.config.generateTests.codeLens%",
+						"description": "%darbot.config.generateTests.codeLens%",
 						"tags": [
 							"experimental"
 						]
 					},
-					"github.copilot.chat.edits.temporalContext.enabled": {
+					"darbot.chat.edits.temporalContext.enabled": {
 						"type": "boolean",
 						"default": false,
-						"description": "%github.copilot.chat.edits.temporalContext.enabled%",
+						"description": "%darbot.chat.edits.temporalContext.enabled%",
 						"tags": [
 							"experimental",
 							"onExp"
 						]
 					},
-					"github.copilot.chat.editor.temporalContext.enabled": {
+					"darbot.chat.editor.temporalContext.enabled": {
 						"type": "boolean",
 						"default": false,
-						"description": "%github.copilot.chat.editor.temporalContext.enabled%",
+						"description": "%darbot.chat.editor.temporalContext.enabled%",
 						"tags": [
 							"experimental",
 							"onExp"
 						]
 					},
-					"github.copilot.chat.setupTests.enabled": {
+					"darbot.chat.setupTests.enabled": {
 						"type": "boolean",
 						"default": true,
-						"markdownDescription": "%github.copilot.config.setupTests.enabled%",
+						"markdownDescription": "%darbot.config.setupTests.enabled%",
 						"tags": [
 							"experimental"
 						]
 					},
-					"github.copilot.chat.languageContext.typescript.enabled": {
+					"darbot.chat.languageContext.typescript.enabled": {
 						"type": "boolean",
 						"default": false,
 						"scope": "resource",
@@ -2764,9 +2759,9 @@
 							"experimental",
 							"onExP"
 						],
-						"markdownDescription": "%github.copilot.chat.languageContext.typescript.enabled%"
+						"markdownDescription": "%darbot.chat.languageContext.typescript.enabled%"
 					},
-					"github.copilot.chat.languageContext.typescript.cacheTimeout": {
+					"darbot.chat.languageContext.typescript.cacheTimeout": {
 						"type": "number",
 						"default": 500,
 						"scope": "resource",
@@ -2774,9 +2769,9 @@
 							"experimental",
 							"onExP"
 						],
-						"markdownDescription": "%github.copilot.chat.languageContext.typescript.cacheTimeout%"
+						"markdownDescription": "%darbot.chat.languageContext.typescript.cacheTimeout%"
 					},
-					"github.copilot.chat.languageContext.fix.typescript.enabled": {
+					"darbot.chat.languageContext.fix.typescript.enabled": {
 						"type": "boolean",
 						"default": false,
 						"scope": "resource",
@@ -2784,9 +2779,9 @@
 							"experimental",
 							"onExP"
 						],
-						"markdownDescription": "%github.copilot.chat.languageContext.fix.typescript.enabled%"
+						"markdownDescription": "%darbot.chat.languageContext.fix.typescript.enabled%"
 					},
-					"github.copilot.chat.languageContext.inline.typescript.enabled": {
+					"darbot.chat.languageContext.inline.typescript.enabled": {
 						"type": "boolean",
 						"default": false,
 						"scope": "resource",
@@ -2794,25 +2789,25 @@
 							"experimental",
 							"onExP"
 						],
-						"markdownDescription": "%github.copilot.chat.languageContext.inline.typescript.enabled%"
+						"markdownDescription": "%darbot.chat.languageContext.inline.typescript.enabled%"
 					},
-					"github.copilot.chat.newWorkspaceCreation.enabled": {
+					"darbot.chat.newWorkspaceCreation.enabled": {
 						"type": "boolean",
 						"default": true,
 						"tags": [
 							"experimental"
 						],
-						"description": "%github.copilot.config.newWorkspaceCreation.enabled%"
+						"description": "%darbot.config.newWorkspaceCreation.enabled%"
 					},
-					"github.copilot.chat.agent.currentEditorContext.enabled": {
+					"darbot.chat.agent.currentEditorContext.enabled": {
 						"type": "boolean",
 						"default": true,
 						"tags": [
 							"experimental"
 						],
-						"description": "%github.copilot.config.agent.currentEditorContext.enabled%"
+						"description": "%darbot.config.agent.currentEditorContext.enabled%"
 					},
-					"github.copilot.chat.agent.terminal.allowList": {
+					"darbot.chat.agent.terminal.allowList": {
 						"type": "object",
 						"default": {},
 						"additionalProperties": {
@@ -2822,17 +2817,17 @@
 								false
 							],
 							"enumDescriptions": [
-								"%github.copilot.config.agent.terminal.allowList.value.true%",
-								"%github.copilot.config.agent.terminal.allowList.value.false%"
+								"%darbot.config.agent.terminal.allowList.value.true%",
+								"%darbot.config.agent.terminal.allowList.value.false%"
 							],
-							"description": "%github.copilot.config.agent.terminal.allowList.key%"
+							"description": "%darbot.config.agent.terminal.allowList.key%"
 						},
 						"tags": [
 							"experimental"
 						],
-						"markdownDescription": "%github.copilot.config.agent.terminal.allowList%"
+						"markdownDescription": "%darbot.config.agent.terminal.allowList%"
 					},
-					"github.copilot.chat.agent.terminal.denyList": {
+					"darbot.chat.agent.terminal.denyList": {
 						"type": "object",
 						"default": {
 							"rm": true,
@@ -2853,41 +2848,41 @@
 								false
 							],
 							"enumDescriptions": [
-								"%github.copilot.config.agent.terminal.denyList.value.true%",
-								"%github.copilot.config.agent.terminal.denyList.value.false%"
+								"%darbot.config.agent.terminal.denyList.value.true%",
+								"%darbot.config.agent.terminal.denyList.value.false%"
 							],
-							"description": "%github.copilot.config.agent.terminal.denyList.key%"
+							"description": "%darbot.config.agent.terminal.denyList.key%"
 						},
 						"tags": [
 							"experimental"
 						],
-						"markdownDescription": "%github.copilot.config.agent.terminal.denyList%"
+						"markdownDescription": "%darbot.config.agent.terminal.denyList%"
 					},
-					"github.copilot.chat.edits.newNotebook.enabled": {
+					"darbot.chat.edits.newNotebook.enabled": {
 						"type": "boolean",
 						"default": true,
 						"tags": [
 							"experimental",
 							"onExp"
 						],
-						"description": "%github.copilot.config.editsNewNotebook.enabled%"
+						"description": "%darbot.config.editsNewNotebook.enabled%"
 					},
-					"github.copilot.chat.notebook.followCellExecution.enabled": {
+					"darbot.chat.notebook.followCellExecution.enabled": {
 						"type": "boolean",
 						"default": false,
 						"tags": [
 							"experimental"
 						],
-						"description": "%github.copilot.config.notebook.followCellExecution%"
+						"description": "%darbot.config.notebook.followCellExecution%"
 					},
-					"github.copilot.chat.summarizeAgentConversationHistory.enabled": {
+					"darbot.chat.summarizeAgentConversationHistory.enabled": {
 						"type": "boolean",
 						"default": true,
 						"tags": [
 							"experimental",
 							"onExp"
 						],
-						"description": "%github.copilot.config.summarizeAgentConversationHistory.enabled%"
+						"description": "%darbot.config.summarizeAgentConversationHistory.enabled%"
 					}
 				}
 			}
@@ -2895,18 +2890,18 @@
 		"submenus": [
 			{
 				"id": "copilot/reviewComment/additionalActions/applyAndNext",
-				"label": "%github.copilot.submenu.reviewComment.applyAndNext.label%"
+				"label": "%darbot.submenu.reviewComment.applyAndNext.label%"
 			},
 			{
 				"id": "copilot/reviewComment/additionalActions/discardAndNext",
-				"label": "%github.copilot.submenu.reviewComment.discardAndNext.label%"
+				"label": "%darbot.submenu.reviewComment.discardAndNext.label%"
 			},
 			{
 				"id": "copilot/reviewComment/additionalActions/discard",
-				"label": "%github.copilot.submenu.reviewComment.discard.label%"
+				"label": "%darbot.submenu.reviewComment.discard.label%"
 			},
 			{
-				"id": "github.copilot.chat.debug.filter",
+				"id": "darbot.chat.debug.filter",
 				"label": "Filter",
 				"icon": "$(filter)"
 			}
@@ -2914,292 +2909,292 @@
 		"menus": {
 			"chat/modelPicker": [
 				{
-					"command": "github.copilot.chat.manageModels",
-					"when": "github.copilot.byokEnabled"
+					"command": "darbot.chat.manageModels",
+					"when": "darbot.byokEnabled"
 				}
 			],
 			"editor/title": [
 				{
-					"command": "github.copilot.debug.generateInlineEditTests",
+					"command": "darbot.debug.generateInlineEditTests",
 					"when": "resourceScheme == 'ccreq'"
 				},
 				{
-					"command": "github.copilot.chat.notebook.enableFollowCellExecution",
-					"when": "config.github.copilot.chat.notebook.followCellExecution.enabled && !github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && !config.notebook.globalToolbar",
+					"command": "darbot.chat.notebook.enableFollowCellExecution",
+					"when": "config.darbot.chat.notebook.followCellExecution.enabled && !darbot.notebookFollowInSessionEnabled && darbot.notebookAgentModeUsage && !config.notebook.globalToolbar",
 					"group": "navigation@10"
 				},
 				{
-					"command": "github.copilot.chat.notebook.disableFollowCellExecution",
-					"when": "config.github.copilot.chat.notebook.followCellExecution.enabled && github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && !config.notebook.globalToolbar",
+					"command": "darbot.chat.notebook.disableFollowCellExecution",
+					"when": "config.darbot.chat.notebook.followCellExecution.enabled && darbot.notebookFollowInSessionEnabled && darbot.notebookAgentModeUsage && !config.notebook.globalToolbar",
 					"group": "navigation@10"
 				}
 			],
 			"editor/context/chat": [
 				{
-					"command": "github.copilot.chat.explain",
-					"when": "!github.copilot.interactiveSession.disabled",
+					"command": "darbot.chat.explain",
+					"when": "!darbot.interactiveSession.disabled",
 					"group": "copilotAction@1"
 				},
 				{
-					"command": "github.copilot.chat.fix",
-					"when": "!github.copilot.interactiveSession.disabled && !editorReadonly",
+					"command": "darbot.chat.fix",
+					"when": "!darbot.interactiveSession.disabled && !editorReadonly",
 					"group": "copilotAction@2"
 				},
 				{
-					"command": "github.copilot.chat.review",
-					"when": "github.copilot.chat.reviewSelection.enabled && !github.copilot.interactiveSession.disabled && resourceScheme != 'vscode-chat-code-block'",
+					"command": "darbot.chat.review",
+					"when": "darbot.chat.reviewSelection.enabled && !darbot.interactiveSession.disabled && resourceScheme != 'vscode-chat-code-block'",
 					"group": "copilotAction@3"
 				},
 				{
-					"command": "github.copilot.chat.generateDocs",
-					"when": "!github.copilot.interactiveSession.disabled && !editorReadonly",
+					"command": "darbot.chat.generateDocs",
+					"when": "!darbot.interactiveSession.disabled && !editorReadonly",
 					"group": "copilotAction@4"
 				},
 				{
-					"command": "github.copilot.chat.generateTests",
-					"when": "!github.copilot.interactiveSession.disabled && !editorReadonly",
+					"command": "darbot.chat.generateTests",
+					"when": "!darbot.interactiveSession.disabled && !editorReadonly",
 					"group": "copilotAction@5"
 				}
 			],
 			"terminal/context/chat": [
 				{
-					"command": "github.copilot.terminal.explainTerminalSelectionContextMenu",
+					"command": "darbot.terminal.explainTerminalSelectionContextMenu",
 					"group": "copilotAction@1"
 				},
 				{
-					"command": "github.copilot.terminal.attachTerminalSelection",
+					"command": "darbot.terminal.attachTerminalSelection",
 					"group": "zEditContext@1"
 				}
 			],
 			"testing/item/result": [
 				{
-					"command": "github.copilot.tests.fixTestFailure.fromInline",
+					"command": "darbot.tests.fixTestFailure.fromInline",
 					"when": "testResultState == failed && !testResultOutdated",
 					"group": "inline@2"
 				}
 			],
 			"testing/item/context": [
 				{
-					"command": "github.copilot.tests.fixTestFailure.fromInline",
+					"command": "darbot.tests.fixTestFailure.fromInline",
 					"when": "testResultState == failed && !testResultOutdated",
 					"group": "inline@2"
 				}
 			],
 			"commandPalette": [
 				{
-					"command": "github.copilot.interactiveSession.feedback",
-					"when": "github.copilot-chat.activated && !github.copilot.interactiveSession.disabled"
+					"command": "darbot.interactiveSession.feedback",
+					"when": "github.copilot-chat.activated && !darbot.interactiveSession.disabled"
 				},
 				{
-					"command": "github.copilot.debug.workbenchState",
+					"command": "darbot.debug.workbenchState",
 					"when": "true"
 				},
 				{
-					"command": "github.copilot.chat.rerunWithCopilotDebug",
+					"command": "darbot.chat.rerunWithCopilotDebug",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.startCopilotDebugCommand",
+					"command": "darbot.chat.startCopilotDebugCommand",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.terminal.explainTerminalSelectionContextMenu",
+					"command": "darbot.terminal.explainTerminalSelectionContextMenu",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.git.generateCommitMessage",
+					"command": "darbot.git.generateCommitMessage",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.explain",
+					"command": "darbot.chat.explain",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review",
-					"when": "!github.copilot.interactiveSession.disabled"
+					"command": "darbot.chat.review",
+					"when": "!darbot.interactiveSession.disabled"
 				},
 				{
-					"command": "github.copilot.chat.review.apply",
+					"command": "darbot.chat.review.apply",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.applyAndNext",
+					"command": "darbot.chat.review.applyAndNext",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.discard",
+					"command": "darbot.chat.review.discard",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.discardAndNext",
+					"command": "darbot.chat.review.discardAndNext",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.discardAll",
+					"command": "darbot.chat.review.discardAll",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.stagedChanges",
+					"command": "darbot.chat.review.stagedChanges",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.unstagedChanges",
+					"command": "darbot.chat.review.unstagedChanges",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.changes",
+					"command": "darbot.chat.review.changes",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.changes.cancel",
+					"command": "darbot.chat.review.changes.cancel",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.previous",
+					"command": "darbot.chat.review.previous",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.next",
+					"command": "darbot.chat.review.next",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.continueInInlineChat",
+					"command": "darbot.chat.review.continueInInlineChat",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.continueInChat",
+					"command": "darbot.chat.review.continueInChat",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.markHelpful",
+					"command": "darbot.chat.review.markHelpful",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.review.markUnhelpful",
+					"command": "darbot.chat.review.markUnhelpful",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.devcontainer.generateDevContainerConfig",
+					"command": "darbot.devcontainer.generateDevContainerConfig",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.tests.fixTestFailure",
+					"command": "darbot.tests.fixTestFailure",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.tests.fixTestFailure.fromInline",
+					"command": "darbot.tests.fixTestFailure.fromInline",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.search.markHelpful",
+					"command": "darbot.search.markHelpful",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.search.markUnhelpful",
+					"command": "darbot.search.markUnhelpful",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.search.feedback",
+					"command": "darbot.search.feedback",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.debug.showElements",
+					"command": "darbot.chat.debug.showElements",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.debug.hideElements",
+					"command": "darbot.chat.debug.hideElements",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.debug.showTools",
+					"command": "darbot.chat.debug.showTools",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.debug.hideTools",
+					"command": "darbot.chat.debug.hideTools",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.debug.exportLogItem",
+					"command": "darbot.chat.debug.exportLogItem",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.debug.exportPromptArchive",
+					"command": "darbot.chat.debug.exportPromptArchive",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.mcp.setup.check",
+					"command": "darbot.chat.mcp.setup.check",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.mcp.setup.validatePackage",
+					"command": "darbot.chat.mcp.setup.validatePackage",
 					"when": "false"
 				},
 				{
-					"command": "github.copilot.chat.mcp.setup.flow",
+					"command": "darbot.chat.mcp.setup.flow",
 					"when": "false"
 				}
 			],
 			"view/title": [
 				{
-					"submenu": "github.copilot.chat.debug.filter",
+					"submenu": "darbot.chat.debug.filter",
 					"when": "view == copilot-chat",
 					"group": "navigation"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "github.copilot.chat.debug.exportLogItem",
+					"command": "darbot.chat.debug.exportLogItem",
 					"when": "view == copilot-chat && (viewItem == toolcall || viewItem == request)",
 					"group": "export@1"
 				},
 				{
-					"command": "github.copilot.chat.debug.exportPromptArchive",
+					"command": "darbot.chat.debug.exportPromptArchive",
 					"when": "view == copilot-chat && viewItem == chatprompt",
 					"group": "export@2"
 				}
 			],
 			"searchPanel/aiResults/commands": [
 				{
-					"command": "github.copilot.search.markHelpful",
+					"command": "darbot.search.markHelpful",
 					"group": "inline@0",
 					"when": "aiResultsTitle && aiResultsRequested"
 				},
 				{
-					"command": "github.copilot.search.markUnhelpful",
+					"command": "darbot.search.markUnhelpful",
 					"group": "inline@1",
 					"when": "aiResultsTitle && aiResultsRequested"
 				},
 				{
-					"command": "github.copilot.search.feedback",
+					"command": "darbot.search.feedback",
 					"group": "inline@2",
-					"when": "aiResultsTitle && aiResultsRequested && github.copilot.debugReportFeedback"
+					"when": "aiResultsTitle && aiResultsRequested && darbot.debugReportFeedback"
 				}
 			],
 			"comments/comment/title": [
 				{
-					"command": "github.copilot.chat.review.markHelpful",
+					"command": "darbot.chat.review.markHelpful",
 					"group": "inline@0",
 					"when": "commentController == github-copilot-review"
 				},
 				{
-					"command": "github.copilot.chat.review.markUnhelpful",
+					"command": "darbot.chat.review.markUnhelpful",
 					"group": "inline@1",
 					"when": "commentController == github-copilot-review"
 				}
 			],
 			"commentsView/commentThread/context": [
 				{
-					"command": "github.copilot.chat.review.apply",
+					"command": "darbot.chat.review.apply",
 					"group": "context@1",
 					"when": "commentController == github-copilot-review"
 				},
 				{
-					"command": "github.copilot.chat.review.discard",
+					"command": "darbot.chat.review.discard",
 					"group": "context@2",
 					"when": "commentController == github-copilot-review"
 				},
 				{
-					"command": "github.copilot.chat.review.discardAll",
+					"command": "darbot.chat.review.discardAll",
 					"group": "context@3",
 					"when": "commentController == github-copilot-review"
 				}
@@ -3208,176 +3203,176 @@
 				{
 					"submenu": "copilot/reviewComment/additionalActions/applyAndNext",
 					"group": "inline@1",
-					"when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments > 1"
+					"when": "commentController == github-copilot-review && darbot.chat.review.numberOfComments > 1"
 				},
 				{
-					"command": "github.copilot.chat.review.apply",
+					"command": "darbot.chat.review.apply",
 					"group": "inline@1",
-					"when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments == 1"
+					"when": "commentController == github-copilot-review && darbot.chat.review.numberOfComments == 1"
 				},
 				{
 					"submenu": "copilot/reviewComment/additionalActions/discardAndNext",
 					"group": "inline@2",
-					"when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments > 1"
+					"when": "commentController == github-copilot-review && darbot.chat.review.numberOfComments > 1"
 				},
 				{
 					"submenu": "copilot/reviewComment/additionalActions/discard",
 					"group": "inline@2",
-					"when": "commentController == github-copilot-review && github.copilot.chat.review.numberOfComments == 1"
+					"when": "commentController == github-copilot-review && darbot.chat.review.numberOfComments == 1"
 				}
 			],
 			"copilot/reviewComment/additionalActions/applyAndNext": [
 				{
-					"command": "github.copilot.chat.review.applyAndNext",
+					"command": "darbot.chat.review.applyAndNext",
 					"group": "inline@1",
 					"when": "commentController == github-copilot-review"
 				},
 				{
-					"command": "github.copilot.chat.review.apply",
+					"command": "darbot.chat.review.apply",
 					"group": "inline@2",
 					"when": "commentController == github-copilot-review"
 				}
 			],
 			"copilot/reviewComment/additionalActions/discardAndNext": [
 				{
-					"command": "github.copilot.chat.review.discardAndNext",
+					"command": "darbot.chat.review.discardAndNext",
 					"group": "inline@1",
 					"when": "commentController == github-copilot-review"
 				},
 				{
-					"command": "github.copilot.chat.review.discard",
+					"command": "darbot.chat.review.discard",
 					"group": "inline@2",
 					"when": "commentController == github-copilot-review"
 				},
 				{
-					"command": "github.copilot.chat.review.continueInInlineChat",
+					"command": "darbot.chat.review.continueInInlineChat",
 					"group": "inline@3",
 					"when": "commentController == github-copilot-review"
 				}
 			],
 			"copilot/reviewComment/additionalActions/discard": [
 				{
-					"command": "github.copilot.chat.review.discard",
+					"command": "darbot.chat.review.discard",
 					"group": "inline@2",
 					"when": "commentController == github-copilot-review"
 				},
 				{
-					"command": "github.copilot.chat.review.continueInInlineChat",
+					"command": "darbot.chat.review.continueInInlineChat",
 					"group": "inline@3",
 					"when": "commentController == github-copilot-review"
 				}
 			],
 			"comments/commentThread/title": [
 				{
-					"command": "github.copilot.chat.review.previous",
+					"command": "darbot.chat.review.previous",
 					"group": "inline@1",
 					"when": "commentController == github-copilot-review"
 				},
 				{
-					"command": "github.copilot.chat.review.next",
+					"command": "darbot.chat.review.next",
 					"group": "inline@2",
 					"when": "commentController == github-copilot-review"
 				},
 				{
-					"command": "github.copilot.chat.review.continueInChat",
+					"command": "darbot.chat.review.continueInChat",
 					"group": "inline@3",
 					"when": "commentController == github-copilot-review"
 				},
 				{
-					"command": "github.copilot.chat.review.discardAll",
+					"command": "darbot.chat.review.discardAll",
 					"group": "inline@4",
 					"when": "commentController == github-copilot-review"
 				}
 			],
 			"scm/title": [
 				{
-					"command": "github.copilot.chat.review.changes",
+					"command": "darbot.chat.review.changes",
 					"group": "navigation",
-					"when": "github.copilot.chat.reviewDiff.enabled && !github.copilot.chat.review.sourceControlProgress && scmProvider == git && scmProviderRootUri in github.copilot.chat.reviewDiff.enabledRootUris"
+					"when": "darbot.chat.reviewDiff.enabled && !darbot.chat.review.sourceControlProgress && scmProvider == git && scmProviderRootUri in darbot.chat.reviewDiff.enabledRootUris"
 				},
 				{
-					"command": "github.copilot.chat.review.changes.cancel",
+					"command": "darbot.chat.review.changes.cancel",
 					"group": "navigation",
-					"when": "github.copilot.chat.reviewDiff.enabled && github.copilot.chat.review.sourceControlProgress && scmProvider == git && scmProviderRootUri in github.copilot.chat.reviewDiff.enabledRootUris"
+					"when": "darbot.chat.reviewDiff.enabled && darbot.chat.review.sourceControlProgress && scmProvider == git && scmProviderRootUri in darbot.chat.reviewDiff.enabledRootUris"
 				}
 			],
 			"scm/inputBox": [
 				{
-					"command": "github.copilot.git.generateCommitMessage",
+					"command": "darbot.git.generateCommitMessage",
 					"when": "scmProvider == git"
 				}
 			],
 			"testing/message/context": [
 				{
-					"command": "github.copilot.tests.fixTestFailure",
+					"command": "darbot.tests.fixTestFailure",
 					"when": "testing.testItemHasUri",
 					"group": "inline@1"
 				}
 			],
 			"debug/createConfiguration": [
 				{
-					"command": "github.copilot.debug.generateConfiguration",
+					"command": "darbot.debug.generateConfiguration",
 					"group": "z_commands",
-					"when": "config.github.copilot.chat.startDebugging.enabled"
+					"when": "config.darbot.chat.startDebugging.enabled"
 				}
 			],
 			"issue/reporter": [
 				{
-					"command": "github.copilot.report"
+					"command": "darbot.report"
 				}
 			],
-			"github.copilot.chat.debug.filter": [
+			"darbot.chat.debug.filter": [
 				{
-					"command": "github.copilot.chat.debug.showElements",
-					"when": "github.copilot.chat.debug.elementsHidden",
+					"command": "darbot.chat.debug.showElements",
+					"when": "darbot.chat.debug.elementsHidden",
 					"group": "commands@0"
 				},
 				{
-					"command": "github.copilot.chat.debug.hideElements",
-					"when": "!github.copilot.chat.debug.elementsHidden",
+					"command": "darbot.chat.debug.hideElements",
+					"when": "!darbot.chat.debug.elementsHidden",
 					"group": "commands@0"
 				},
 				{
-					"command": "github.copilot.chat.debug.showTools",
-					"when": "github.copilot.chat.debug.toolsHidden",
+					"command": "darbot.chat.debug.showTools",
+					"when": "darbot.chat.debug.toolsHidden",
 					"group": "commands@1"
 				},
 				{
-					"command": "github.copilot.chat.debug.hideTools",
-					"when": "!github.copilot.chat.debug.toolsHidden",
+					"command": "darbot.chat.debug.hideTools",
+					"when": "!darbot.chat.debug.toolsHidden",
 					"group": "commands@1"
 				}
 			],
 			"notebook/toolbar": [
 				{
-					"command": "github.copilot.chat.notebook.enableFollowCellExecution",
-					"when": "config.github.copilot.chat.notebook.followCellExecution.enabled && !github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && config.notebook.globalToolbar",
+					"command": "darbot.chat.notebook.enableFollowCellExecution",
+					"when": "config.darbot.chat.notebook.followCellExecution.enabled && !darbot.notebookFollowInSessionEnabled && darbot.notebookAgentModeUsage && config.notebook.globalToolbar",
 					"group": "navigation/execute@15"
 				},
 				{
-					"command": "github.copilot.chat.notebook.disableFollowCellExecution",
-					"when": "config.github.copilot.chat.notebook.followCellExecution.enabled && github.copilot.notebookFollowInSessionEnabled && github.copilot.notebookAgentModeUsage && config.notebook.globalToolbar",
+					"command": "darbot.chat.notebook.disableFollowCellExecution",
+					"when": "config.darbot.chat.notebook.followCellExecution.enabled && darbot.notebookFollowInSessionEnabled && darbot.notebookAgentModeUsage && config.notebook.globalToolbar",
 					"group": "navigation/execute@15"
 				}
 			]
 		},
 		"icons": {
 			"copilot-logo": {
-				"description": "%github.copilot.icon%",
+				"description": "%darbot.icon%",
 				"default": {
 					"fontPath": "assets/copilot.woff",
 					"fontCharacter": "\\0041"
 				}
 			},
 			"copilot-warning": {
-				"description": "%github.copilot.icon%",
+				"description": "%darbot.icon%",
 				"default": {
 					"fontPath": "assets/copilot.woff",
 					"fontCharacter": "\\0042"
 				}
 			},
 			"copilot-notconnected": {
-				"description": "%github.copilot.icon%",
+				"description": "%darbot.icon%",
 				"default": {
 					"fontPath": "assets/copilot.woff",
 					"fontCharacter": "\\0043"
@@ -3466,7 +3461,7 @@
 					"id": "copilot-chat",
 					"name": "Copilot Chat Debug",
 					"icon": "assets/debug-icon.svg",
-					"when": "github.copilot.chat.showLogView"
+					"when": "darbot.chat.showLogView"
 				}
 			],
 			"context-inspector": [
@@ -3474,7 +3469,7 @@
 					"id": "context-inspector",
 					"name": "Language Context Inspector",
 					"icon": "$(inspect)",
-					"when": "github.copilot.chat.showContextInspectorView"
+					"when": "darbot.chat.showContextInspectorView"
 				}
 			]
 		},
@@ -3499,7 +3494,7 @@
 		},
 		"keybindings": [
 			{
-				"command": "github.copilot.chat.rerunWithCopilotDebug",
+				"command": "darbot.chat.rerunWithCopilotDebug",
 				"key": "ctrl+alt+.",
 				"mac": "cmd+alt+.",
 				"when": "github.copilot-chat.activated && terminalShellIntegrationEnabled && terminalFocus && !terminalAltBufferActive"
@@ -3508,15 +3503,15 @@
 		"walkthroughs": [
 			{
 				"id": "copilotWelcome",
-				"title": "%github.copilot.walkthrough.title%",
-				"description": "%github.copilot.walkthrough.description%",
+				"title": "%darbot.walkthrough.title%",
+				"description": "%darbot.walkthrough.description%",
 				"when": "!isWeb",
 				"steps": [
 					{
 						"id": "copilot.setup.signIn",
-						"title": "%github.copilot.walkthrough.setup.signIn.title%",
-						"description": "%github.copilot.walkthrough.setup.signIn.description%",
-						"when": "chatEntitlementSignedOut && !view.workbench.panel.chat.view.copilot.visible && !github.copilot-chat.activated && !github.copilot.offline && !github.copilot.interactiveSession.individual.disabled && !github.copilot.interactiveSession.individual.expired && !github.copilot.interactiveSession.enterprise.disabled && !github.copilot.interactiveSession.contactSupport",
+						"title": "%darbot.walkthrough.setup.signIn.title%",
+						"description": "%darbot.walkthrough.setup.signIn.description%",
+						"when": "chatEntitlementSignedOut && !view.workbench.panel.chat.view.copilot.visible && !github.copilot-chat.activated && !darbot.offline && !darbot.interactiveSession.individual.disabled && !darbot.interactiveSession.individual.expired && !darbot.interactiveSession.enterprise.disabled && !darbot.interactiveSession.contactSupport",
 						"media": {
 							"video": {
 								"dark": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace.mp4",
@@ -3524,14 +3519,14 @@
 								"hc": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace-hc.mp4",
 								"hcLight": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace-hclight.mp4"
 							},
-							"altText": "%github.copilot.walkthrough.panelChat.media.altText%"
+							"altText": "%darbot.walkthrough.panelChat.media.altText%"
 						}
 					},
 					{
 						"id": "copilot.setup.signInNoAction",
-						"title": "%github.copilot.walkthrough.setup.signIn.title%",
-						"description": "%github.copilot.walkthrough.setup.noAction.description%",
-						"when": "chatEntitlementSignedOut && view.workbench.panel.chat.view.copilot.visible && !github.copilot-chat.activated && !github.copilot.offline && !github.copilot.interactiveSession.individual.disabled && !github.copilot.interactiveSession.individual.expired && !github.copilot.interactiveSession.enterprise.disabled && !github.copilot.interactiveSession.contactSupport",
+						"title": "%darbot.walkthrough.setup.signIn.title%",
+						"description": "%darbot.walkthrough.setup.noAction.description%",
+						"when": "chatEntitlementSignedOut && view.workbench.panel.chat.view.copilot.visible && !github.copilot-chat.activated && !darbot.offline && !darbot.interactiveSession.individual.disabled && !darbot.interactiveSession.individual.expired && !darbot.interactiveSession.enterprise.disabled && !darbot.interactiveSession.contactSupport",
 						"media": {
 							"video": {
 								"dark": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace.mp4",
@@ -3539,14 +3534,14 @@
 								"hc": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace-hc.mp4",
 								"hcLight": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace-hclight.mp4"
 							},
-							"altText": "%github.copilot.walkthrough.panelChat.media.altText%"
+							"altText": "%darbot.walkthrough.panelChat.media.altText%"
 						}
 					},
 					{
 						"id": "copilot.setup.signUp",
-						"title": "%github.copilot.walkthrough.setup.signUp.title%",
-						"description": "%github.copilot.walkthrough.setup.signUp.description%",
-						"when": "chatPlanCanSignUp && !view.workbench.panel.chat.view.copilot.visible && !github.copilot-chat.activated && !github.copilot.offline && (github.copilot.interactiveSession.individual.disabled || github.copilot.interactiveSession.individual.expired) && !github.copilot.interactiveSession.enterprise.disabled && !github.copilot.interactiveSession.contactSupport",
+						"title": "%darbot.walkthrough.setup.signUp.title%",
+						"description": "%darbot.walkthrough.setup.signUp.description%",
+						"when": "chatPlanCanSignUp && !view.workbench.panel.chat.view.copilot.visible && !github.copilot-chat.activated && !darbot.offline && (darbot.interactiveSession.individual.disabled || darbot.interactiveSession.individual.expired) && !darbot.interactiveSession.enterprise.disabled && !darbot.interactiveSession.contactSupport",
 						"media": {
 							"video": {
 								"dark": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace.mp4",
@@ -3554,14 +3549,14 @@
 								"hc": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace-hc.mp4",
 								"hcLight": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace-hclight.mp4"
 							},
-							"altText": "%github.copilot.walkthrough.panelChat.media.altText%"
+							"altText": "%darbot.walkthrough.panelChat.media.altText%"
 						}
 					},
 					{
 						"id": "copilot.setup.signUpNoAction",
-						"title": "%github.copilot.walkthrough.setup.signUp.title%",
-						"description": "%github.copilot.walkthrough.setup.noAction.description%",
-						"when": "chatPlanCanSignUp && view.workbench.panel.chat.view.copilot.visible && !github.copilot-chat.activated && !github.copilot.offline && (github.copilot.interactiveSession.individual.disabled || github.copilot.interactiveSession.individual.expired) && !github.copilot.interactiveSession.enterprise.disabled && !github.copilot.interactiveSession.contactSupport",
+						"title": "%darbot.walkthrough.setup.signUp.title%",
+						"description": "%darbot.walkthrough.setup.noAction.description%",
+						"when": "chatPlanCanSignUp && view.workbench.panel.chat.view.copilot.visible && !github.copilot-chat.activated && !darbot.offline && (darbot.interactiveSession.individual.disabled || darbot.interactiveSession.individual.expired) && !darbot.interactiveSession.enterprise.disabled && !darbot.interactiveSession.contactSupport",
 						"media": {
 							"video": {
 								"dark": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace.mp4",
@@ -3569,13 +3564,13 @@
 								"hc": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace-hc.mp4",
 								"hcLight": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace-hclight.mp4"
 							},
-							"altText": "%github.copilot.walkthrough.panelChat.media.altText%"
+							"altText": "%darbot.walkthrough.panelChat.media.altText%"
 						}
 					},
 					{
 						"id": "copilot.panelChat",
-						"title": "%github.copilot.walkthrough.panelChat.title%",
-						"description": "%github.copilot.walkthrough.panelChat.description%",
+						"title": "%darbot.walkthrough.panelChat.title%",
+						"description": "%darbot.walkthrough.panelChat.description%",
 						"when": "!chatEntitlementSignedOut || chatIsEnabled ",
 						"media": {
 							"video": {
@@ -3584,13 +3579,13 @@
 								"hc": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace-hc.mp4",
 								"hcLight": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/workspace-hclight.mp4"
 							},
-							"altText": "%github.copilot.walkthrough.panelChat.media.altText%"
+							"altText": "%darbot.walkthrough.panelChat.media.altText%"
 						}
 					},
 					{
 						"id": "copilot.edits",
-						"title": "%github.copilot.walkthrough.edits.title%",
-						"description": "%github.copilot.walkthrough.edits.description%",
+						"title": "%darbot.walkthrough.edits.title%",
+						"description": "%darbot.walkthrough.edits.description%",
 						"when": "!chatEntitlementSignedOut || chatIsEnabled ",
 						"media": {
 							"video": {
@@ -3599,13 +3594,13 @@
 								"hc": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/edits-hc.mp4",
 								"hcLight": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/edits-hclight.mp4"
 							},
-							"altText": "%github.copilot.walkthrough.edits.media.altText%"
+							"altText": "%darbot.walkthrough.edits.media.altText%"
 						}
 					},
 					{
 						"id": "copilot.firstSuggest",
-						"title": "%github.copilot.walkthrough.firstSuggest.title%",
-						"description": "%github.copilot.walkthrough.firstSuggest.description%",
+						"title": "%darbot.walkthrough.firstSuggest.title%",
+						"description": "%darbot.walkthrough.firstSuggest.description%",
 						"when": "!chatEntitlementSignedOut || chatIsEnabled ",
 						"media": {
 							"video": {
@@ -3614,13 +3609,13 @@
 								"hc": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/ghost-text-hc.mp4",
 								"hcLight": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/ghost-text-hclight.mp4"
 							},
-							"altText": "%github.copilot.walkthrough.firstSuggest.media.altText%"
+							"altText": "%darbot.walkthrough.firstSuggest.media.altText%"
 						}
 					},
 					{
 						"id": "copilot.inlineChatNotMac",
-						"title": "%github.copilot.walkthrough.inlineChatNotMac.title%",
-						"description": "%github.copilot.walkthrough.inlineChatNotMac.description%",
+						"title": "%darbot.walkthrough.inlineChatNotMac.title%",
+						"description": "%darbot.walkthrough.inlineChatNotMac.description%",
 						"when": "!isMac && (!chatEntitlementSignedOut || chatIsEnabled )",
 						"media": {
 							"video": {
@@ -3629,13 +3624,13 @@
 								"hc": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/inline-hc.mp4",
 								"hcLight": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/inline-hclight.mp4"
 							},
-							"altText": "%github.copilot.walkthrough.inlineChatNotMac.media.altText%"
+							"altText": "%darbot.walkthrough.inlineChatNotMac.media.altText%"
 						}
 					},
 					{
 						"id": "copilot.inlineChatMac",
-						"title": "%github.copilot.walkthrough.inlineChatMac.title%",
-						"description": "%github.copilot.walkthrough.inlineChatMac.description%",
+						"title": "%darbot.walkthrough.inlineChatMac.title%",
+						"description": "%darbot.walkthrough.inlineChatMac.description%",
 						"when": "isMac && (!chatEntitlementSignedOut || chatIsEnabled )",
 						"media": {
 							"video": {
@@ -3644,13 +3639,13 @@
 								"hc": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/inline-hc.mp4",
 								"hcLight": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/inline-hclight.mp4"
 							},
-							"altText": "%github.copilot.walkthrough.inlineChatMac.media.altText%"
+							"altText": "%darbot.walkthrough.inlineChatMac.media.altText%"
 						}
 					},
 					{
 						"id": "copilot.sparkle",
-						"title": "%github.copilot.walkthrough.sparkle.title%",
-						"description": "%github.copilot.walkthrough.sparkle.description%",
+						"title": "%darbot.walkthrough.sparkle.title%",
+						"description": "%darbot.walkthrough.sparkle.description%",
 						"when": "!chatEntitlementSignedOut || chatIsEnabled",
 						"media": {
 							"video": {
@@ -3659,7 +3654,7 @@
 								"hc": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/git-commit-hc.mp4",
 								"hcLight": "https://vscodewalkthroughs.z1.web.core.windows.net/v0.26/git-commit-hclight.mp4"
 							},
-							"altText": "%github.copilot.walkthrough.sparkle.media.altText%"
+							"altText": "%darbot.walkthrough.sparkle.media.altText%"
 						}
 					}
 				]
@@ -3679,7 +3674,7 @@
 		]
 	},
 	"extensionPack": [
-		"GitHub.copilot"
+		"darbotlabs.darbot-copilot-base"
 	],
 	"prettier": {
 		"useTabs": true,
