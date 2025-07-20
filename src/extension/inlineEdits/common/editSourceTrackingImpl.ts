@@ -313,7 +313,7 @@ class ArcTelemetrySender extends Disposable {
 					"reportInlineEditArc" : {
 						"owner": "hediet",
 						"comment": "Reports the accepted and retained character count for an inline completion/edit.",
-						"extensionId": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "The extension id (copilot or darbot-copilot), which provided this inline completion." },
+						"extensionId": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "The extension id (darbot-copilot), which provided this inline completion." },
 						"opportunityId": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "Unique identifier for an opportunity to show an inline completion or NES." },
 
 						"didBranchChange": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "comment": "Indicates if the branch changed in the meantime. If the branch changed (value is 1), this event should probably be ignored." },
