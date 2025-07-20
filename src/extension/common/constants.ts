@@ -82,4 +82,4 @@ export function getAgentForIntent(intentId: Intent, location: ChatLocation): { a
 	}
 }
 
-export const EXTENSION_ID = 'GitHub.darbot-copilot';
+export const EXTENSION_ID = 'darbotlabs.darbot-copilot';

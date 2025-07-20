@@ -9,7 +9,7 @@ export class WalkthroughCommandContribution extends Disposable {
 	constructor() {
 		super();
 		this._register(vscode.commands.registerCommand('darbot.open.walkthrough', () => {
-			vscode.commands.executeCommand('workbench.action.openWalkthrough', { category: 'GitHub.darbot-copilot#copilotWelcome' }, /* toSide */ false);
+			vscode.commands.executeCommand('workbench.action.openWalkthrough', { category: 'darbotlabs.darbot-copilot#darbotWelcome' }, /* toSide */ false);
 		}));
 	}
 }

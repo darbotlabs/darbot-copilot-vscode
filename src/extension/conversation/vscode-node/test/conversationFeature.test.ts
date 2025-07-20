@@ -83,7 +83,7 @@ suite('Conversation feature test suite', function () {
 	test('The feature is enabled and activated in test mode', function () {
 		createAccessor({
 			_serviceBrand: undefined,
-			extension: { id: 'GitHub.darbot-copilot' },
+			extension: { id: 'darbotlabs.darbot-copilot' },
 			extensionMode: vscode.ExtensionMode.Test,
 			subscriptions: [],
 		} as unknown as IVSCodeExtensionContext);
