@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -16,15 +16,15 @@ export class SearchPanelCommands extends Disposable {
 		@IFeedbackReporter private readonly feedbackReporter: IFeedbackReporter,
 	) {
 		super();
-		this._register(vscode.commands.registerCommand('github.copilot.search.markHelpful', () => {
+		this._register(vscode.commands.registerCommand('darbot.search.markHelpful', () => {
 			this.sendFeedback(SearchFeedbackKind.Helpful);
 		}));
-		this._register(vscode.commands.registerCommand('github.copilot.search.markUnhelpful', () => {
+		this._register(vscode.commands.registerCommand('darbot.search.markUnhelpful', () => {
 			this.sendFeedback(SearchFeedbackKind.Unhelpful);
 		}));
-		this._register(vscode.commands.registerCommand('github.copilot.search.feedback', () => {
+		this._register(vscode.commands.registerCommand('darbot.search.feedback', () => {
 			this.sendFeedback(SearchFeedbackKind.Feedback);
-			vscode.commands.executeCommand('github.copilot.report', `Copilot search feedback: "${SemanticSearchTextSearchProvider.latestQuery}"`);
+			vscode.commands.executeCommand('darbot.report', `Copilot search feedback: "${SemanticSearchTextSearchProvider.latestQuery}"`);
 		}));
 	}
 

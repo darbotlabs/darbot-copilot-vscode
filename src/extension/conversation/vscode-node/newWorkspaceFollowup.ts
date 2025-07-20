@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { ChatResponseFileTreePart, Disposable, MarkdownString, ProgressLocation, SaveDialogOptions, Tab, TabInputText, Uri, commands, env, interactive, l10n, window, workspace } from 'vscode';

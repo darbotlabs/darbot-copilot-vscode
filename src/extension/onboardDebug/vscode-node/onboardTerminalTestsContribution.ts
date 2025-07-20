@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -8,8 +8,8 @@ import { Disposable } from '../../../util/vs/base/common/lifecycle';
 import { IDebuggableCommandIdentifier } from '../node/debuggableCommandIdentifier';
 import { COPILOT_DEBUG_COMMAND } from './copilotDebugCommandContribution';
 
-const PROVIDER_ID = 'copilot-chat.terminalToDebugging';
-const PROVIDER_ID2 = 'copilot-chat.terminalToDebuggingSuccess';
+const PROVIDER_ID = 'darbot-copilot.terminalToDebugging';
+const PROVIDER_ID2 = 'darbot-copilot.terminalToDebuggingSuccess';
 
 export class OnboardTerminalTestsContribution extends Disposable implements vscode.TerminalQuickFixProvider {
 	/**
@@ -30,7 +30,7 @@ export class OnboardTerminalTestsContribution extends Disposable implements vsco
 		this._register(vscode.window.onDidStartTerminalShellExecution(e => {
 			this.lastExecutionFor.set(e.terminal, e);
 		}));
-		this._register(vscode.commands.registerCommand('github.copilot.chat.rerunWithCopilotDebug', () => {
+		this._register(vscode.commands.registerCommand('darbot.chat.rerunWithCopilotDebug', () => {
 			const terminal = vscode.window.activeTerminal;
 			const execution = terminal && this.lastExecutionFor.get(terminal);
 			if (!execution) {

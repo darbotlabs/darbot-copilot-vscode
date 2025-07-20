@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -29,7 +29,7 @@ export class HeatmapServiceImpl implements IHeatmapService {
 		@IFileSystemService fileSystemService: IFileSystemService,
 	) {
 
-		this._store.add(vscode.commands.registerCommand('github.copilot.chat.clearTemporalContext', () => {
+		this._store.add(vscode.commands.registerCommand('darbot.chat.clearTemporalContext', () => {
 			this._entries.clear();
 			vscode.window.showInformationMessage('Temporal Context Cleared', { modal: true });
 		}));

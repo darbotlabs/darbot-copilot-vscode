@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { describe, expect, it } from 'vitest';
@@ -63,7 +63,7 @@ describe('Configurations', () => {
 
 		// Validate Internal settings have the correct prefix
 		internalKeys.forEach(key => {
-			expect(key, 'Internal settings must start with github.copilot.chat.advanced.').toMatch(/^github\.copilot\.chat\.advanced\./);
+			expect(key, 'Internal settings must start with darbot.chat.advanced.').toMatch(/^github\.copilot\.chat\.advanced\./);
 		});
 
 		// Validate public settings in code are in package.json

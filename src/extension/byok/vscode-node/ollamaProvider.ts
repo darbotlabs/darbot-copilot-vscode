@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { IChatModelInformation } from '../../../platform/endpoint/common/endpointProvider';
@@ -58,7 +58,7 @@ export class OllamaModelRegistry extends BaseOpenAICompatibleBYOKRegistry {
 			if (e instanceof Error && e.message.includes('Ollama server version')) {
 				throw e;
 			}
-			throw new Error('Failed to fetch models from Ollama. Please ensure Ollama is running. If ollama is on another host, please configure the `"github.copilot.chat.byok.ollamaEndpoint"` setting.');
+			throw new Error('Failed to fetch models from Ollama. Please ensure Ollama is running. If ollama is on another host, please configure the `"darbot.chat.byok.ollamaEndpoint"` setting.');
 		}
 	}
 

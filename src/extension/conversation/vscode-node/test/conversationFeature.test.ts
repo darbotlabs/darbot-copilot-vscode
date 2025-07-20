@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -83,7 +83,7 @@ suite('Conversation feature test suite', function () {
 	test('The feature is enabled and activated in test mode', function () {
 		createAccessor({
 			_serviceBrand: undefined,
-			extension: { id: 'GitHub.copilot-chat' },
+			extension: { id: 'darbotlabs.darbot-copilot' },
 			extensionMode: vscode.ExtensionMode.Test,
 			subscriptions: [],
 		} as unknown as IVSCodeExtensionContext);

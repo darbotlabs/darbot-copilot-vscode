@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -13,7 +13,7 @@ import { INotebookService, PipPackage, Variable, VariablesResult } from '../comm
 import { NotebookExecutionServiceImpl } from './notebookExectionServiceImpl';
 
 export const NOTEBOOK_ALTERNATIVE_CONTENT_SCHEME = 'alternative-notebook-content';
-const NOTEBOOK_AGENT_USAGE_KEY = 'github.copilot.notebookAgentModeUsage';
+const NOTEBOOK_AGENT_USAGE_KEY = 'darbot.notebookAgentModeUsage';
 
 export interface ICellExecution {
 	cell: NotebookCell;

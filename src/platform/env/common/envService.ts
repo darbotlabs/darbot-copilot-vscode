@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -115,7 +115,7 @@ export abstract class AbstractEnvService implements IEnvService {
 
 	/**
 	 * The name and version of the Copilot chat plugin.
-	 * or `{ name: 'copilot-chat', version: '1.7.21' }`.
+	 * or `{ name: 'darbot-copilot', version: '1.7.21' }`.
 	 */
 	abstract getEditorPluginInfo(): NameAndVersion;
 

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -162,6 +162,6 @@ export class InlineEditProviderFeature extends Disposable implements IExtensionC
 	}
 }
 
-export const learnMoreCommandId = 'github.copilot.debug.inlineEdit.learnMore';
+export const learnMoreCommandId = 'darbot.debug.inlineEdit.learnMore';
 
 export const learnMoreLink = 'https://aka.ms/vscode-nes';

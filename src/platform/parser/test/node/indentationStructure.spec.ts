@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -297,7 +297,7 @@ describe('getStructure', () => {
 		test('issue #12306', async () => {
 			const source = outdent`
 				/*---------------------------------------------------------------------------------------------
-				*  Copyright (c) Microsoft Corporation. All rights reserved.
+				*  Copyright (c) Darbot Labs. All rights reserved.
 				*  Licensed under the MIT License. See License.txt in the project root for license information.
 				*--------------------------------------------------------------------------------------------*/
 
@@ -584,7 +584,7 @@ describe('getStructure', () => {
 				})
 			).toMatchInlineSnapshot(`
 				"<LINE>/*---------------------------------------------------------------------------------------------
-				</LINE><LINE-1>*  Copyright (c) Microsoft Corporation. All rights reserved.
+				</LINE><LINE-1>*  Copyright (c) Darbot Labs. All rights reserved.
 				</LINE-1><LINE-2>*  Licensed under the MIT License. See License.txt in the project root for license information.
 				</LINE-2><LINE-3>*--------------------------------------------------------------------------------------------*/
 				</LINE-3><LINE-4>

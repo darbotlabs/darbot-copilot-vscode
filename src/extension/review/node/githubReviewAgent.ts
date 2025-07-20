@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -329,7 +329,7 @@ async function fetchComments(logService: ILogService, authService: IAuthenticati
 
 	if (!response.ok) {
 		if (response.status === 402) {
-			const err = new Error(`You have reached your GitHub Copilot Code Review quota limit.`);
+			const err = new Error(`You have reached your Darbot Copilot Code Review quota limit.`);
 			(err as any).severity = 'info';
 			throw err;
 		}

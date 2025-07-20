@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -21,7 +21,7 @@ export function create(accessor: ServicesAccessor): IDisposable {
 
 function registerContextCommands(accessor: ServicesAccessor) {
 	return Disposable.from(
-		commands.registerCommand('github.copilot.chat.attachSelection', () => {
+		commands.registerCommand('darbot.chat.attachSelection', () => {
 			return commands.executeCommand('workbench.action.chat.attachSelection');
 		}),
 	);

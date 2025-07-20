@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -26,7 +26,7 @@ export class TestProvider extends Disposable implements ITestProvider {
 	private setHasFailureContextKey() {
 		vscode.commands.executeCommand(
 			'setContext',
-			'github.copilot.chat.fixTestFailures.hasFailure',
+			'darbot.chat.fixTestFailures.hasFailure',
 			!!Iterable.first(this.getAllFailures()),
 		);
 	}

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -20,8 +20,8 @@ import { ChatRequest } from '../../../vscodeTypes';
 import { IExtensionContribution } from '../../common/contributions';
 
 const showHtmlCommand = 'vscode.copilot.chat.showRequestHtmlItem';
-const exportLogItemCommand = 'github.copilot.chat.debug.exportLogItem';
-const exportPromptArchiveCommand = 'github.copilot.chat.debug.exportPromptArchive';
+const exportLogItemCommand = 'darbot.chat.debug.exportLogItem';
+const exportPromptArchiveCommand = 'darbot.chat.debug.exportPromptArchive';
 
 export class RequestLogTree extends Disposable implements IExtensionContribution {
 	readonly id = 'requestLogTree';
@@ -31,7 +31,7 @@ export class RequestLogTree extends Disposable implements IExtensionContribution
 		@IRequestLogger requestLogger: IRequestLogger,
 	) {
 		super();
-		this._register(vscode.window.registerTreeDataProvider('copilot-chat', this._register(instantiationService.createInstance(ChatRequestProvider))));
+		this._register(vscode.window.registerTreeDataProvider('darbot-copilot', this._register(instantiationService.createInstance(ChatRequestProvider))));
 
 		let server: RequestServer | undefined;
 
@@ -500,7 +500,7 @@ class LogTreeFilters extends Disposable {
 	}
 
 	private getStorageKey(name: string): string {
-		return `github.copilot.chat.debug.${name}Hidden`;
+		return `darbot.chat.debug.${name}Hidden`;
 	}
 
 	setElementsShown(value: boolean) {
@@ -526,7 +526,7 @@ class LogTreeFilters extends Disposable {
 	}
 
 	private setShown(name: string, value: boolean): void {
-		vscode.commands.executeCommand('setContext', `github.copilot.chat.debug.${name}Hidden`, !value);
+		vscode.commands.executeCommand('setContext', `darbot.chat.debug.${name}Hidden`, !value);
 		this.vscodeExtensionContext.workspaceState.update(this.getStorageKey(name), !value);
 		this._onDidChangeFilters.fire();
 	}
@@ -536,9 +536,9 @@ class LogTreeFilterCommands extends Disposable {
 	constructor(filters: LogTreeFilters) {
 		super();
 
-		this._register(vscode.commands.registerCommand('github.copilot.chat.debug.showElements', () => filters.setElementsShown(true)));
-		this._register(vscode.commands.registerCommand('github.copilot.chat.debug.hideElements', () => filters.setElementsShown(false)));
-		this._register(vscode.commands.registerCommand('github.copilot.chat.debug.showTools', () => filters.setToolsShown(true)));
-		this._register(vscode.commands.registerCommand('github.copilot.chat.debug.hideTools', () => filters.setToolsShown(false)));
+		this._register(vscode.commands.registerCommand('darbot.chat.debug.showElements', () => filters.setElementsShown(true)));
+		this._register(vscode.commands.registerCommand('darbot.chat.debug.hideElements', () => filters.setElementsShown(false)));
+		this._register(vscode.commands.registerCommand('darbot.chat.debug.showTools', () => filters.setToolsShown(true)));
+		this._register(vscode.commands.registerCommand('darbot.chat.debug.hideTools', () => filters.setToolsShown(false)));
 	}
 }

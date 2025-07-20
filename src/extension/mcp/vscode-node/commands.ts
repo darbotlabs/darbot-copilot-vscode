@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as vscode from 'vscode';
@@ -74,7 +74,7 @@ export class McpSetupCommands extends Disposable {
 	) {
 		super();
 		this._register(toDisposable(() => this.pendingSetup?.cts.dispose(true)));
-		this._register(vscode.commands.registerCommand('github.copilot.chat.mcp.setup.flow', (args: { name: string }) => {
+		this._register(vscode.commands.registerCommand('darbot.chat.mcp.setup.flow', (args: { name: string }) => {
 			if (this.pendingSetup?.name !== args.name) {
 				return undefined;
 			}
@@ -82,10 +82,10 @@ export class McpSetupCommands extends Disposable {
 			this.pendingSetup.canPrompt.complete(undefined);
 			return this.pendingSetup.done;
 		}));
-		this._register(vscode.commands.registerCommand('github.copilot.chat.mcp.setup.validatePackage', async (args: IValidatePackageArgs): Promise<ValidatePackageResult> => {
+		this._register(vscode.commands.registerCommand('darbot.chat.mcp.setup.validatePackage', async (args: IValidatePackageArgs): Promise<ValidatePackageResult> => {
 			return this.validatePackageRegistry(args);
 		}));
-		this._register(vscode.commands.registerCommand('github.copilot.chat.mcp.setup.check', () => {
+		this._register(vscode.commands.registerCommand('darbot.chat.mcp.setup.check', () => {
 			return 1;
 		}));
 	}

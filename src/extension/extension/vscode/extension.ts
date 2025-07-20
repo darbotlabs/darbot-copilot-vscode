@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -40,7 +40,7 @@ export async function baseActivate(configuration: IExtensionActivationConfigurat
 
 	// Check if the extension is running in a pre-release version of VS Code
 	const isStableVsCode = !(env.appName.includes('Insiders') || env.appName.includes('Exploration') || env.appName.includes('OSS'));
-	const showSwitchToReleaseViewCtxKey = 'github.copilot.interactiveSession.switchToReleaseChannel';
+	const showSwitchToReleaseViewCtxKey = 'darbot.interactiveSession.switchToReleaseChannel';
 	if (context.extension.packageJSON.isPreRelease && isStableVsCode) {
 		// Prevent activation of the extension if the user is using a pre-release version in stable VS Code
 		commands.executeCommand('setContext', showSwitchToReleaseViewCtxKey, true);

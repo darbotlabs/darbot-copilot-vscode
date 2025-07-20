@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -221,9 +221,9 @@ const nodeSimulationWorkbenchUIBuildOptions = {
 } satisfies esbuild.BuildOptions;
 
 async function typeScriptServerPluginPackageJsonInstall(): Promise<void> {
-	await mkdir('./node_modules/@vscode/copilot-typescript-server-plugin', { recursive: true });
+	await mkdir('./node_modules/@vscode/darbot-typescript-server-plugin', { recursive: true });
 	const source = path.join(__dirname, './src/extension/typescriptContext/serverPlugin/package.json');
-	const destination = path.join(__dirname, './node_modules/@vscode/copilot-typescript-server-plugin/package.json');
+	const destination = path.join(__dirname, './node_modules/@vscode/darbot-typescript-server-plugin/package.json');
 	try {
 		await copyFile(source, destination);
 	} catch (error) {
@@ -237,7 +237,7 @@ const typeScriptServerPluginBuildOptions = {
 	// keepNames: true,
 	logLevel: 'info',
 	minify: !isDev,
-	outdir: './node_modules/@vscode/copilot-typescript-server-plugin/dist',
+	outdir: './node_modules/@vscode/darbot-typescript-server-plugin/dist',
 	platform: 'node',
 	sourcemap: isDev ? 'linked' : false,
 	sourcesContent: false,

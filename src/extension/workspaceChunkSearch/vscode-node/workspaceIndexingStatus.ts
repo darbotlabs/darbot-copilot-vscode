@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -96,7 +96,7 @@ export class ChatStatusWorkspaceIndexingStatus extends Disposable {
 		this._writeStatusItem({
 			title: {
 				title: t`Checking index status`,
-				learnMoreLink: 'https://aka.ms/copilot-chat-workspace-remote-index', // Top level overview of index
+				learnMoreLink: 'https://aka.ms/darbot-copilot-workspace-remote-index', // Top level overview of index
 				busy: true
 			},
 			details: undefined

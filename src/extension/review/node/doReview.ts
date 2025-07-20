@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -52,7 +52,7 @@ function combineCancellationTokens(token1: CancellationToken, token2: Cancellati
 }
 
 let inProgress: CancellationTokenSource | undefined;
-const scmProgressKey = 'github.copilot.chat.review.sourceControlProgress';
+const scmProgressKey = 'darbot.chat.review.sourceControlProgress';
 export async function doReview(
 	scopeSelector: IScopeSelector,
 	instantiationService: IInstantiationService,

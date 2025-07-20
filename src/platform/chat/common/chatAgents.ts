@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -23,7 +23,7 @@ export const editingSessionAgent2Name = 'editingSession2';
 export const editingSessionAgentEditorName = 'editingSessionEditor';
 export const editsAgentName = 'editsAgent';
 
-export const CHAT_PARTICIPANT_ID_PREFIX = 'github.copilot.';
+export const CHAT_PARTICIPANT_ID_PREFIX = 'darbot.';
 export function getChatParticipantIdFromName(name: string): string {
 	return `${CHAT_PARTICIPANT_ID_PREFIX}${name}`;
 }

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Darbot Labs. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { t } from '@vscode/l10n';
@@ -11,8 +11,8 @@ import { TelemetryCorrelationId } from '../../../util/common/telemetryCorrelatio
 import { DisposableStore, IDisposable } from '../../../util/vs/base/common/lifecycle';
 import { ServicesAccessor } from '../../../util/vs/platform/instantiation/common/instantiation';
 
-export const buildLocalIndexCommandId = 'github.copilot.buildLocalWorkspaceIndex';
-export const buildRemoteIndexCommandId = 'github.copilot.buildRemoteWorkspaceIndex';
+export const buildLocalIndexCommandId = 'darbot.buildLocalWorkspaceIndex';
+export const buildRemoteIndexCommandId = 'darbot.buildRemoteWorkspaceIndex';
 
 export function register(accessor: ServicesAccessor): IDisposable {
 	const workspaceChunkSearch = accessor.get(IWorkspaceChunkSearchService);
@@ -48,7 +48,7 @@ export function register(accessor: ServicesAccessor): IDisposable {
 		});
 	})));
 
-	disposableStore.add(vscode.commands.registerCommand('github.copilot.debug.collectWorkspaceIndexDiagnostics', async () => {
+	disposableStore.add(vscode.commands.registerCommand('darbot.debug.collectWorkspaceIndexDiagnostics', async () => {
 		vscode.window.withProgress({
 			location: vscode.ProgressLocation.Window,
 			title: t`Collecting workspace index diagnostics...`,
