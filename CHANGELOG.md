@@ -1,3 +1,25 @@
+## 0.31.0 (2025-01-20) - Updated to Latest Microsoft Features
+
+### Major Updates from Microsoft's vscode-copilot-chat v0.31.0
+
+#### Enhanced Language Model Tools
+- **New multiReplaceString Tool**: Added efficient multi-file and multi-location string replacement tool for batch editing operations
+- **Updated API Proposals**: Added support for `aiSettingsSearch`, `chatParticipantPrivate@10`, `chatProvider@3`, `dataChannels`, `languageModelThinkingPart`, and `chatSessionsProvider`
+- **Engine Requirements**: Updated to require VS Code 1.104.0-20250828 for latest API compatibility
+- **Completions Core**: Added `completionsCore` and `completionsCoreVersion` tracking for improved code completion features
+
+#### Developer Experience Improvements
+- **Multi-Replace Efficiency**: The new `darbot_multiReplaceString` tool allows applying multiple string replacements in a single operation, significantly improving performance for batch edits
+- **Enhanced Chat Capabilities**: Updated chat participants and providers for better conversational AI experiences
+- **Improved API Surface**: Latest enabled API proposals provide access to cutting-edge VS Code extension APIs
+
+#### Technical Modernization
+- All Darbot-specific customizations preserved (branding, naming conventions, tool prefixes)
+- Maintained backward compatibility while adding new capabilities
+- Enhanced language model tool sets with multi-replace functionality
+
+This update brings Darbot Copilot in line with the latest Microsoft innovations while preserving all custom Darbot features and branding.
+
 ## 0.30.0 (2025-01-19) - Darbot Copilot Fork
 
 ### Major Changes

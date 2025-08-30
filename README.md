@@ -48,6 +48,11 @@ Darbot Copilot works on any language, including Java, PHP, Python, JavaScript, R
 
 As Darbot Copilot releases in lockstep with VS Code due to its deep UI integration, every new version of Darbot Copilot is only compatible with the latest and newest release of VS Code. This means that if you are using an older version of VS Code, you will not be able to use the latest Darbot Copilot.
 
+**Requirements:**
+- **VS Code**: 1.104.0-20250828 or later
+- **Node.js**: 22.14.0 or later
+- **npm**: 9.0.0 or later
+
 Only the latest Darbot Copilot versions will use the latest models provided by the AI service, as even minor model upgrades require prompt changes and fixes in the extension. An older version of Darbot Copilot will still use the latest version of completions.
 
 ### Privacy and terms
