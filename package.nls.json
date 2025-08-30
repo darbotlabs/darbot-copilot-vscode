@@ -272,6 +272,7 @@
 	"darbot.tools.createFile.name": "Create File",
 	"darbot.tools.insertEdit.name": "Edit File",
 	"darbot.tools.replaceString.name": "Replace String in File",
+	"darbot.tools.multiReplaceString.name": "Multi Replace String in Files",
 	"darbot.tools.editNotebook.name": "Edit Notebook",
 	"darbot.tools.runNotebookCell.name": "Run Notebook Cell",
 	"darbot.tools.getNotebookCellOutput.name": "Get Notebook Cell Output",
