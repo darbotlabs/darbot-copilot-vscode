@@ -3,9 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { BasePromptElementProps, PromptElement, PromptElementProps, PromptSizing } from '@vscode/prompt-tsx';
+import {
+	BasePromptElementProps,
+	PromptElement,
+	PromptElementProps,
+	PromptSizing,
+} from '@vscode/prompt-tsx';
 import type * as vscode from 'vscode';
-import { ConfigKey, IConfigurationService } from '../../../platform/configuration/common/configurationService';
+import {
+	ConfigKey,
+	IConfigurationService,
+} from '../../../platform/configuration/common/configurationService';
 import { IEndpointProvider } from '../../../platform/endpoint/common/endpointProvider';
 import { ILanguageDiagnosticsService } from '../../../platform/languages/common/languageDiagnosticsService';
 import { IPromptPathRepresentationService } from '../../../platform/prompts/common/promptPathRepresentationService';
@@ -39,11 +47,16 @@ export interface IEditFileResultProps extends BasePromptElementProps {
 export class EditFileResult extends PromptElement<IEditFileResultProps> {
 	constructor(
 		props: PromptElementProps<IEditFileResultProps>,
-		@IConfigurationService private readonly configurationService: IConfigurationService,
-		@ILanguageDiagnosticsService private readonly languageDiagnosticsService: ILanguageDiagnosticsService,
-		@ISimulationTestContext private readonly testContext: ISimulationTestContext,
-		@IPromptPathRepresentationService private readonly promptPathRepresentationService: IPromptPathRepresentationService,
-		@IWorkspaceService protected readonly workspaceService: IWorkspaceService,
+		@IConfigurationService
+		private readonly configurationService: IConfigurationService,
+		@ILanguageDiagnosticsService
+		private readonly languageDiagnosticsService: ILanguageDiagnosticsService,
+		@ISimulationTestContext
+		private readonly testContext: ISimulationTestContext,
+		@IPromptPathRepresentationService
+		private readonly promptPathRepresentationService: IPromptPathRepresentationService,
+		@IWorkspaceService
+		protected readonly workspaceService: IWorkspaceService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@IEndpointProvider private readonly endpointProvider: IEndpointProvider,
 	) {
@@ -53,7 +66,10 @@ export class EditFileResult extends PromptElement<IEditFileResultProps> {
 	override async render(state: void, sizing: PromptSizing) {
 		const successfullyEditedFiles: string[] = [];
 		const editingErrors: string[] = [];
-		const editsWithDiagnostics: { file: string; diagnostics: PromptElement }[] = [];
+		const editsWithDiagnostics: {
+			file: string;
+			diagnostics: PromptElement;
+		}[] = [];
 		let totalNewDiagnostics = 0;
 		let filesWithNewDiagnostics = 0;
 
@@ -63,73 +79,122 @@ export class EditFileResult extends PromptElement<IEditFileResultProps> {
 				continue;
 			}
 
-			const diagnostics = !this.testContext.isInSimulationTests && this.configurationService.getConfig(ConfigKey.AutoFixDiagnostics) && !(file.isNotebook)
-				? await this.getNewDiagnostics(file)
-				: [];
+			const diagnostics =
+				!this.testContext.isInSimulationTests &&
+				this.configurationService.getConfig(
+					ConfigKey.AutoFixDiagnostics,
+				) &&
+				!file.isNotebook
+					? await this.getNewDiagnostics(file)
+					: [];
 
 			if (diagnostics.length && !file.isNotebook) {
 				totalNewDiagnostics += diagnostics.length;
 				filesWithNewDiagnostics++;
-				const newSnapshot = await this.workspaceService.openTextDocumentAndSnapshot(file.uri);
+				const newSnapshot =
+					await this.workspaceService.openTextDocumentAndSnapshot(
+						file.uri,
+					);
 				editsWithDiagnostics.push({
-					file: this.promptPathRepresentationService.getFilePath(file.uri),
-					diagnostics: <DiagnosticToolOutput
-						diagnosticsGroups={[{
-							context: { document: newSnapshot, language: getLanguage(newSnapshot) },
-							diagnostics,
-							uri: file.uri,
-						}]}
-						maxDiagnostics={20}
-					/>
+					file: this.promptPathRepresentationService.getFilePath(
+						file.uri,
+					),
+					diagnostics: (
+						<DiagnosticToolOutput
+							diagnosticsGroups={[
+								{
+									context: {
+										document: newSnapshot,
+										language: getLanguage(newSnapshot),
+									},
+									diagnostics,
+									uri: file.uri,
+								},
+							]}
+							maxDiagnostics={20}
+						/>
+					),
 				});
 				continue;
 			}
 
-			successfullyEditedFiles.push(this.promptPathRepresentationService.getFilePath(file.uri));
+			successfullyEditedFiles.push(
+				this.promptPathRepresentationService.getFilePath(file.uri),
+			);
 		}
 
 		if (this.props.toolName && this.props.requestId) {
-			await this.sendEditFileResultTelemetry(totalNewDiagnostics, filesWithNewDiagnostics);
+			await this.sendEditFileResultTelemetry(
+				totalNewDiagnostics,
+				filesWithNewDiagnostics,
+			);
 		}
 
 		return (
 			<>
-				{this.props.healed && <>There was an error applying your original patch, and it was modified to the following:<br />{this.props.healed}<br /></>}
-				{successfullyEditedFiles.length > 0 &&
-					<>The following files were successfully edited:<br />
-						{successfullyEditedFiles.join('\n')}<br /></>}
-				{editingErrors.length > 0 &&
-					<>{editingErrors.join('\n')}</>}
+				{this.props.healed && (
+					<>
+						There was an error applying your original patch, and it
+						was modified to the following:
+						<br />
+						{this.props.healed}
+						<br />
+					</>
+				)}
+				{successfullyEditedFiles.length > 0 && (
+					<>
+						The following files were successfully edited:
+						<br />
+						{successfullyEditedFiles.join('\n')}
+						<br />
+					</>
+				)}
+				{editingErrors.length > 0 && <>{editingErrors.join('\n')}</>}
 				{editsWithDiagnostics.length > 0 &&
-					editsWithDiagnostics.map(edit => {
-						return <>
-							The edit to {edit.file} was applied successfully.<br />
-							The edit resulted in the following lint errors:<br />
-							{edit.diagnostics}
-						</>;
+					editsWithDiagnostics.map((edit) => {
+						return (
+							<>
+								The edit to {edit.file} was applied
+								successfully.
+								<br />
+								The edit resulted in the following lint errors:
+								<br />
+								{edit.diagnostics}
+							</>
+						);
 					})}
 			</>
 		);
 	}
 
-	private async getNewDiagnostics(editedFile: IEditedFile): Promise<Diagnostic[]> {
+	private async getNewDiagnostics(
+		editedFile: IEditedFile,
+	): Promise<Diagnostic[]> {
 		await timeout(this.props.diagnosticsTimeout ?? 1000);
 
 		const existingDiagnostics = editedFile.existingDiagnostics || [];
 		const newDiagnostics: Diagnostic[] = [];
 
-		for (const diagnostic of this.languageDiagnosticsService.getDiagnostics(editedFile.uri)) {
-			if (diagnostic.severity !== DiagnosticSeverity.Error && diagnostic.severity !== DiagnosticSeverity.Warning) {
+		for (const diagnostic of this.languageDiagnosticsService.getDiagnostics(
+			editedFile.uri,
+		)) {
+			if (
+				diagnostic.severity !== DiagnosticSeverity.Error &&
+				diagnostic.severity !== DiagnosticSeverity.Warning
+			) {
 				continue;
 			}
 
 			// Won't help if edit caused lines to move around, but better than nothing
-			const isDuplicate = existingDiagnostics.some(existing =>
-				existing.message === diagnostic.message &&
-				existing.range.start.line === diagnostic.range.start.line &&
-				existing.range.start.character === diagnostic.range.start.character &&
-				existing.range.end.line === diagnostic.range.end.line &&
-				existing.range.end.character === diagnostic.range.end.character
+			const isDuplicate = existingDiagnostics.some(
+				(existing) =>
+					existing.message === diagnostic.message &&
+					existing.range.start.line === diagnostic.range.start.line &&
+					existing.range.start.character ===
+						diagnostic.range.start.character &&
+					existing.range.end.line === diagnostic.range.end.line &&
+					existing.range.end.character ===
+						diagnostic.range.end.character,
 			);
 
 			if (!isDuplicate) {
@@ -140,8 +205,14 @@ export class EditFileResult extends PromptElement<IEditFileResultProps> {
 		return newDiagnostics;
 	}
 
-	private async sendEditFileResultTelemetry(totalNewDiagnostics: number, filesWithNewDiagnostics: number) {
-		const model = this.props.model && (await this.endpointProvider.getChatEndpoint(this.props.model)).model;
+	private async sendEditFileResultTelemetry(
+		totalNewDiagnostics: number,
+		filesWithNewDiagnostics: number,
+	) {
+		const model =
+			this.props.model &&
+			(await this.endpointProvider.getChatEndpoint(this.props.model))
+				.model;
 
 		/* __GDPR__
 			"editFileResult.diagnostics" : {
@@ -155,7 +226,8 @@ export class EditFileResult extends PromptElement<IEditFileResultProps> {
 				"totalFilesEdited": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "comment": "Total number of files that were edited" }
 			}
 		*/
-		this.telemetryService.sendMSFTTelemetryEvent('editFileResult.diagnostics',
+		this.telemetryService.sendMSFTTelemetryEvent(
+			'editFileResult.diagnostics',
 			{
 				requestId: this.props.requestId!,
 				toolName: this.props.toolName!,
@@ -164,8 +236,8 @@ export class EditFileResult extends PromptElement<IEditFileResultProps> {
 			{
 				totalNewDiagnostics,
 				filesWithNewDiagnostics,
-				totalFilesEdited: this.props.files.length
-			}
+				totalFilesEdited: this.props.files.length,
+			},
 		);
 	}
 }

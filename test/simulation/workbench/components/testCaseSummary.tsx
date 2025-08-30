@@ -19,29 +19,27 @@ export const TestCaseSummary = mobxlite.observer(
 			<div>
 				<div className="test-case-count">
 					<span>Total generated test case numbers: </span>
-					{baselineRun
-						? <>
+					{baselineRun ? (
+						<>
 							<span>{baselineRun.generatedTestCaseCount}</span>
 							<ArrowRight12Regular />
 						</>
-						: null
-					}
+					) : null}
 
 					<span>{currentRun.generatedTestCaseCount}</span>
 				</div>
 				<div className="test-assertion-count">
 					<span>Total generated assertions numbers: </span>
-					{baselineRun
-						? <>
+					{baselineRun ? (
+						<>
 							<span>{baselineRun.generatedAssertCount}</span>
 							<ArrowRight12Regular />
 						</>
-						: null
-					}
+					) : null}
 
 					<span>{currentRun.generatedAssertCount}</span>
 				</div>
 			</div>
 		);
-	}
+	},
 );

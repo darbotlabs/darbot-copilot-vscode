@@ -4,12 +4,25 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from '@vscode/l10n';
-import { BasePromptElementProps, PromptElement, PromptElementProps, PromptReference, TextChunk } from '@vscode/prompt-tsx';
+import {
+	BasePromptElementProps,
+	PromptElement,
+	PromptElementProps,
+	PromptReference,
+	TextChunk,
+} from '@vscode/prompt-tsx';
 import type * as vscode from 'vscode';
 import { ILanguageFeaturesService } from '../../../platform/languages/common/languageFeaturesService';
 import { IPromptPathRepresentationService } from '../../../platform/prompts/common/promptPathRepresentationService';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
-import { ExtendedLanguageModelToolResult, LanguageModelPromptTsxPart, LanguageModelTextPart, LanguageModelToolResult, Location, MarkdownString } from '../../../vscodeTypes';
+import {
+	ExtendedLanguageModelToolResult,
+	LanguageModelPromptTsxPart,
+	LanguageModelTextPart,
+	LanguageModelToolResult,
+	Location,
+	MarkdownString,
+} from '../../../vscodeTypes';
 import { renderPromptElementJSON } from '../../prompts/node/base/promptRenderer';
 import { Tag } from '../../prompts/node/base/tag';
 import { ToolName } from '../common/toolNames';
@@ -22,29 +35,41 @@ interface IUsagesToolParams {
 }
 
 class GetUsagesTool implements ICopilotTool<IUsagesToolParams> {
-
 	static readonly toolName = ToolName.Usages;
 
 	constructor(
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@ILanguageFeaturesService private readonly languageFeaturesService: ILanguageFeaturesService,
-		@IPromptPathRepresentationService private readonly _promptPathService: IPromptPathRepresentationService,
-	) { }
+		@IInstantiationService
+		private readonly instantiationService: IInstantiationService,
+		@ILanguageFeaturesService
+		private readonly languageFeaturesService: ILanguageFeaturesService,
+		@IPromptPathRepresentationService
+		private readonly _promptPathService: IPromptPathRepresentationService,
+	) {}
 
-	async invoke(options: vscode.LanguageModelToolInvocationOptions<IUsagesToolParams>, token: vscode.CancellationToken): Promise<LanguageModelToolResult> {
-
+	async invoke(
+		options: vscode.LanguageModelToolInvocationOptions<IUsagesToolParams>,
+		token: vscode.CancellationToken,
+	): Promise<LanguageModelToolResult> {
 		let filePaths = options.input.filePaths;
 		if (!filePaths) {
 			// use symbol search when filePaths are missing
-			const symbols = await this.languageFeaturesService.getWorkspaceSymbols(options.input.symbolName);
-			filePaths = symbols.map(s => this._promptPathService.getFilePath(s.location.uri));
+			const symbols =
+				await this.languageFeaturesService.getWorkspaceSymbols(
+					options.input.symbolName,
+				);
+			filePaths = symbols.map((s) =>
+				this._promptPathService.getFilePath(s.location.uri),
+			);
 		}
 
 		let def: vscode.Location | undefined;
 		for (const filePath of filePaths) {
 			const uri = resolveToolInputPath(filePath, this._promptPathService);
-			const symbols = await this.languageFeaturesService.getDocumentSymbols(uri);
-			const symbol = symbols.find(value => value.name === options.input.symbolName);
+			const symbols =
+				await this.languageFeaturesService.getDocumentSymbols(uri);
+			const symbol = symbols.find(
+				(value) => value.name === options.input.symbolName,
+			);
 			if (symbol) {
 				def = new Location(uri, symbol.selectionRange);
 				break;
@@ -53,34 +78,62 @@ class GetUsagesTool implements ICopilotTool<IUsagesToolParams> {
 
 		if (!def) {
 			const message = `Symbol \`${options.input.symbolName}\` not found`;
-			const toolResult = new ExtendedLanguageModelToolResult([new LanguageModelTextPart(message)]);
+			const toolResult = new ExtendedLanguageModelToolResult([
+				new LanguageModelTextPart(message),
+			]);
 			toolResult.toolResultMessage = new MarkdownString(message);
 			return toolResult;
 		}
 
 		const [definitions, references, implementations] = await Promise.all([
-			this.languageFeaturesService.getDefinitions(def.uri, def.range.start),
-			this.languageFeaturesService.getReferences(def.uri, def.range.start),
-			this.languageFeaturesService.getImplementations(def.uri, def.range.start)
+			this.languageFeaturesService.getDefinitions(
+				def.uri,
+				def.range.start,
+			),
+			this.languageFeaturesService.getReferences(
+				def.uri,
+				def.range.start,
+			),
+			this.languageFeaturesService.getImplementations(
+				def.uri,
+				def.range.start,
+			),
 		]);
 
-		const result = await renderPromptElementJSON(this.instantiationService, UsagesOutput, { definitions, references, implementations }, options.tokenizationOptions, token);
-		const toolResult = new ExtendedLanguageModelToolResult([new LanguageModelPromptTsxPart(result)]);
+		const result = await renderPromptElementJSON(
+			this.instantiationService,
+			UsagesOutput,
+			{ definitions, references, implementations },
+			options.tokenizationOptions,
+			token,
+		);
+		const toolResult = new ExtendedLanguageModelToolResult([
+			new LanguageModelPromptTsxPart(result),
+		]);
 		toolResult.toolResultDetails = references;
 
 		const query = `\`${options.input.symbolName}\``;
 
-		toolResult.toolResultMessage = references.length === 0
-			? new MarkdownString(l10n.t`Analyzed usages of ${query}, no results`)
-			: references.length === 1
-				? new MarkdownString(l10n.t`Analyzed usages of ${query}, 1 result`)
-				: new MarkdownString(l10n.t`Analyzed usages of ${query}, ${references.length} results`);
+		toolResult.toolResultMessage =
+			references.length === 0
+				? new MarkdownString(
+						l10n.t`Analyzed usages of ${query}, no results`,
+					)
+				: references.length === 1
+					? new MarkdownString(
+							l10n.t`Analyzed usages of ${query}, 1 result`,
+						)
+					: new MarkdownString(
+							l10n.t`Analyzed usages of ${query}, ${references.length} results`,
+						);
 
 		return toolResult;
-
 	}
 
-	prepareInvocation(options: vscode.LanguageModelToolInvocationPrepareOptions<IUsagesToolParams>, token: vscode.CancellationToken): vscode.ProviderResult<vscode.PreparedToolInvocation> {
+	prepareInvocation(
+		options: vscode.LanguageModelToolInvocationPrepareOptions<IUsagesToolParams>,
+		token: vscode.CancellationToken,
+	): vscode.ProviderResult<vscode.PreparedToolInvocation> {
 		const query = `\`${options.input.symbolName}\``;
 		return {
 			invocationMessage: l10n.t`Analyzing usages of ${query}`,
@@ -99,7 +152,8 @@ interface IUsagesOutputProps extends BasePromptElementProps {
 class UsagesOutput extends PromptElement<IUsagesOutputProps> {
 	constructor(
 		props: PromptElementProps<IUsagesOutputProps>,
-		@IPromptPathRepresentationService private readonly promptPathRepresentationService: IPromptPathRepresentationService,
+		@IPromptPathRepresentationService
+		private readonly promptPathRepresentationService: IPromptPathRepresentationService,
 	) {
 		super(props);
 	}
@@ -111,36 +165,72 @@ class UsagesOutput extends PromptElement<IUsagesOutputProps> {
 			return <>No usages found.</>;
 		}
 
-		function isEqual(a: vscode.Location | vscode.LocationLink, b: vscode.Location | vscode.LocationLink): boolean {
-			const [uriA, rangeA] = a instanceof Location ? [a.uri, a.range] : [a.targetUri, a.targetRange];
-			const [uriB, rangeB] = b instanceof Location ? [b.uri, b.range] : [b.targetUri, b.targetRange];
-			return uriA.toString() === uriB.toString() && (
-				rangeA.isEqual(rangeB) ||
-				rangeA.contains(rangeB) ||
-				rangeB.contains(rangeA)
+		function isEqual(
+			a: vscode.Location | vscode.LocationLink,
+			b: vscode.Location | vscode.LocationLink,
+		): boolean {
+			const [uriA, rangeA] =
+				a instanceof Location
+					? [a.uri, a.range]
+					: [a.targetUri, a.targetRange];
+			const [uriB, rangeB] =
+				b instanceof Location
+					? [b.uri, b.range]
+					: [b.targetUri, b.targetRange];
+			return (
+				uriA.toString() === uriB.toString() &&
+				(rangeA.isEqual(rangeB) ||
+					rangeA.contains(rangeB) ||
+					rangeB.contains(rangeA))
 			);
 		}
 
-		return <>
-			{<TextChunk>{references.length} usages</TextChunk>}
-			{references.map((ref, i) => {
+		return (
+			<>
+				{<TextChunk>{references.length} usages</TextChunk>}
+				{references.map((ref, i) => {
+					let referenceType = 'usage';
+					if (
+						definitions.find((candidate) => isEqual(candidate, ref))
+					) {
+						referenceType = 'definition';
+					} else if (
+						implementations.find((candidate) =>
+							isEqual(candidate, ref),
+						)
+					) {
+						referenceType = 'implementation';
+					}
 
-				let referenceType = 'usage';
-				if (definitions.find(candidate => isEqual(candidate, ref))) {
-					referenceType = 'definition';
-				} else if (implementations.find(candidate => isEqual(candidate, ref))) {
-					referenceType = 'implementation';
-				}
-
-				const [uri, range] = ref instanceof Location ? [ref.uri, ref.range] : [ref.targetUri, ref.targetRange];
-				const filePath = this.promptPathRepresentationService.getFilePath(uri);
-				return <>
-					<Tag name={referenceType} priority={references.length - i}>
-						<references value={[new PromptReference(new Location(uri, range), undefined, { isFromTool: true })]} />
-						{filePath}, line {range.start.line}, column {range.start.character}
-					</Tag><br />
-				</>;
-			})}
-		</>;
+					const [uri, range] =
+						ref instanceof Location
+							? [ref.uri, ref.range]
+							: [ref.targetUri, ref.targetRange];
+					const filePath =
+						this.promptPathRepresentationService.getFilePath(uri);
+					return (
+						<>
+							<Tag
+								name={referenceType}
+								priority={references.length - i}
+							>
+								<references
+									value={[
+										new PromptReference(
+											new Location(uri, range),
+											undefined,
+											{ isFromTool: true },
+										),
+									]}
+								/>
+								{filePath}, line {range.start.line}, column{' '}
+								{range.start.character}
+							</Tag>
+							<br />
+						</>
+					);
+				})}
+			</>
+		);
 	}
 }
