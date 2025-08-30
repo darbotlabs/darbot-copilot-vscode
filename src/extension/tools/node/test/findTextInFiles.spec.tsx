@@ -6,8 +6,14 @@
 import { afterEach, beforeEach, expect, suite, test } from 'vitest';
 import type * as vscode from 'vscode';
 import { RelativePattern } from '../../../../platform/filesystem/common/fileTypes';
-import { AbstractSearchService, ISearchService } from '../../../../platform/search/common/searchService';
-import { ITestingServicesAccessor, TestingServiceCollection } from '../../../../platform/test/node/services';
+import {
+	AbstractSearchService,
+	ISearchService,
+} from '../../../../platform/search/common/searchService';
+import {
+	ITestingServicesAccessor,
+	TestingServiceCollection,
+} from '../../../../platform/test/node/services';
 import { TestWorkspaceService } from '../../../../platform/test/node/testWorkspaceService';
 import { IWorkspaceService } from '../../../../platform/workspace/common/workspaceService';
 import { CancellationToken } from '../../../../util/vs/base/common/cancellation';
@@ -22,11 +28,18 @@ suite('FindTextInFiles', () => {
 	let accessor: ITestingServicesAccessor;
 	let collection: TestingServiceCollection;
 
-	const workspaceFolder = isWindows ? 'c:\\test\\workspace' : '/test/workspace';
+	const workspaceFolder = isWindows
+		? 'c:\\test\\workspace'
+		: '/test/workspace';
 
 	beforeEach(() => {
 		collection = createExtensionUnitTestingServices();
-		collection.define(IWorkspaceService, new SyncDescriptor(TestWorkspaceService, [[URI.file(workspaceFolder)]]));
+		collection.define(
+			IWorkspaceService,
+			new SyncDescriptor(TestWorkspaceService, [
+				[URI.file(workspaceFolder)],
+			]),
+		);
 	});
 
 	afterEach(() => {
@@ -37,8 +50,13 @@ suite('FindTextInFiles', () => {
 		const patterns: vscode.GlobPattern[] = [expected];
 		if (typeof expected === 'string' && !expected.endsWith('/**')) {
 			patterns.push(expected + '/**');
-		} else if (typeof expected !== 'string' && !expected.pattern.endsWith('/**')) {
-			patterns.push(new RelativePattern(expected.baseUri, expected.pattern + '/**'));
+		} else if (
+			typeof expected !== 'string' &&
+			!expected.pattern.endsWith('/**')
+		) {
+			patterns.push(
+				new RelativePattern(expected.baseUri, expected.pattern + '/**'),
+			);
 		}
 
 		collection.define(ISearchService, new TestSearchService(patterns));
@@ -48,29 +66,64 @@ suite('FindTextInFiles', () => {
 	test('passes through simple query', async () => {
 		setup('*.ts');
 
-		const tool = accessor.get(IInstantiationService).createInstance(FindTextInFilesTool);
-		await tool.invoke({ input: { query: 'hello', includePattern: '*.ts' }, toolInvocationToken: null!, }, CancellationToken.None);
+		const tool = accessor
+			.get(IInstantiationService)
+			.createInstance(FindTextInFilesTool);
+		await tool.invoke(
+			{
+				input: { query: 'hello', includePattern: '*.ts' },
+				toolInvocationToken: null!,
+			},
+			CancellationToken.None,
+		);
 	});
 
 	test('using **/ correctly', async () => {
 		setup('src/**');
 
-		const tool = accessor.get(IInstantiationService).createInstance(FindTextInFilesTool);
-		await tool.invoke({ input: { query: 'hello', includePattern: 'src/**' }, toolInvocationToken: null!, }, CancellationToken.None);
+		const tool = accessor
+			.get(IInstantiationService)
+			.createInstance(FindTextInFilesTool);
+		await tool.invoke(
+			{
+				input: { query: 'hello', includePattern: 'src/**' },
+				toolInvocationToken: null!,
+			},
+			CancellationToken.None,
+		);
 	});
 
 	test('handles absolute path with glob', async () => {
 		setup(new RelativePattern(URI.file(workspaceFolder), 'test/**/*.ts'));
 
-		const tool = accessor.get(IInstantiationService).createInstance(FindTextInFilesTool);
-		await tool.invoke({ input: { query: 'hello', includePattern: `${workspaceFolder}/test/**/*.ts` }, toolInvocationToken: null!, }, CancellationToken.None);
+		const tool = accessor
+			.get(IInstantiationService)
+			.createInstance(FindTextInFilesTool);
+		await tool.invoke(
+			{
+				input: {
+					query: 'hello',
+					includePattern: `${workspaceFolder}/test/**/*.ts`,
+				},
+				toolInvocationToken: null!,
+			},
+			CancellationToken.None,
+		);
 	});
 
 	test('handles absolute path to folder', async () => {
 		setup(new RelativePattern(URI.file(workspaceFolder), ''));
 
-		const tool = accessor.get(IInstantiationService).createInstance(FindTextInFilesTool);
-		await tool.invoke({ input: { query: 'hello', includePattern: workspaceFolder }, toolInvocationToken: null!, }, CancellationToken.None);
+		const tool = accessor
+			.get(IInstantiationService)
+			.createInstance(FindTextInFilesTool);
+		await tool.invoke(
+			{
+				input: { query: 'hello', includePattern: workspaceFolder },
+				toolInvocationToken: null!,
+			},
+			CancellationToken.None,
+		);
 	});
 });
 
@@ -79,19 +132,32 @@ class TestSearchService extends AbstractSearchService {
 		super();
 	}
 
-	override async findTextInFiles(query: vscode.TextSearchQuery, options: vscode.FindTextInFilesOptions, progress: vscode.Progress<vscode.TextSearchResult>, token: vscode.CancellationToken): Promise<vscode.TextSearchComplete> {
+	override async findTextInFiles(
+		query: vscode.TextSearchQuery,
+		options: vscode.FindTextInFilesOptions,
+		progress: vscode.Progress<vscode.TextSearchResult>,
+		token: vscode.CancellationToken,
+	): Promise<vscode.TextSearchComplete> {
 		throw new Error('Method not implemented.');
 	}
 
-	override findTextInFiles2(query: vscode.TextSearchQuery2, options?: vscode.FindTextInFilesOptions2, token?: vscode.CancellationToken): vscode.FindTextInFilesResponse {
+	override findTextInFiles2(
+		query: vscode.TextSearchQuery2,
+		options?: vscode.FindTextInFilesOptions2,
+		token?: vscode.CancellationToken,
+	): vscode.FindTextInFilesResponse {
 		expect(options?.include).toEqual(this.expectedIncludePattern);
 		return {
 			complete: Promise.resolve({}),
-			results: (async function* () { })()
+			results: (async function* () {})(),
 		};
 	}
 
-	override async findFiles(filePattern: vscode.GlobPattern, options?: vscode.FindFiles2Options | undefined, token?: vscode.CancellationToken | undefined): Promise<vscode.Uri[]> {
+	override async findFiles(
+		filePattern: vscode.GlobPattern,
+		options?: vscode.FindFiles2Options | undefined,
+		token?: vscode.CancellationToken | undefined,
+	): Promise<vscode.Uri[]> {
 		throw new Error('Method not implemented.');
 	}
 }

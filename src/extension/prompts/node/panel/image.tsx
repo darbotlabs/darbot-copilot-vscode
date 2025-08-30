@@ -4,7 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from '@vscode/l10n';
-import { BasePromptElementProps, ChatResponseReferencePartStatusKind, PromptElement, PromptReference, PromptSizing, UserMessage, Image as BaseImage } from '@vscode/prompt-tsx';
+import {
+	BasePromptElementProps,
+	ChatResponseReferencePartStatusKind,
+	PromptElement,
+	PromptReference,
+	PromptSizing,
+	UserMessage,
+	Image as BaseImage,
+} from '@vscode/prompt-tsx';
 import { Uri } from '../../../../vscodeTypes';
 import { IPromptEndpoint } from '../base/promptRenderer';
 
@@ -18,15 +26,24 @@ export interface ImageProps extends BasePromptElementProps {
 export class Image extends PromptElement<ImageProps, unknown> {
 	constructor(
 		props: ImageProps,
-		@IPromptEndpoint private readonly promptEndpoint: IPromptEndpoint
+		@IPromptEndpoint private readonly promptEndpoint: IPromptEndpoint,
 	) {
 		super(props);
 	}
 
 	override async render(_state: unknown, sizing: PromptSizing) {
-		const options = { status: { description: l10n.t("{0} does not support images.", this.promptEndpoint.model), kind: ChatResponseReferencePartStatusKind.Omitted } };
+		const options = {
+			status: {
+				description: l10n.t(
+					'{0} does not support images.',
+					this.promptEndpoint.model,
+				),
+				kind: ChatResponseReferencePartStatusKind.Omitted,
+			},
+		};
 
-		const fillerUri: Uri = this.props.reference ?? Uri.parse('Attached Image');
+		const fillerUri: Uri =
+			this.props.reference ?? Uri.parse('Attached Image');
 
 		try {
 			if (!this.promptEndpoint.supportsVision) {
@@ -36,7 +53,21 @@ export class Image extends PromptElement<ImageProps, unknown> {
 
 				return (
 					<>
-						<references value={[new PromptReference(this.props.variableName ? { variableName: this.props.variableName, value: fillerUri } : fillerUri, undefined, options)]} />
+						<references
+							value={[
+								new PromptReference(
+									this.props.variableName
+										? {
+												variableName:
+													this.props.variableName,
+												value: fillerUri,
+											}
+										: fillerUri,
+									undefined,
+									options,
+								),
+							]}
+						/>
 					</>
 				);
 			}
@@ -50,9 +81,22 @@ export class Image extends PromptElement<ImageProps, unknown> {
 
 			return (
 				<UserMessage priority={0}>
-					<BaseImage src={decoded} detail='high' />
+					<BaseImage src={decoded} detail="high" />
 					{this.props.reference && (
-						<references value={[new PromptReference(this.props.variableName ? { variableName: this.props.variableName, value: fillerUri } : fillerUri, undefined)]} />
+						<references
+							value={[
+								new PromptReference(
+									this.props.variableName
+										? {
+												variableName:
+													this.props.variableName,
+												value: fillerUri,
+											}
+										: fillerUri,
+									undefined,
+								),
+							]}
+						/>
 					)}
 				</UserMessage>
 			);
@@ -63,8 +107,23 @@ export class Image extends PromptElement<ImageProps, unknown> {
 
 			return (
 				<>
-					<references value={[new PromptReference(this.props.variableName ? { variableName: this.props.variableName, value: fillerUri } : fillerUri, undefined, options)]} />
-				</>);
+					<references
+						value={[
+							new PromptReference(
+								this.props.variableName
+									? {
+											variableName:
+												this.props.variableName,
+											value: fillerUri,
+										}
+									: fillerUri,
+								undefined,
+								options,
+							),
+						]}
+					/>
+				</>
+			);
 		}
 	}
 }

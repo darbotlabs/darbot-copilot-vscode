@@ -3,8 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-
-import { BasePromptElementProps, PromptElement, PromptPiece, SystemMessage, UserMessage, type PromptElementProps } from '@vscode/prompt-tsx';
+import {
+	BasePromptElementProps,
+	PromptElement,
+	PromptPiece,
+	SystemMessage,
+	UserMessage,
+	type PromptElementProps,
+} from '@vscode/prompt-tsx';
 import { IEnvService } from '../../../../platform/env/common/envService';
 import { ITerminalService } from '../../../../platform/terminal/common/terminalService';
 import { basename, join } from '../../../../util/vs/base/common/path';
@@ -14,13 +20,16 @@ import { SafetyRules } from '../base/safetyRules';
 import { FileVariable } from './fileVariable';
 import { TerminalLastCommand } from './terminalLastCommand';
 
-export interface TerminalQuickFixFileContextPromptProps extends BasePromptElementProps {
+export interface TerminalQuickFixFileContextPromptProps
+	extends BasePromptElementProps {
 	readonly commandLine: string;
 	readonly output: string[];
 }
 
-export class TerminalQuickFixFileContextPrompt extends PromptElement<TerminalQuickFixFileContextPromptProps, any> {
-
+export class TerminalQuickFixFileContextPrompt extends PromptElement<
+	TerminalQuickFixFileContextPromptProps,
+	any
+> {
 	constructor(
 		props: PromptElementProps<TerminalQuickFixFileContextPromptProps>,
 		@ITerminalService private readonly _terminalService: ITerminalService,
@@ -37,7 +46,12 @@ export class TerminalQuickFixFileContextPrompt extends PromptElement<TerminalQui
 		return (
 			<>
 				<SystemMessage priority={1000}>
-					You are a programmer who specializes in using the command line. Your task is to respond with a list of files that you need access to in order to fix the command. Carefully consider the command line, output and current working directory in your response.<br />
+					You are a programmer who specializes in using the command
+					line. Your task is to respond with a list of files that you
+					need access to in order to fix the command. Carefully
+					consider the command line, output and current working
+					directory in your response.
+					<br />
 					<SafetyRules />
 					<ResponseTranslationRules />
 					{`
@@ -94,8 +108,10 @@ export interface TerminalQuickFixPromptState {
 	readonly additionalContext: UserMessage[];
 }
 
-export class TerminalQuickFixPrompt extends PromptElement<TerminalQuickFixPromptProps, TerminalQuickFixPromptState> {
-
+export class TerminalQuickFixPrompt extends PromptElement<
+	TerminalQuickFixPromptProps,
+	TerminalQuickFixPromptState
+> {
 	constructor(
 		props: PromptElementProps<TerminalQuickFixPromptProps>,
 		@ITerminalService private readonly _terminalService: ITerminalService,
@@ -103,15 +119,27 @@ export class TerminalQuickFixPrompt extends PromptElement<TerminalQuickFixPrompt
 		super(props);
 	}
 
-	override render(state: TerminalQuickFixPromptState): PromptPiece<any, any> | undefined {
+	override render(
+		state: TerminalQuickFixPromptState,
+	): PromptPiece<any, any> | undefined {
 		// A low priority is used here as file references could be very large
-		const fileVariables = this.props.verifiedContextUris.map(uri => {
-			return <FileVariable variableName={basename(uri.path)} variableValue={uri}></FileVariable>;
+		const fileVariables = this.props.verifiedContextUris.map((uri) => {
+			return (
+				<FileVariable
+					variableName={basename(uri.path)}
+					variableValue={uri}
+				></FileVariable>
+			);
 		});
 		return (
 			<>
 				<SystemMessage priority={1000}>
-					You are a programmer who specializes in using the command line. Your task is to help the user fix a command that was run in the terminal by providing a list of fixed command suggestions. Carefully consider the command line, output and current working directory in your response.<br />
+					You are a programmer who specializes in using the command
+					line. Your task is to help the user fix a command that was
+					run in the terminal by providing a list of fixed command
+					suggestions. Carefully consider the command line, output and
+					current working directory in your response.
+					<br />
 					<SafetyRules />
 					<ResponseTranslationRules />
 					{`
@@ -177,14 +205,18 @@ ${(this.props.output ?? []).join()}`
 				</UserMessage>
 				<TerminalLastCommand priority={800} />
 				<UserMessage priority={700}>
-					{`${this.props.verifiedContextDirectoryUris.length > 0 ?
-						`The following directories exist:\n\n${this.props.verifiedContextDirectoryUris.map(uri => `- ${uri.path}`).join('\n')}`
-						: ''}`}
+					{`${
+						this.props.verifiedContextDirectoryUris.length > 0
+							? `The following directories exist:\n\n${this.props.verifiedContextDirectoryUris.map((uri) => `- ${uri.path}`).join('\n')}`
+							: ''
+					}`}
 				</UserMessage>
 				<UserMessage priority={700}>
-					{`${this.props.nonExistentContextUris.length > 0 ?
-						`The following files DO NOT exist and cannot be used in the suggestion:\n\n${this.props.nonExistentContextUris.map(uri => `- ${uri.path}`).join('\n')}`
-						: ''}`}
+					{`${
+						this.props.nonExistentContextUris.length > 0
+							? `The following files DO NOT exist and cannot be used in the suggestion:\n\n${this.props.nonExistentContextUris.map((uri) => `- ${uri.path}`).join('\n')}`
+							: ''
+					}`}
 				</UserMessage>
 				{...fileVariables}
 			</>
@@ -204,14 +236,13 @@ Follow these guidelines for python:
 - If the error is module not found, recommend installing the module using "python -m pip install" command.
 - If activate is not available create an environment using "python -m venv .venv".
 `}
-				</SystemMessage >
+				</SystemMessage>
 			</>
 		);
 	}
 }
 
 class TerminalShellType extends PromptElement {
-
 	constructor(
 		props: BasePromptElementProps,
 		@ITerminalService private readonly _terminalService: ITerminalService,
@@ -223,15 +254,15 @@ class TerminalShellType extends PromptElement {
 		return (
 			<>
 				<UserMessage priority={this.props.priority}>
-					The active terminal's shell type is: {this._terminalService.terminalShellType}
-				</UserMessage >
+					The active terminal's shell type is:{' '}
+					{this._terminalService.terminalShellType}
+				</UserMessage>
 			</>
 		);
 	}
 }
 
 class OperatingSystem extends PromptElement {
-
 	constructor(
 		props: BasePromptElementProps,
 		@IEnvService private readonly _envService: IEnvService,
@@ -244,7 +275,7 @@ class OperatingSystem extends PromptElement {
 			<>
 				<UserMessage priority={this.props.priority}>
 					The active operating system is: {this._envService.OS}
-				</UserMessage >
+				</UserMessage>
 			</>
 		);
 	}

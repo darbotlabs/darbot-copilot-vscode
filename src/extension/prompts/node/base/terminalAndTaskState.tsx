@@ -19,15 +19,27 @@ export class TerminalAndTaskStatePromptElement extends PromptElement<TerminalAnd
 	constructor(
 		props: TerminalAndTaskStateProps,
 		@ITasksService private readonly tasksService: ITasksService,
-		@ITerminalService private readonly terminalService: ITerminalService
+		@ITerminalService private readonly terminalService: ITerminalService,
 	) {
 		super(props);
 	}
 	async render() {
-		const resultTasks: { name: string; isBackground: boolean; type?: string; command?: string; problemMatcher?: string; group?: { isDefault?: boolean; kind?: string }; script?: string; dependsOn?: string; isActive?: boolean }[] = [];
+		const resultTasks: {
+			name: string;
+			isBackground: boolean;
+			type?: string;
+			command?: string;
+			problemMatcher?: string;
+			group?: { isDefault?: boolean; kind?: string };
+			script?: string;
+			dependsOn?: string;
+			isActive?: boolean;
+		}[] = [];
 		const allTasks = this.tasksService.getTasks()?.[0]?.[1] ?? [];
 		const tasks = Array.isArray(allTasks) ? allTasks : [];
-		for (const exec of tasks.filter(t => this.tasksService.getTerminalForTask(t))) {
+		for (const exec of tasks.filter((t) =>
+			this.tasksService.getTerminalForTask(t),
+		)) {
 			if (exec.label) {
 				resultTasks.push({
 					name: exec.label,
@@ -35,7 +47,11 @@ export class TerminalAndTaskStatePromptElement extends PromptElement<TerminalAnd
 					type: exec?.type,
 					command: exec?.command,
 					script: exec.script,
-					problemMatcher: Array.isArray(exec.problemMatcher) && exec.problemMatcher.length > 0 ? exec.problemMatcher.join(', ') : '',
+					problemMatcher:
+						Array.isArray(exec.problemMatcher) &&
+						exec.problemMatcher.length > 0
+							? exec.problemMatcher.join(', ')
+							: '',
 					group: exec.group,
 					dependsOn: exec.dependsOn,
 					isActive: this.tasksService.isTaskActive(exec),
@@ -43,10 +59,18 @@ export class TerminalAndTaskStatePromptElement extends PromptElement<TerminalAnd
 			}
 		}
 
-		if (this.terminalService && Array.isArray(this.terminalService.terminals)) {
-			const copilotTerminals = await this.terminalService.getCopilotTerminals(this.props.sessionId, true);
+		if (
+			this.terminalService &&
+			Array.isArray(this.terminalService.terminals)
+		) {
+			const copilotTerminals =
+				await this.terminalService.getCopilotTerminals(
+					this.props.sessionId,
+					true,
+				);
 			const terminals = copilotTerminals.map((term) => {
-				const lastCommand = this.terminalService.getLastCommandForTerminal(term);
+				const lastCommand =
+					this.terminalService.getLastCommandForTerminal(term);
 				return {
 					name: term.name,
 					lastCommand,
@@ -61,17 +85,27 @@ export class TerminalAndTaskStatePromptElement extends PromptElement<TerminalAnd
 			const renderTasks = () =>
 				resultTasks.length > 0 && (
 					<>
-						Tasks:<br />
+						Tasks:
+						<br />
 						{resultTasks.map((t) => (
 							<>
-								Task: {t.name} ({t.isBackground && `is background: ${String(t.isBackground)}`}
+								Task: {t.name} (
+								{t.isBackground &&
+									`is background: ${String(t.isBackground)}`}
 								{t.isActive ? ', is running' : 'is inactive'}
 								{t.type ? `, type: ${t.type}` : ''}
 								{t.command ? `, command: ${t.command}` : ''}
 								{t.script ? `, script: ${t.script}` : ''}
-								{t.problemMatcher ? `Problem Matchers: ${t.problemMatcher}` : ''}
-								{t.group?.kind ? `Group: ${t.group.isDefault ? 'isDefault ' + t.group.kind : t.group.kind} ` : ''}
-								{t.dependsOn ? `Depends On: ${t.dependsOn}` : ''})
+								{t.problemMatcher
+									? `Problem Matchers: ${t.problemMatcher}`
+									: ''}
+								{t.group?.kind
+									? `Group: ${t.group.isDefault ? 'isDefault ' + t.group.kind : t.group.kind} `
+									: ''}
+								{t.dependsOn
+									? `Depends On: ${t.dependsOn}`
+									: ''}
+								)
 								<br />
 							</>
 						))}
@@ -81,18 +115,32 @@ export class TerminalAndTaskStatePromptElement extends PromptElement<TerminalAnd
 			const renderTerminals = () =>
 				terminals.length > 0 && (
 					<>
-						Active Terminals:<br />
+						Active Terminals:
+						<br />
 						{terminals.map((term) => (
 							<>
-								Terminal: {term.name}<br />
+								Terminal: {term.name}
+								<br />
 								{term.lastCommand ? (
 									<>
-										Last Command: {term.lastCommand.commandLine ?? '(no last command)'}<br />
-										Cwd: {term.lastCommand.cwd ?? '(unknown)'}<br />
-										Exit Code: {term.lastCommand.exitCode ?? '(unknown)'}<br />
+										Last Command:{' '}
+										{term.lastCommand.commandLine ??
+											'(no last command)'}
+										<br />
+										Cwd:{' '}
+										{term.lastCommand.cwd ?? '(unknown)'}
+										<br />
+										Exit Code:{' '}
+										{term.lastCommand.exitCode ??
+											'(unknown)'}
+										<br />
 									</>
-								) : ''}
-								Output: {'{'}Use {ToolName.GetTerminalOutput} for terminal with ID: {term.id}.{'}'}<br />
+								) : (
+									''
+								)}
+								Output: {'{'}Use {ToolName.GetTerminalOutput}{' '}
+								for terminal with ID: {term.id}.{'}'}
+								<br />
 							</>
 						))}
 					</>
@@ -100,8 +148,12 @@ export class TerminalAndTaskStatePromptElement extends PromptElement<TerminalAnd
 
 			return (
 				<>
-					{tasks.length > 0 ? renderTasks() : 'Tasks: No tasks found.'}
-					{terminals.length > 0 ? renderTerminals() : 'Copilot Terminals: No active Copilot terminals found.'}
+					{tasks.length > 0
+						? renderTasks()
+						: 'Tasks: No tasks found.'}
+					{terminals.length > 0
+						? renderTerminals()
+						: 'Copilot Terminals: No active Copilot terminals found.'}
 				</>
 			);
 		}

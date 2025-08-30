@@ -21,21 +21,40 @@ suite('ReadFile', () => {
 	let accessor: ITestingServicesAccessor;
 
 	beforeAll(() => {
-		const testDoc = ExtHostDocumentData.create(URI.file('/workspace/file.ts'), 'line 1\nline 2\n\nline 4\nline 5', 'ts').document;
-		const emptyDoc = ExtHostDocumentData.create(URI.file('/workspace/empty.ts'), '', 'ts').document;
-		const whitespaceDoc = ExtHostDocumentData.create(URI.file('/workspace/whitespace.ts'), ' \t\n', 'ts').document;
+		const testDoc = ExtHostDocumentData.create(
+			URI.file('/workspace/file.ts'),
+			'line 1\nline 2\n\nline 4\nline 5',
+			'ts',
+		).document;
+		const emptyDoc = ExtHostDocumentData.create(
+			URI.file('/workspace/empty.ts'),
+			'',
+			'ts',
+		).document;
+		const whitespaceDoc = ExtHostDocumentData.create(
+			URI.file('/workspace/whitespace.ts'),
+			' \t\n',
+			'ts',
+		).document;
 		// Create a large document for testing truncation (3000 lines to exceed MAX_LINES_PER_READ)
-		const largeContent = Array.from({ length: 3000 }, (_, i) => `line ${i + 1}`).join('\n');
-		const largeDoc = ExtHostDocumentData.create(URI.file('/workspace/large.ts'), largeContent, 'ts').document;
+		const largeContent = Array.from(
+			{ length: 3000 },
+			(_, i) => `line ${i + 1}`,
+		).join('\n');
+		const largeDoc = ExtHostDocumentData.create(
+			URI.file('/workspace/large.ts'),
+			largeContent,
+			'ts',
+		).document;
 
 		const services = createExtensionUnitTestingServices();
-		services.define(IWorkspaceService, new SyncDescriptor(
-			TestWorkspaceService,
-			[
+		services.define(
+			IWorkspaceService,
+			new SyncDescriptor(TestWorkspaceService, [
 				[URI.file('/workspace')],
 				[testDoc, emptyDoc, whitespaceDoc, largeDoc],
-			]
-		));
+			]),
+		);
 		accessor = services.createTestingAccessor();
 	});
 
@@ -49,10 +68,15 @@ suite('ReadFile', () => {
 		const input: IReadFileParamsV1 = {
 			filePath: '/workspace/file.ts',
 			startLine: 2,
-			endLine: 6
+			endLine: 6,
 		};
-		const result = await toolsService.invokeTool(ToolName.ReadFile, { input, toolInvocationToken: null as never }, CancellationToken.None);
-		expect(await toolResultToString(accessor, result)).toMatchInlineSnapshot(`
+		const result = await toolsService.invokeTool(
+			ToolName.ReadFile,
+			{ input, toolInvocationToken: null as never },
+			CancellationToken.None,
+		);
+		expect(await toolResultToString(accessor, result))
+			.toMatchInlineSnapshot(`
 			"\`\`\`ts
 			line 2
 
@@ -68,10 +92,18 @@ suite('ReadFile', () => {
 		const input: IReadFileParamsV1 = {
 			filePath: '/workspace/empty.ts',
 			startLine: 2,
-			endLine: 6
+			endLine: 6,
 		};
-		const result = await toolsService.invokeTool(ToolName.ReadFile, { input, toolInvocationToken: null as never }, CancellationToken.None);
-		expect(await toolResultToString(accessor, result)).toMatchInlineSnapshot(`"(The file \`/workspace/empty.ts\` exists, but is empty)"`);
+		const result = await toolsService.invokeTool(
+			ToolName.ReadFile,
+			{ input, toolInvocationToken: null as never },
+			CancellationToken.None,
+		);
+		expect(
+			await toolResultToString(accessor, result),
+		).toMatchInlineSnapshot(
+			`"(The file \`/workspace/empty.ts\` exists, but is empty)"`,
+		);
 	});
 
 	test('read whitespace file', async () => {
@@ -80,10 +112,18 @@ suite('ReadFile', () => {
 		const input: IReadFileParamsV1 = {
 			filePath: '/workspace/whitespace.ts',
 			startLine: 2,
-			endLine: 6
+			endLine: 6,
 		};
-		const result = await toolsService.invokeTool(ToolName.ReadFile, { input, toolInvocationToken: null as never }, CancellationToken.None);
-		expect(await toolResultToString(accessor, result)).toMatchInlineSnapshot(`"(The file \`/workspace/whitespace.ts\` exists, but contains only whitespace)"`);
+		const result = await toolsService.invokeTool(
+			ToolName.ReadFile,
+			{ input, toolInvocationToken: null as never },
+			CancellationToken.None,
+		);
+		expect(
+			await toolResultToString(accessor, result),
+		).toMatchInlineSnapshot(
+			`"(The file \`/workspace/whitespace.ts\` exists, but contains only whitespace)"`,
+		);
 	});
 
 	suite('IReadFileParamsV2', () => {
@@ -93,10 +133,15 @@ suite('ReadFile', () => {
 			const input: IReadFileParamsV2 = {
 				filePath: '/workspace/file.ts',
 				offset: 2,
-				limit: 4
+				limit: 4,
 			};
-			const result = await toolsService.invokeTool(ToolName.ReadFile, { input, toolInvocationToken: null as never }, CancellationToken.None);
-			expect(await toolResultToString(accessor, result)).toMatchInlineSnapshot(`
+			const result = await toolsService.invokeTool(
+				ToolName.ReadFile,
+				{ input, toolInvocationToken: null as never },
+				CancellationToken.None,
+			);
+			expect(await toolResultToString(accessor, result))
+				.toMatchInlineSnapshot(`
 				"\`\`\`ts
 				line 2
 
@@ -111,10 +156,15 @@ suite('ReadFile', () => {
 
 			const input: IReadFileParamsV2 = {
 				filePath: '/workspace/file.ts',
-				offset: 3
+				offset: 3,
 			};
-			const result = await toolsService.invokeTool(ToolName.ReadFile, { input, toolInvocationToken: null as never }, CancellationToken.None);
-			expect(await toolResultToString(accessor, result)).toMatchInlineSnapshot(`
+			const result = await toolsService.invokeTool(
+				ToolName.ReadFile,
+				{ input, toolInvocationToken: null as never },
+				CancellationToken.None,
+			);
+			expect(await toolResultToString(accessor, result))
+				.toMatchInlineSnapshot(`
 				"\`\`\`ts
 
 				line 4
@@ -127,10 +177,15 @@ suite('ReadFile', () => {
 			const toolsService = accessor.get(IToolsService);
 
 			const input: IReadFileParamsV2 = {
-				filePath: '/workspace/file.ts'
+				filePath: '/workspace/file.ts',
 			};
-			const result = await toolsService.invokeTool(ToolName.ReadFile, { input, toolInvocationToken: null as never }, CancellationToken.None);
-			expect(await toolResultToString(accessor, result)).toMatchInlineSnapshot(`
+			const result = await toolsService.invokeTool(
+				ToolName.ReadFile,
+				{ input, toolInvocationToken: null as never },
+				CancellationToken.None,
+			);
+			expect(await toolResultToString(accessor, result))
+				.toMatchInlineSnapshot(`
 				"\`\`\`ts
 				line 1
 				line 2
@@ -147,10 +202,18 @@ suite('ReadFile', () => {
 			const input: IReadFileParamsV2 = {
 				filePath: '/workspace/empty.ts',
 				offset: 2,
-				limit: 4
+				limit: 4,
 			};
-			const result = await toolsService.invokeTool(ToolName.ReadFile, { input, toolInvocationToken: null as never }, CancellationToken.None);
-			expect(await toolResultToString(accessor, result)).toMatchInlineSnapshot(`"(The file \`/workspace/empty.ts\` exists, but is empty)"`);
+			const result = await toolsService.invokeTool(
+				ToolName.ReadFile,
+				{ input, toolInvocationToken: null as never },
+				CancellationToken.None,
+			);
+			expect(
+				await toolResultToString(accessor, result),
+			).toMatchInlineSnapshot(
+				`"(The file \`/workspace/empty.ts\` exists, but is empty)"`,
+			);
 		});
 
 		test('read whitespace file', async () => {
@@ -159,10 +222,18 @@ suite('ReadFile', () => {
 			const input: IReadFileParamsV2 = {
 				filePath: '/workspace/whitespace.ts',
 				offset: 1,
-				limit: 2
+				limit: 2,
 			};
-			const result = await toolsService.invokeTool(ToolName.ReadFile, { input, toolInvocationToken: null as never }, CancellationToken.None);
-			expect(await toolResultToString(accessor, result)).toMatchInlineSnapshot(`"(The file \`/workspace/whitespace.ts\` exists, but contains only whitespace)"`);
+			const result = await toolsService.invokeTool(
+				ToolName.ReadFile,
+				{ input, toolInvocationToken: null as never },
+				CancellationToken.None,
+			);
+			expect(
+				await toolResultToString(accessor, result),
+			).toMatchInlineSnapshot(
+				`"(The file \`/workspace/whitespace.ts\` exists, but contains only whitespace)"`,
+			);
 		});
 
 		test('read file with limit larger than MAX_LINES_PER_READ should truncate', async () => {
@@ -171,14 +242,20 @@ suite('ReadFile', () => {
 			const input: IReadFileParamsV2 = {
 				filePath: '/workspace/large.ts',
 				offset: 1,
-				limit: 3000 // This exceeds MAX_LINES_PER_READ (2000)
+				limit: 3000, // This exceeds MAX_LINES_PER_READ (2000)
 			};
-			const result = await toolsService.invokeTool(ToolName.ReadFile, { input, toolInvocationToken: null as never }, CancellationToken.None);
+			const result = await toolsService.invokeTool(
+				ToolName.ReadFile,
+				{ input, toolInvocationToken: null as never },
+				CancellationToken.None,
+			);
 			// Should be truncated to MAX_LINES_PER_READ (2000) and show truncation message
 			const resultString = await toolResultToString(accessor, result);
 			expect(resultString).toContain('line 1');
 			expect(resultString).toContain('line 2000');
-			expect(resultString).toContain('[File content truncated at line 2000. Use read_file with offset/limit parameters to view more.]');
+			expect(resultString).toContain(
+				'[File content truncated at line 2000. Use read_file with offset/limit parameters to view more.]',
+			);
 			expect(resultString).not.toContain('line 2001');
 		});
 	});
