@@ -1,4 +1,8 @@
+<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
+
 # Darbot Copilot VS Code Extension
+
+This is a VS Code extension project. Please use the VSCodeAPI tool with a query as input to fetch the latest VS Code API references when working with VS Code-specific functionality.
 
 Darbot Copilot is a comprehensive AI-powered coding assistant for Visual Studio Code. It's a TypeScript-based VS Code extension providing inline coding suggestions, conversational AI assistance, and autonomous agent mode for multi-step coding tasks.
 
