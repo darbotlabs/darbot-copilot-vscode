@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import type tt from 'typescript/lib/tsserverlibrary';
@@ -104,14 +104,15 @@ export namespace ContextItemReference {
 }
 
 export enum Priorities {
-	Locals = 1,
-	Inherited = 0.9,
-	Properties = 0.8,
-	Blueprints = 0.7,
-	Imports = 0.6,
-	NeighborFiles = 0.55,
-	Globals = 0.5,
-	Traits = 0.4,
+	Expression = 1.0,
+	Locals = 0.9,
+	Inherited = 0.8,
+	Traits = 0.7,
+	Blueprints = 0.6,
+	Properties = 0.5,
+	Imports = 0.4,
+	NeighborFiles = 0.3,
+	Globals = 0.2
 }
 
 export enum SpeculativeKind {
@@ -125,7 +126,6 @@ export enum SpeculativeKind {
 export type RelatedFile = {
 	kind: ContextKind.RelatedFile;
 	key?: string;
-	priority: number;
 	fileName: FilePath;
 	range?: Range;
 };
@@ -151,11 +151,6 @@ export type Trait = {
 	key: string;
 
 	/**
-	 * The priority of the trait.
-	 */
-	priority: number;
-
-	/**
 	 * The trait name.
 	 */
 	name: string;
@@ -164,16 +159,10 @@ export type Trait = {
 	 * The trait value.
 	 */
 	value: string;
-
-	/**
-	 * Whether the snippet can be used in a speculative request with the same
-	 * document and position.
-	 */
-	speculativeKind: SpeculativeKind;
 };
 export namespace Trait {
-	export function create(traitKind: TraitKind, priority: number, name: string, value: string): Trait {
-		return { kind: ContextKind.Trait, key: createContextItemKey(traitKind), priority, name, value, speculativeKind: SpeculativeKind.emit };
+	export function create(traitKind: TraitKind, name: string, value: string): Trait {
+		return { kind: ContextKind.Trait, key: createContextItemKey(traitKind), name, value };
 	}
 	export function sizeInChars(trait: Trait): number {
 		return trait.name.length + trait.value.length;
@@ -195,11 +184,6 @@ export type CodeSnippet = {
 	key?: string;
 
 	/**
-	 * The priority of the snippet.
-	 */
-	priority: number;
-
-	/**
 	 * The primary file name.
 	 */
 	fileName: FilePath;
@@ -213,16 +197,10 @@ export type CodeSnippet = {
 	 * The snippet value.
 	 */
 	value: string;
-
-	/**
-	 * Whether the snippet can be used in a speculative request with the same
-	 * document and position.
-	 */
-	speculativeKind: SpeculativeKind;
 };
 export namespace CodeSnippet {
-	export function create(key: string | undefined, fileName: FilePath, additionalFileNames: FilePath[] | undefined, value: string, priority: number, speculativeKind: SpeculativeKind): CodeSnippet {
-		return { kind: ContextKind.Snippet, key, fileName, additionalFileNames, value, priority, speculativeKind };
+	export function create(key: string | undefined, fileName: FilePath, additionalFileNames: FilePath[] | undefined, value: string): CodeSnippet {
+		return { kind: ContextKind.Snippet, key, fileName, additionalFileNames, value };
 	}
 	export function sizeInChars(snippet: CodeSnippet): number {
 		let result: number = snippet.value.length;
@@ -256,6 +234,10 @@ export namespace ContextItem {
 	}
 }
 
+export type PriorityTag = {
+	priority: number;
+}
+
 export enum ContextRunnableState {
 	Created = 'created',
 	InProgress = 'inProgress',
@@ -285,6 +267,11 @@ export type ContextRunnableResult = {
 	state: ContextRunnableState;
 
 	/**
+	 * Priorities of the items.
+	 */
+	priority: number;
+
+	/**
 	 * The items.
 	 */
 	items: ContextItem[];
@@ -293,6 +280,12 @@ export type ContextRunnableResult = {
 	 * Information about how items can be cached.
 	 */
 	cache?: CacheInfo;
+
+	/**
+	 * Whether the runnable result can be used in a speculative request with the same
+	 * document and position.
+	 */
+	speculativeKind: SpeculativeKind;
 }
 
 export type CachedContextRunnableResult = {
@@ -403,10 +396,12 @@ export type ContextRequestResult = {
 
 export interface ComputeContextRequestArgs extends tt.server.protocol.FileLocationRequestArgs {
 	startTime: number;
-	timeBudget?: number;
-	tokenBudget?: number;
-	neighborFiles?: FilePath[];
-	clientSideRunnableResults?: CachedContextRunnableResult[];
+	timeBudget: number;
+	primaryCharacterBudget: number;
+	secondaryCharacterBudget: number;
+	includeDocumentation?: boolean;
+	neighborFiles?: readonly FilePath[];
+	clientSideRunnableResults?: readonly CachedContextRunnableResult[];
 }
 
 export interface ComputeContextRequest extends tt.server.protocol.Request {

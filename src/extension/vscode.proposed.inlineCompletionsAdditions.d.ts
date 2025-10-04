@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -46,10 +46,19 @@ declare module 'vscode' {
 		action?: Command;
 
 		displayLocation?: InlineCompletionDisplayLocation;
+
+		/** Used for telemetry. Can be an arbitrary string. */
+		correlationId?: string;
+	}
+
+	export enum InlineCompletionDisplayLocationKind {
+		Code = 1,
+		Label = 2
 	}
 
 	export interface InlineCompletionDisplayLocation {
 		range: Range;
+		kind: InlineCompletionDisplayLocationKind;
 		label: string;
 	}
 
@@ -64,10 +73,16 @@ declare module 'vscode' {
 		 * If some inline completion provider registered by such an extension returns a result, this provider is not asked.
 		 */
 		yieldTo?: string[];
+		/**
+		 * Can override the extension id for the yieldTo mechanism. Used for testing, so that yieldTo can be tested within one extension.
+		*/
+		groupId?: string;
 
 		debounceDelayMs?: number;
 
 		displayName?: string;
+
+		excludes?: string[];
 	}
 
 	export interface InlineCompletionItemProvider {
@@ -150,6 +165,10 @@ declare module 'vscode' {
 		readonly userPrompt?: string;
 
 		readonly requestUuid: string;
+
+		readonly requestIssuedDateTime: number;
+
+		readonly earliestShownDateTime: number;
 	}
 
 	export interface PartialAcceptInfo {

@@ -1,11 +1,22 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 export interface ITracer {
 	trace(message: string, ...payload: unknown[]): void;
+	/**
+	 * Creates a sub-tracer. Logs when the sub-tracer is created.
+	 *
+	 * @param name specifies sections, eg ['Git', 'PullRequest']
+	 */
 	sub(name: string | string[]): ITracer;
+	/**
+	 * Creates a sub-tracer. Does NOT log when the sub-tracer is created.
+	 *
+	 * @param name specifies sections, eg ['Git', 'PullRequest']
+	 */
+	subNoEntry(name: string | string[]): ITracer;
 	throws(message?: string, ...payload: unknown[]): void;
 	returns(message?: string, ...payload: unknown[]): void;
 }
@@ -38,6 +49,11 @@ export function createTracer(section: string | string[], logFn: (message: string
 			const subSection = Array.isArray(section) ? section.concat(name) : [section, ...(Array.isArray(name) ? name : [name])];
 			const sub = createTracer(subSection, logFn);
 			sub.trace('created');
+			return sub;
+		},
+		subNoEntry: (name: string | string[]) => {
+			const subSection = Array.isArray(section) ? section.concat(name) : [section, ...(Array.isArray(name) ? name : [name])];
+			const sub = createTracer(subSection, logFn);
 			return sub;
 		},
 		returns: (message?: string, ...payload: unknown[]) => {

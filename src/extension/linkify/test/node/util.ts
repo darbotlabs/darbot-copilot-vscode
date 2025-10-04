@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -24,6 +24,10 @@ export function createMockFsService(listOfFiles: readonly (string | URI)[]): IFi
 	const workspaceFiles = listOfFiles.map(f => URI.isUri(f) ? f : workspaceFile(f));
 	return new class implements Partial<IFileSystemService> {
 		async stat(path: URI): Promise<FileStat> {
+			if (path.path === '/' || path.path === workspace.path) {
+				return { ctime: 0, mtime: 0, size: 0, type: FileType.File };
+			}
+
 			const entry = workspaceFiles.find(f => f.toString() === path.toString() || f.toString() === path.toString() + '/');
 			if (!entry) {
 				throw new Error(`File not found: ${path}`);

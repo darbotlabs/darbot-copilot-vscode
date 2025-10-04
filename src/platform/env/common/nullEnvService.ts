@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -38,6 +38,10 @@ export class NullEnvService extends AbstractEnvService {
 		return undefined;
 	}
 
+	override get uiKind(): 'desktop' | 'web' {
+		return 'desktop';
+	}
+
 	override get uriScheme(): string {
 		return 'code-null';
 	}
@@ -64,5 +68,11 @@ export class NullEnvService extends AbstractEnvService {
 
 	override openExternal(target: URI): Promise<boolean> {
 		return Promise.resolve(false);
+	}
+}
+
+export class NullNativeEnvService extends NullEnvService {
+	get userHome(): URI {
+		return URI.file('/home/testuser');
 	}
 }

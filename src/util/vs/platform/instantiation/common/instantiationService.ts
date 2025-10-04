@@ -1,19 +1,19 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 import { GlobalIdleValue } from '../../../base/common/async';
-import { illegalState } from '../../../base/common/errors';
 import { Event } from '../../../base/common/event';
+import { illegalState } from '../../../base/common/errors';
 import { DisposableStore, dispose, IDisposable, isDisposable, toDisposable } from '../../../base/common/lifecycle';
-import { LinkedList } from '../../../base/common/linkedList';
 import { SyncDescriptor, SyncDescriptor0 } from './descriptors';
 import { Graph } from './graph';
-import { _util, GetLeadingNonServiceArgs, IInstantiationService, ServiceIdentifier, ServicesAccessor } from './instantiation';
+import { GetLeadingNonServiceArgs, IInstantiationService, ServiceIdentifier, ServicesAccessor, _util } from './instantiation';
 import { ServiceCollection } from './serviceCollection';
+import { LinkedList } from '../../../base/common/linkedList';
 
 // TRACING
 const _enableAllTracing = false
@@ -128,7 +128,7 @@ export class InstantiationService implements IInstantiationService {
 		this._throwIfDisposed();
 
 		let _trace: Trace;
-		let result: any;
+		let result: unknown;
 		if (ctorOrDescriptor instanceof SyncDescriptor) {
 			_trace = Trace.traceCreation(this._enableTracing, ctorOrDescriptor.ctor);
 			result = this._createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.staticArguments.concat(rest), _trace);

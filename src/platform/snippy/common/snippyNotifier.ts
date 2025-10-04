@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -37,7 +37,7 @@ export class SnippyNotifier {
 		void this.notificationService.showInformationMessage(SnippyNotifier.matchCodeMessage, ...messageItems).then(action => {
 			switch (action) {
 				case SnippyNotifier.MatchAction: {
-					this.logService.logger.show(true);
+					this.logService.show(true);
 					break;
 				}
 				case SnippyNotifier.SettingAction: {

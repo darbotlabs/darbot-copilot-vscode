@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -65,3 +65,8 @@ export const generateUuid = (function (): () => string {
 		return result;
 	};
 })();
+
+/** Namespace should be 3 letter. */
+export function prefixedUuid(namespace: string): string {
+	return `${namespace}-${generateUuid()}`;
+}

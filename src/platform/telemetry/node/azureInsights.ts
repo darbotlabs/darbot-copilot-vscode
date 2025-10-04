@@ -1,9 +1,10 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 import { IDisposable } from '../../../util/vs/base/common/lifecycle';
+import { ICopilotTokenStore } from '../../authentication/common/copilotTokenStore';
 import { ICAPIClientService } from '../../endpoint/common/capiClient';
 import { IEnvService } from '../../env/common/envService';
 import { IGHTelemetryService } from '../common/telemetry';
@@ -17,6 +18,7 @@ export async function setupGHTelemetry(
 	telemetryService: IGHTelemetryService,
 	capiClientService: ICAPIClientService,
 	envService: IEnvService,
+	tokenStore: ICopilotTokenStore,
 	telemetryNamespace: string,
 	telemetryEnabled: boolean
 ): Promise<IDisposable | undefined> {
@@ -26,8 +28,8 @@ export async function setupGHTelemetry(
 		return;
 	}
 
-	const reporter = new AzureInsightReporter(capiClientService, envService, telemetryNamespace, APP_INSIGHTS_KEY_STANDARD);
-	const reporterSecure = new AzureInsightReporter(capiClientService, envService, telemetryNamespace, APP_INSIGHTS_KEY_ENHANCED);
+	const reporter = new AzureInsightReporter(capiClientService, envService, tokenStore, telemetryNamespace, APP_INSIGHTS_KEY_STANDARD);
+	const reporterSecure = new AzureInsightReporter(capiClientService, envService, tokenStore, telemetryNamespace, APP_INSIGHTS_KEY_ENHANCED);
 
 	container.setReporter(reporter);
 	container.setSecureReporter(reporterSecure);

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -21,7 +21,7 @@ export class ElectronFetcher extends BaseFetchFetcher {
 	}
 
 	isInternetDisconnectedError(e: any): boolean {
-		return ['net::ERR_INTERNET_DISCONNECTED'].includes(e?.message);
+		return ['net::ERR_INTERNET_DISCONNECTED', 'net::ERR_NETWORK_IO_SUSPENDED'].includes(e?.message);
 	}
 	isFetcherError(e: any): boolean {
 		return e && e.message && e.message.startsWith('net::');

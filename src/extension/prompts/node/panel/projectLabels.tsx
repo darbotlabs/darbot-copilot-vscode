@@ -1,30 +1,21 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	BasePromptElementProps,
-	PromptElement,
-	PromptSizing,
-	UserMessage,
-} from '@vscode/prompt-tsx';
+import { BasePromptElementProps, PromptElement, PromptSizing, UserMessage } from '@vscode/prompt-tsx';
 import { IPromptWorkspaceLabels } from '../../../context/node/resolvers/promptWorkspaceLabels';
-import {
-	EmbeddedInsideUserMessage,
-	embeddedInsideUserMessageDefault,
-} from '../base/promptElement';
+import { EmbeddedInsideUserMessage, embeddedInsideUserMessageDefault } from '../base/promptElement';
 import { Tag } from '../base/tag';
 
-export interface ProjectLabelsProps
-	extends BasePromptElementProps,
-		EmbeddedInsideUserMessage {}
+export interface ProjectLabelsProps extends BasePromptElementProps, EmbeddedInsideUserMessage {
+}
 
 export class ProjectLabels extends PromptElement<ProjectLabelsProps, void> {
+
 	constructor(
 		props: ProjectLabelsProps,
-		@IPromptWorkspaceLabels
-		private readonly workspaceLabels: IPromptWorkspaceLabels,
+		@IPromptWorkspaceLabels private readonly workspaceLabels: IPromptWorkspaceLabels,
 	) {
 		super(props);
 	}
@@ -36,12 +27,9 @@ export class ProjectLabels extends PromptElement<ProjectLabelsProps, void> {
 			return undefined;
 		}
 
-		if (
-			this.props.embeddedInsideUserMessage ??
-			embeddedInsideUserMessageDefault
-		) {
+		if (this.props.embeddedInsideUserMessage ?? embeddedInsideUserMessageDefault) {
 			return (
-				<Tag name="projectLabels" priority={this.props.priority}>
+				<Tag name='projectLabels' priority={this.props.priority}>
 					{this._render(labels)}
 				</Tag>
 			);
@@ -50,15 +38,14 @@ export class ProjectLabels extends PromptElement<ProjectLabelsProps, void> {
 		return (
 			<UserMessage priority={this.props.priority}>
 				{this._render(labels)}
-			</UserMessage>
+			</UserMessage >
 		);
 	}
 
 	private _render(labels: string[]) {
 		return (
 			<>
-				I am working on a project of the following nature:
-				<br />
+				I am working on a project of the following nature:<br />
 				{labels.reduce((prev, curr) => `${prev}\n- ${curr}`, '').trim()}
 			</>
 		);

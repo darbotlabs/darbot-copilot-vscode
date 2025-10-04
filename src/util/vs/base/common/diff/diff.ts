@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -96,7 +96,7 @@ class MyArray {
 	 * length:
 	 *		A 64-bit integer that represents the number of elements to copy.
 	 */
-	public static Copy(sourceArray: any[], sourceIndex: number, destinationArray: any[], destinationIndex: number, length: number) {
+	public static Copy(sourceArray: unknown[], sourceIndex: number, destinationArray: unknown[], destinationIndex: number, length: number) {
 		for (let i = 0; i < length; i++) {
 			destinationArray[destinationIndex + i] = sourceArray[sourceIndex + i];
 		}

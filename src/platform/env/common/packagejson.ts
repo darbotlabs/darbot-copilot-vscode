@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -7,6 +7,7 @@ export interface PackageJSONShape {
 	isPreRelease?: boolean;
 	buildType: 'prod' | 'dev';
 	version: string;
+	completionsCoreVersion: string;
 	build: string;
 	publisher: string;
 	name: string;

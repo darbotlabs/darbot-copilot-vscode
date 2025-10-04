@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -27,9 +27,9 @@ export class GitHubTelemetrySender extends BaseGHTelemetrySender {
 	) {
 		const telemeryLoggerFactory = (enhanced: boolean) => {
 			if (enhanced) {
-				return env.createTelemetryLogger(new AzureInsightReporter(capiClientService, envService, extensionName, enhancedTelemetryAIKey), { ignoreBuiltInCommonProperties: true, ignoreUnhandledErrors: true });
+				return env.createTelemetryLogger(new AzureInsightReporter(capiClientService, envService, tokenStore, extensionName, enhancedTelemetryAIKey), { ignoreBuiltInCommonProperties: true, ignoreUnhandledErrors: true });
 			} else {
-				return env.createTelemetryLogger(new AzureInsightReporter(capiClientService, envService, extensionName, standardTelemetryAIKey), { ignoreBuiltInCommonProperties: true, ignoreUnhandledErrors: true });
+				return env.createTelemetryLogger(new AzureInsightReporter(capiClientService, envService, tokenStore, extensionName, standardTelemetryAIKey), { ignoreBuiltInCommonProperties: true, ignoreUnhandledErrors: true });
 			}
 		};
 		super(tokenStore, telemeryLoggerFactory, configService, telemetryConfig, envService, domainService);

@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -143,7 +143,10 @@ export class DefaultLinesDiffComputer implements ILinesDiffComputer {
 
 		scanForWhitespaceChanges(originalLines.length - seq1LastStart);
 
-		const changes = lineRangeMappingFromRangeMappings(alignments, new ArrayText(originalLines), new ArrayText(modifiedLines));
+		const original = new ArrayText(originalLines);
+		const modified = new ArrayText(modifiedLines);
+
+		const changes = lineRangeMappingFromRangeMappings(alignments, original, modified);
 
 		let moves: MovedText[] = [];
 		if (options.computeMoves) {

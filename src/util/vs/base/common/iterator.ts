@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -34,7 +34,7 @@ export namespace Iterable {
 		return iterable || _empty;
 	}
 
-	export function* reverse<T>(array: Array<T>): Iterable<T> {
+	export function* reverse<T>(array: ReadonlyArray<T>): Iterable<T> {
 		for (let i = array.length - 1; i >= 0; i--) {
 			yield array[i];
 		}

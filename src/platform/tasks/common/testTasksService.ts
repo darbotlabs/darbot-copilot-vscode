@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -39,6 +39,11 @@ export class TestTasksService implements ITasksService {
 	}
 
 	getTerminalForTask(task: vscode.TaskDefinition): vscode.Terminal | undefined {
-		return undefined;
+		// Return a mock terminal with a defined processId for testing
+		return {
+			name: task.label || 'mock-terminal',
+			processId: Promise.resolve(12345),
+			// Add any other properties/methods as needed for your tests
+		} as unknown as vscode.Terminal;
 	}
 }

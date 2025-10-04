@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -12,7 +12,7 @@ import { IConfigurationService } from '../../../platform/configuration/common/co
 import { TextDocumentSnapshot } from '../../../platform/editing/common/textDocumentSnapshot';
 import { ICAPIClientService } from '../../../platform/endpoint/common/capiClient';
 import { IDomainService } from '../../../platform/endpoint/common/domainService';
-import { IEnvService } from '../../../platform/env/common/envService';
+import { IEnvService, isScenarioAutomation } from '../../../platform/env/common/envService';
 import { IVSCodeExtensionContext } from '../../../platform/extContext/common/extensionContext';
 import { IGitExtensionService } from '../../../platform/git/common/gitExtensionService';
 import { IIgnoreService } from '../../../platform/ignore/common/ignoreService';
@@ -44,7 +44,7 @@ import { ChatParticipantRequestHandler } from '../../prompt/node/chatParticipant
 import { sendReviewActionTelemetry } from '../../prompt/node/feedbackGenerator';
 import { CurrentSelection } from '../../prompts/node/panel/currentSelection';
 import { SymbolAtCursor } from '../../prompts/node/panel/symbolAtCursor';
-import { cancelReview, doReview } from '../../review/node/doReview';
+import { doReview } from '../../review/node/doReview';
 import { QuickFixesProvider, RefactorsProvider } from './inlineChatCodeActions';
 import { NotebookExectionStatusBarItemProvider } from './inlineChatNotebookActions';
 
@@ -220,7 +220,7 @@ ${message}`,
 		}
 	};
 	const extensionMode = extensionContext.extensionMode;
-	if (typeof extensionMode === 'number' && extensionMode !== vscode.ExtensionMode.Test) {
+	if (typeof extensionMode === 'number' && (extensionMode !== vscode.ExtensionMode.Test || isScenarioAutomation)) {
 		reviewService.updateContextValues();
 	}
 	const goToNextReview = (currentThread: vscode.CommentThread | undefined, direction: number) => {
@@ -254,7 +254,7 @@ ${message}`,
 		return vscode.commands.executeCommand('vscode.editorChat.start', { message: `/${InlineDocIntent.ID} `, autoSend: true, initialRange: vscode.window.activeTextEditor?.selection });
 	};
 	const doGenerateTests = (arg?: unknown) => {
-		// @ulugbekna: `darbot.chat.generateTests` is invoked from editor context menu, which means
+		// @ulugbekna: `github.copilot.chat.generateTests` is invoked from editor context menu, which means
 		// 	the first arguments can be a vscode.Uri
 		const context =
 			(arg && typeof arg === 'object' &&
@@ -308,32 +308,37 @@ ${message}`,
 	};
 
 	// register commands
-	disposables.add(vscode.commands.registerCommand('darbot.chat.explain', doExplain));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.explain.palette', () => doExplain(undefined, true)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review', () => doReview(...instaService.invokeFunction(getServicesForReview), 'selection', vscode.ProgressLocation.Notification)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.stagedChanges', () => doReview(...instaService.invokeFunction(getServicesForReview), 'index', vscode.ProgressLocation.SourceControl)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.unstagedChanges', () => doReview(...instaService.invokeFunction(getServicesForReview), 'workingTree', vscode.ProgressLocation.SourceControl)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.changes', () => doReview(...instaService.invokeFunction(getServicesForReview), 'all', vscode.ProgressLocation.SourceControl)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.changes.cancel', () => cancelReview(vscode.ProgressLocation.SourceControl, accessor.get(IRunCommandExecutionService))));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.apply', doApplyReview));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.applyAndNext', (commentThread: vscode.CommentThread) => doApplyReview(commentThread, true)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.applyShort', (commentThread: vscode.CommentThread) => doApplyReview(commentThread, true)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.continueInInlineChat', doContinueInInlineChat));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.continueInChat', doContinueInChat));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.discard', doDiscardReview));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.discardAndNext', (commentThread: vscode.CommentThread) => doDiscardReview(commentThread, true)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.discardShort', (commentThread: vscode.CommentThread) => doDiscardReview(commentThread, true)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.discardAll', doDiscardAllReview));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.markHelpful', markReviewHelpful));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.markUnhelpful', markReviewUnhelpful));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.previous', thread => goToNextReview(thread, -1)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.next', thread => goToNextReview(thread, +1)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.review.current', thread => goToNextReview(thread, 0)));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.generate', doGenerate));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.generateDocs', doGenerateDocs));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.generateTests', doGenerateTests));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.fix', doFix));
-	disposables.add(vscode.commands.registerCommand('darbot.chat.generateAltText', doGenerateAltText));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.explain', doExplain));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.explain.palette', () => doExplain(undefined, true)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review', () => doReview(...instaService.invokeFunction(getServicesForReview), 'selection', vscode.ProgressLocation.Notification)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.stagedChanges', () => doReview(...instaService.invokeFunction(getServicesForReview), 'index', vscode.ProgressLocation.Notification)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.unstagedChanges', () => doReview(...instaService.invokeFunction(getServicesForReview), 'workingTree', vscode.ProgressLocation.Notification)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.changes', () => doReview(...instaService.invokeFunction(getServicesForReview), 'all', vscode.ProgressLocation.Notification)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.stagedFileChange', (resource: vscode.SourceControlResourceState) => {
+		return doReview(...instaService.invokeFunction(getServicesForReview), { group: 'index', file: resource.resourceUri }, vscode.ProgressLocation.Notification);
+	}));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.unstagedFileChange', (resource: vscode.SourceControlResourceState) => {
+		return doReview(...instaService.invokeFunction(getServicesForReview), { group: 'workingTree', file: resource.resourceUri }, vscode.ProgressLocation.Notification);
+	}));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.apply', doApplyReview));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.applyAndNext', (commentThread: vscode.CommentThread) => doApplyReview(commentThread, true)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.applyShort', (commentThread: vscode.CommentThread) => doApplyReview(commentThread, true)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.continueInInlineChat', doContinueInInlineChat));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.continueInChat', doContinueInChat));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.discard', doDiscardReview));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.discardAndNext', (commentThread: vscode.CommentThread) => doDiscardReview(commentThread, true)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.discardShort', (commentThread: vscode.CommentThread) => doDiscardReview(commentThread, true)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.discardAll', doDiscardAllReview));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.markHelpful', markReviewHelpful));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.markUnhelpful', markReviewUnhelpful));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.previous', thread => goToNextReview(thread, -1)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.next', thread => goToNextReview(thread, +1)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.current', thread => goToNextReview(thread, 0)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.generate', doGenerate));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.generateDocs', doGenerateDocs));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.generateTests', doGenerateTests));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.fix', doFix));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.generateAltText', doGenerateAltText));
 	// register code actions
 	disposables.add(vscode.languages.registerCodeActionsProvider('*', instaService.createInstance(QuickFixesProvider), {
 		providedCodeActionKinds: QuickFixesProvider.providedCodeActionKinds,
@@ -378,7 +383,8 @@ function fetchSuggestion(accessor: ServicesAccessor, thread: vscode.CommentThrea
 			toolInvocationToken: undefined as never,
 			model: null!,
 			tools: new Map(),
-			id: '1'
+			id: '1',
+			sessionId: '1',
 		};
 		let markdown = '';
 		const edits: ReviewSuggestionChange[] = [];
@@ -392,7 +398,7 @@ function fetchSuggestion(accessor: ServicesAccessor, thread: vscode.CommentThrea
 			} else if (value instanceof vscode.ChatResponseMarkdownPart) {
 				markdown += value.value.value;
 			}
-		});
+		}, () => { });
 
 		const requestHandler = instantiationService.createInstance(ChatParticipantRequestHandler, [], request, stream, CancellationToken.None, {
 			agentId: getChatParticipantIdFromName(editorAgentName),
@@ -412,7 +418,7 @@ function fetchSuggestion(accessor: ServicesAccessor, thread: vscode.CommentThrea
 		return suggestion;
 	})()
 		.catch(err => {
-			logService.logger.error(err, 'Error fetching suggestion');
+			logService.error(err, 'Error fetching suggestion');
 			comment.suggestion = {
 				markdown: `Error fetching suggestion: ${err?.message}`,
 				edits: [],

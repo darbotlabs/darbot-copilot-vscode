@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -44,16 +44,16 @@ export class ConfigurationServiceImpl extends AbstractConfigurationService {
 
 		let configuredValue: T | undefined;
 		if (key.advancedSubKey) {
-			// This is a `darbot.advanced.*` setting
+			// This is a `github.copilot.advanced.*` setting
 
 			// First, let's try to read it using the flat style
-			// e.g. "darbot.advanced.debug.useElectronFetcher": false
+			// e.g. "github.copilot.advanced.debug.useElectronFetcher": false
 			const advancedConfigFlatStyleValue = config.get<T>(key.id);
 			if (advancedConfigFlatStyleValue !== undefined) {
 				configuredValue = advancedConfigFlatStyleValue;
 			} else {
 				// If that doesn't work, fall back to the object style
-				// e.g. "darbot.advanced": { "debug.useElectronFetcher": false }
+				// e.g. "github.copilot.advanced": { "debug.useElectronFetcher": false }
 				const advancedConfig = config.get<Record<string, any>>('advanced');
 				configuredValue = advancedConfig?.[key.advancedSubKey];
 			}
@@ -127,12 +127,12 @@ export class ConfigurationServiceImpl extends AbstractConfigurationService {
 
 	setConfig<T>(key: BaseConfig<T>, value: T): Thenable<void> {
 		if (key.advancedSubKey) {
-			// This is a `darbot.advanced.*` setting
+			// This is a `github.copilot.advanced.*` setting
 
 			// We support two styles when reading these settings:
-			// 1. Flat style: "darbot.advanced.debug.useElectronFetcher": false
+			// 1. Flat style: "github.copilot.advanced.debug.useElectronFetcher": false
 			//    This is the style our team likes to use, but this is not the correct way according to how the setting is registered in package.json.
-			// 2. Object style: "darbot.advanced": { "debug.useElectronFetcher": false }
+			// 2. Object style: "github.copilot.advanced": { "debug.useElectronFetcher": false }
 			//    This is the style that the package.json schema expects, and is the correct way to write these settings.
 
 			// Unfortunately, the configuration API of vscode is unable to write the flat style setting, it refuses to write them.
@@ -170,15 +170,22 @@ export class ConfigurationServiceImpl extends AbstractConfigurationService {
 			return configuredValue;
 		}
 
+		if (key.experimentName) {
+			const expValue = experimentationService.getTreatmentVariable<Exclude<T, undefined>>(key.experimentName);
+			if (expValue !== undefined) {
+				return expValue;
+			}
+		}
+
 		// This is the pattern we've been using for a while now. We need to maintain it for older experiments.
-		const expValue = experimentationService.getTreatmentVariable<Exclude<T, undefined>>('vscode', `copilotchat.config.${key.id}`);
+		const expValue = experimentationService.getTreatmentVariable<Exclude<T, undefined>>(`copilotchat.config.${key.id}`);
 		if (expValue !== undefined) {
 			return expValue;
 		}
 
 		// This is the pattern vscode uses for settings using the `onExp` tag. But vscode only supports it for
 		// settings defined in package.json, so this is why we're also reading the value from exp here.
-		const expValue2 = experimentationService.getTreatmentVariable<Exclude<T, undefined>>('vscode', `config.${key.fullyQualifiedId}`);
+		const expValue2 = experimentationService.getTreatmentVariable<Exclude<T, undefined>>(`config.${key.fullyQualifiedId}`);
 		if (expValue2 !== undefined) {
 			return expValue2;
 		}
@@ -227,5 +234,22 @@ export class ConfigurationServiceImpl extends AbstractConfigurationService {
 			console.error(`Failed to retrieve configuration properties ${ex}`);
 		}
 		return configProperties;
+	}
+
+	override updateExperimentBasedConfiguration(treatments: string[]): void {
+		if (treatments.length === 0) {
+			return;
+		}
+
+		// Refresh cached config, in case of an exp based config change
+		this.config = vscode.workspace.getConfiguration(CopilotConfigPrefix);
+
+		// Fire simulated event which checks if a configuration is affected in the treatments
+		this._onDidChangeConfiguration.fire({
+			affectsConfiguration: (section: string, _scope?: vscode.ConfigurationScope) => {
+				const result = treatments.some(t => t.startsWith(`config.${section}`));
+				return result;
+			}
+		});
 	}
 }

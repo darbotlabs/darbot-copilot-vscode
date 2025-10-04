@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -20,7 +20,7 @@ suite('IgnoreImportChangesAspect', () => {
 
 	const doc1 = new StringText(`
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -36,7 +36,7 @@ class FooBar {
 	test('ImportDeletion', async () => {
 		const doc2 = new StringText(`
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -48,14 +48,14 @@ class FooBar {
 `);
 
 		const lineEdit = RootedEdit.toLineEdit(await computeDiff(doc1, doc2));
-		expect(IgnoreImportChangesAspect.isImportChange(lineEdit.edits[0], 'typescript', doc1.getLines())).toBe(true);
+		expect(IgnoreImportChangesAspect.isImportChange(lineEdit.replacements[0], 'typescript', doc1.getLines())).toBe(true);
 	});
 
 
 	test('ImportAddition', async () => {
 		const doc2 = new StringText(`
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -69,13 +69,13 @@ class FooBar {
 `);
 
 		const lineEdit = RootedEdit.toLineEdit(await computeDiff(doc1, doc2));
-		expect(IgnoreImportChangesAspect.isImportChange(lineEdit.edits[0], 'typescript', doc1.getLines())).toBe(true);
+		expect(IgnoreImportChangesAspect.isImportChange(lineEdit.replacements[0], 'typescript', doc1.getLines())).toBe(true);
 	});
 
 	test('ImportChange', async () => {
 		const doc2 = new StringText(`
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -88,14 +88,14 @@ class FooBar {
 `);
 
 		const lineEdit = RootedEdit.toLineEdit(await computeDiff(doc1, doc2));
-		expect(IgnoreImportChangesAspect.isImportChange(lineEdit.edits[0], 'typescript', doc1.getLines())).toBe(true);
+		expect(IgnoreImportChangesAspect.isImportChange(lineEdit.replacements[0], 'typescript', doc1.getLines())).toBe(true);
 	});
 
 
 	test('ClassChange', async () => {
 		const doc2 = new StringText(`
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -109,6 +109,6 @@ class FooBar {
 `);
 
 		const lineEdit = RootedEdit.toLineEdit(await computeDiff(doc1, doc2));
-		expect(IgnoreImportChangesAspect.isImportChange(lineEdit.edits[0], 'typescript', doc1.getLines())).toBe(false);
+		expect(IgnoreImportChangesAspect.isImportChange(lineEdit.replacements[0], 'typescript', doc1.getLines())).toBe(false);
 	});
 });

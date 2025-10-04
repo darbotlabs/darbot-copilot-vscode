@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -57,14 +57,17 @@ export class StatelessNextEditRequest<TFirstEdit = any> {
 
 	constructor(
 		public readonly id: string,
+		public readonly opportunityId: string,
 		public readonly documentBeforeEdits: StringText,
 		public readonly documents: readonly StatelessNextEditDocument[],
 		public readonly activeDocumentIdx: number,
-		public readonly xtabEditHistory: IXtabHistoryEntry[],
+		public readonly xtabEditHistory: readonly IXtabHistoryEntry[],
 		public readonly firstEdit: DeferredPromise<Result<TFirstEdit, NoNextEditReason>>,
+		public readonly expandedEditWindowNLines: number | undefined,
 		public readonly logContext: InlineEditRequestLogContext,
-		public readonly recordingBookmark?: DebugRecorderBookmark,
-		public readonly recording?: LogEntry[],
+		public readonly recordingBookmark: DebugRecorderBookmark | undefined,
+		public readonly recording: LogEntry[] | undefined,
+		public readonly providerRequestStartDateTime: number | undefined,
 	) {
 		assert(documents.length > 0);
 		assert(activeDocumentIdx >= 0 && activeDocumentIdx < documents.length);
@@ -206,6 +209,11 @@ export namespace NoNextEditReason {
 		constructor(public readonly message: FilteredOutReason | string) {
 		}
 	}
+	export class PromptTooLarge {
+		public readonly kind = 'promptTooLarge';
+		constructor(public readonly message: 'currentFile' | 'final') {
+		}
+	}
 	export class Uncategorized {
 		public readonly kind = 'uncategorized';
 		constructor(public readonly error: Error) {
@@ -224,6 +232,7 @@ export type NoNextEditReason =
 	| NoNextEditReason.GotCancelled
 	| NoNextEditReason.FetchFailure
 	| NoNextEditReason.FilteredOut
+	| NoNextEditReason.PromptTooLarge
 	| NoNextEditReason.Uncategorized
 	| NoNextEditReason.Unexpected
 	;
@@ -287,11 +296,9 @@ export interface IStatelessNextEditTelemetry {
 	readonly lineDistanceToMostRecentEdit: number | undefined;
 
 	/* result info */
-	readonly hasNextEdit: boolean;
 	readonly nextEditLogprob: number | undefined;
 	readonly noNextEditReasonKind: string | undefined;
 	readonly noNextEditReasonMessage: string | undefined;
-	readonly summarizedEditWindow: any;
 }
 
 export type FetchResultWithStats = {
@@ -323,14 +330,13 @@ export class StatelessNextEditTelemetryBuilder {
 		const promptLineCount = promptText?.split('\n').length;
 		const promptCharCount = promptText?.length;
 
-		const hasNextEdit = result.isOk();
 		const noNextEditReasonKind = result.isOk() ? undefined : result.err.kind;
 
 		let noNextEditReasonMessage: string | undefined;
 		if (result.isError()) {
 			if (result.err instanceof NoNextEditReason.ActiveDocumentHasNoEdits || result.err instanceof NoNextEditReason.NoSuggestions) {
 				// ignore
-			} else if (result.err instanceof NoNextEditReason.GotCancelled || result.err instanceof NoNextEditReason.FilteredOut) {
+			} else if (result.err instanceof NoNextEditReason.GotCancelled || result.err instanceof NoNextEditReason.FilteredOut || result.err instanceof NoNextEditReason.PromptTooLarge) {
 				noNextEditReasonMessage = result.err.message;
 			} else if (result.err instanceof NoNextEditReason.FetchFailure || result.err instanceof NoNextEditReason.Uncategorized || result.err instanceof NoNextEditReason.Unexpected) {
 				noNextEditReasonMessage = result.err.error.stack ? result.err.error.stack : result.err.error.message;
@@ -342,7 +348,6 @@ export class StatelessNextEditTelemetryBuilder {
 		return {
 			hadStatelessNextEditProviderCall: true,
 
-			hasNextEdit,
 			noNextEditReasonKind,
 			noNextEditReasonMessage,
 
@@ -362,7 +367,6 @@ export class StatelessNextEditTelemetryBuilder {
 			nEditsSuggested: this._nEditsSuggested,
 			nextEditLogprob: this._nextEditLogProb,
 			lineDistanceToMostRecentEdit: this._lineDistanceToMostRecentEdit,
-			summarizedEditWindow: this._summarizedEditWindow,
 		};
 	}
 
@@ -457,12 +461,6 @@ export class StatelessNextEditTelemetryBuilder {
 	private _lineDistanceToMostRecentEdit: number | undefined;
 	public setLineDistanceToMostRecentEdit(distanceToMostRecentEdit: number): this {
 		this._lineDistanceToMostRecentEdit = distanceToMostRecentEdit;
-		return this;
-	}
-
-	private _summarizedEditWindow: any;
-	public setSummarizedEditWindow(summarizedEditWindow: any): this {
-		this._summarizedEditWindow = summarizedEditWindow;
 		return this;
 	}
 }

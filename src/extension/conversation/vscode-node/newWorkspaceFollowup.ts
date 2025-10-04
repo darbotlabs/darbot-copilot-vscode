@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { ChatResponseFileTreePart, Disposable, MarkdownString, ProgressLocation, SaveDialogOptions, Tab, TabInputText, Uri, commands, env, interactive, l10n, window, workspace } from 'vscode';
@@ -110,7 +110,7 @@ async function createWorkspace(logService: ILogService, workspaceRoot: Uri | und
 		if (result === open) {
 
 			interactive.transferActiveChat(workspaceUri);
-			logService.logger.info(
+			logService.info(
 				'[newIntent] Opening folder: ' + workspaceUri.fsPath,
 			);
 			commands.executeCommand('vscode.openFolder', workspaceUri);
@@ -120,7 +120,7 @@ async function createWorkspace(logService: ILogService, workspaceRoot: Uri | und
 	}
 	catch (error) {
 		const errorMessage = l10n.t('Failed to create workspace: {0}', projectName);
-		logService.logger.error(error, errorMessage);
+		logService.error(error, errorMessage);
 		window.showErrorMessage(errorMessage);
 		await workspace.fs.delete(workspaceUri, { recursive: true });
 	}

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -10,10 +10,7 @@ import { OffsetRange } from '../../../util/vs/editor/common/core/ranges/offsetRa
 
 const N_GRAM_UNDO_RATIO_TO_FILTER_OUT = 0.7;
 
-export function editWouldDeleteWhatWasJustInserted(
-	activeDocument: StatelessNextEditDocument,
-	lineEdit: LineEdit,
-) {
+export function editWouldDeleteWhatWasJustInserted(activeDocument: StatelessNextEditDocument, lineEdit: LineEdit) {
 	let edit = lineEdit.toEdit(activeDocument.documentAfterEdits);
 	// ! important: reduce it to the minimal set of changes
 	edit = edit.normalizeOnSource(activeDocument.documentAfterEdits.value);
@@ -34,14 +31,8 @@ export function editWouldDeleteWhatWasJustInserted(
 }
 
 function editIsDeletion(edit: StringEdit): boolean {
-	const deletedChars = edit.replacements.reduce(
-		(acc, singleEdit) => acc + singleEdit.replaceRange.length,
-		0,
-	);
-	const insertedChars = edit.replacements.reduce(
-		(acc, singleEdit) => acc + singleEdit.newText.length,
-		0,
-	);
+	const deletedChars = edit.replacements.reduce((acc, singleEdit) => acc + singleEdit.replaceRange.length, 0);
+	const insertedChars = edit.replacements.reduce((acc, singleEdit) => acc + singleEdit.newText.length, 0);
 	return insertedChars === 0 && deletedChars > 0;
 }
 
@@ -49,47 +40,28 @@ function editIsDeletion(edit: StringEdit): boolean {
  * Represents information loss/gain (4-grams) via an edit.
  */
 export class InformationDelta {
+
 	constructor(
 		public readonly inserted: Set<string> = new Set<string>(),
-		public readonly deleted: Set<string> = new Set<string>(),
-	) {}
+		public readonly deleted: Set<string> = new Set<string>()
+	) { }
 
 	combine(other: InformationDelta) {
-		return new InformationDelta(
-			setUnion(this.inserted, other.inserted),
-			setUnion(this.deleted, other.deleted),
-		);
+		return new InformationDelta(setUnion(this.inserted, other.inserted), setUnion(this.deleted, other.deleted));
 	}
 
 	isUndoneBy(other: InformationDelta) {
-		const otherReallyNewInsertions = setMinus(
-			other.inserted,
-			other.deleted,
-		);
+		const otherReallyNewInsertions = setMinus(other.inserted, other.deleted);
 		const otherReallyDeleted = setMinus(other.deleted, other.inserted);
 
-		const otherReallyDeletesMyInserts = setIntersectionCount(
-			otherReallyDeleted,
-			this.inserted,
-		);
-		const otherReallyInsertsMyDeletes = setIntersectionCount(
-			otherReallyNewInsertions,
-			this.deleted,
-		);
+		const otherReallyDeletesMyInserts = setIntersectionCount(otherReallyDeleted, this.inserted);
+		const otherReallyInsertsMyDeletes = setIntersectionCount(otherReallyNewInsertions, this.deleted);
 
-		if (
-			otherReallyDeleted.size > 6 &&
-			otherReallyDeletesMyInserts / otherReallyDeleted.size >
-				N_GRAM_UNDO_RATIO_TO_FILTER_OUT
-		) {
+		if (otherReallyDeleted.size > 6 && otherReallyDeletesMyInserts / otherReallyDeleted.size > N_GRAM_UNDO_RATIO_TO_FILTER_OUT) {
 			return true;
 		}
 
-		if (
-			otherReallyNewInsertions.size > 6 &&
-			otherReallyInsertsMyDeletes / otherReallyNewInsertions.size >
-				N_GRAM_UNDO_RATIO_TO_FILTER_OUT
-		) {
+		if (otherReallyNewInsertions.size > 6 && otherReallyInsertsMyDeletes / otherReallyNewInsertions.size > N_GRAM_UNDO_RATIO_TO_FILTER_OUT) {
 			return true;
 		}
 
@@ -97,20 +69,14 @@ export class InformationDelta {
 	}
 }
 
-export function getInformationDelta(
-	source: string,
-	edit: StringEdit,
-): InformationDelta {
+export function getInformationDelta(source: string, edit: StringEdit): InformationDelta {
 	const inserted = new Set<string>();
 	const deleted = new Set<string>();
 	const tryAddDeleted = (deletedRange: OffsetRange | undefined) => {
 		if (!deletedRange) {
 			return;
 		}
-		const deletedText = source.substring(
-			deletedRange.start,
-			deletedRange.endExclusive,
-		);
+		const deletedText = source.substring(deletedRange.start, deletedRange.endExclusive);
 		for (let line of deletedText.split(/\r\n|\r|\n/)) {
 			line = line.trim();
 			for (const piece of to4grams(line)) {
@@ -144,19 +110,10 @@ export function getInformationDelta(
 	return new InformationDelta(inserted, deleted);
 }
 
-function trimOverlap(
-	stringToEliminateEnd: string,
-	stringToEliminateStart: string,
-): string {
-	const length = Math.min(
-		stringToEliminateEnd.length,
-		stringToEliminateStart.length,
-	);
+function trimOverlap(stringToEliminateEnd: string, stringToEliminateStart: string): string {
+	const length = Math.min(stringToEliminateEnd.length, stringToEliminateStart.length);
 	for (let trimLength = 0; trimLength < length; trimLength++) {
-		const str1 = stringToEliminateEnd.slice(
-			0,
-			stringToEliminateEnd.length - trimLength,
-		);
+		const str1 = stringToEliminateEnd.slice(0, stringToEliminateEnd.length - trimLength);
 		const str2 = stringToEliminateStart.slice(trimLength);
 		if (str1 === str2) {
 			return str1;

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -55,7 +55,7 @@ suite('PositionOffsetTransformer', () => {
 		const offsetEdit = transformer.toOffsetEdit(edits);
 		transformer.applyOffsetEdits(offsetEdit);
 
-		const newText = transformer._getText();
+		const newText = transformer.getText();
 		assert.equal(newText, 'Hello\nWorld\nline3');
 	});
 
@@ -83,7 +83,7 @@ suite('PositionOffsetTransformer', () => {
 		const offsetEdit = transformer.toOffsetEdit(edits);
 		transformer.applyOffsetEdits(offsetEdit);
 
-		const newText = transformer._getText();
+		const newText = transformer.getText();
 		assert.equal(newText, 'line1Hello \nline2 World\nline3');
 
 		// Additional assertions
@@ -103,7 +103,7 @@ suite('PositionOffsetTransformer', () => {
 		const offsetEdit = transformer.toOffsetEdit(edits);
 		transformer.applyOffsetEdits(offsetEdit);
 
-		const newText = transformer._getText();
+		const newText = transformer.getText();
 		assert.equal(newText, '\n\nline3');
 
 		// Additional assertions
@@ -125,7 +125,7 @@ suite('PositionOffsetTransformer', () => {
 		const offsetEdit = transformer.toOffsetEdit(edits);
 		transformer.applyOffsetEdits(offsetEdit);
 
-		const newText = transformer._getText();
+		const newText = transformer.getText();
 		assert.equal(newText, 'Hello\nWorld\nTest');
 
 		// Additional assertions
@@ -143,7 +143,7 @@ suite('PositionOffsetTransformer', () => {
 		const offsetEdit = transformer.toOffsetEdit(edits);
 		transformer.applyOffsetEdits(offsetEdit);
 
-		const newText = transformer._getText();
+		const newText = transformer.getText();
 		assert.equal(newText, 'line1\nInserted\nText\n\nline2\nline3');
 
 		// Additional assertions
@@ -168,7 +168,7 @@ suite('PositionOffsetTransformer', () => {
 		const offsetEdit = transformer.toOffsetEdit(edits);
 		transformer.applyOffsetEdits(offsetEdit);
 
-		const newText = transformer._getText();
+		const newText = transformer.getText();
 		assert.equal(newText, 'line1\r\nInserted\r\nText\r\n\r\nline2\r\nline3');
 
 		// Additional assertions

@@ -1,12 +1,8 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import {
-	BasePromptElementProps,
-	PromptElement,
-	PromptReference,
-} from '@vscode/prompt-tsx';
+import { BasePromptElementProps, PromptElement, PromptReference } from '@vscode/prompt-tsx';
 import { Diff } from '../../../../platform/git/common/gitDiffService';
 import { basename } from '../../../../util/vs/base/common/path';
 import { FilePathMode, FileVariable } from '../panel/fileVariable';
@@ -22,25 +18,12 @@ export class GitChanges extends PromptElement<GitChangesProps> {
 			<>
 				{this.props.diffs.map((diff) => (
 					<>
-						<references
-							value={
-								diff.uri ? [new PromptReference(diff.uri)] : []
-							}
-						/>
-						<FileVariable
-							passPriority={true}
-							variableName={basename(diff.uri.toString())}
-							variableValue={diff.uri}
-							filePathMode={FilePathMode.AsComment}
-						/>
-						<UnsafeCodeBlock
-							passPriority={true}
-							code={diff.diff}
-							languageId="diff"
-						/>
-						<br />
+						<references value={diff.uri ? [new PromptReference(diff.uri)] : []} />
+						<FileVariable passPriority={true} variableName={basename(diff.uri.toString())} variableValue={diff.uri} filePathMode={FilePathMode.AsComment} />
+						<UnsafeCodeBlock passPriority={true} code={diff.diff} languageId='diff' /><br />
 					</>
 				))}
+
 			</>
 		);
 	}

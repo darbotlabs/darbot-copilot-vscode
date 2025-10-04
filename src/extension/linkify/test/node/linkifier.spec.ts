@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -309,5 +309,96 @@ suite('Stateful Linkifier', () => {
 		assertPartsEqual(result, [
 			'text `text`'
 		]);
+	});
+
+	test(`Should not unlinkify text inside of code blocks`, async () => {
+		const linkifier = createTestLinkifierService().createLinkifier(emptyContext);
+
+		const parts: string[] = [
+			'```md\n',
+			`[g](x)\n`,
+			'```',
+		];
+
+		const result = await runLinkifier(linkifier, parts);
+		assertPartsEqual(result, [
+			[
+				'```md\n',
+				`[g](x)\n`,
+				'```'
+			].join('')
+		]);
+	});
+
+	test(`Should not unlikify text inside of inline code`, async () => {
+		{
+			const linkifier = createTestLinkifierService().createLinkifier(emptyContext);
+			const result = await runLinkifier(linkifier, [
+				'a `J[g](x)` b',
+			]);
+			assertPartsEqual(result, [
+				'a `J[g](x)` b'
+			]);
+		}
+		{
+			const linkifier = createTestLinkifierService().createLinkifier(emptyContext);
+			const result = await runLinkifier(linkifier, [
+				'a `b [c](d) e` f',
+			]);
+			assertPartsEqual(result, [
+				'a `b [c](d) e` f'
+			]);
+		}
+	});
+
+	test(`Should not unlikify text inside of math blocks code`, async () => {
+		{
+			const linkifier = createTestLinkifierService(
+				'file1.ts',
+				'file2.ts',
+			).createLinkifier(emptyContext);
+
+			const result = await runLinkifier(linkifier, [
+				'[file1.ts](file1.ts)\n',
+				'$$\n',
+				`J[g](x)\n`,
+				'$$\n',
+				'[file2.ts](file2.ts)'
+			]);
+			assertPartsEqual(result, [
+				new LinkifyLocationAnchor(workspaceFile('file1.ts')),
+				[
+					'',
+					'$$',
+					'J[g](x)',
+					'$$',
+					'',
+				].join('\n'),
+				new LinkifyLocationAnchor(workspaceFile('file2.ts')),
+			]);
+		}
+	});
+
+	test(`Should not touch code inside of inline math equations`, async () => {
+		{
+			const linkifier = createTestLinkifierService().createLinkifier(emptyContext);
+
+			const result = await runLinkifier(linkifier, [
+				'a $J[g](x)$ b',
+			]);
+			assertPartsEqual(result, [
+				'a $J[g](x)$ b'
+			]);
+		}
+		{
+			const linkifier = createTestLinkifierService().createLinkifier(emptyContext);
+
+			const result = await runLinkifier(linkifier, [
+				'a $c [g](x) d$ x',
+			]);
+			assertPartsEqual(result, [
+				'a $c [g](x) d$ x',
+			]);
+		}
 	});
 });

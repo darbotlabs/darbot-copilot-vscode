@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -102,7 +102,7 @@ export class NotebookExectionStatusBarItemProvider implements vscode.NotebookCel
 				}
 			];
 		} catch (e) {
-			this.logService.logger.error(`Failed to parse error output ${e}`);
+			this.logService.error(`Failed to parse error output ${e}`);
 		}
 
 		return [];

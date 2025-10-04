@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -184,7 +184,6 @@ export abstract class BaseEdit<T extends BaseReplacement<T> = BaseReplacement<an
 
 		return this._createNew(result).normalize();
 	}
-
 
 	public decomposeSplit(shouldBeInE1: (repl: T) => boolean): { e1: TEdit; e2: TEdit } {
 		const e1: T[] = [];

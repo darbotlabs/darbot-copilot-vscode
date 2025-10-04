@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -22,6 +22,7 @@ import { IBuildPromptContext } from '../common/intents';
 import { ChatTelemetryBuilder } from './chatParticipantTelemetry';
 import { IDocumentContext } from './documentContext';
 import { AsyncReader, ClassifiedTextPiece, IStreamingEditsStrategy, IStreamingTextPieceClassifier, StreamingEditsResult, TextPieceKind, streamLines } from './streamingEdits';
+import { ChatVariablesCollection } from '../common/chatVariablesCollection';
 
 export interface IIntentSlashCommandInfo {
 
@@ -203,6 +204,8 @@ export interface IIntentInvocation extends Partial<IResponseProcessor> {
 	readonly codeblocksRepresentEdits?: boolean;
 
 	modifyErrorDetails?(errorDetails: vscode.ChatErrorDetails, response: ChatResponse): vscode.ChatErrorDetails;
+
+	getAdditionalVariables?(context: IBuildPromptContext): ChatVariablesCollection | undefined;
 }
 
 export class NullIntentInvocation implements IIntentInvocation {

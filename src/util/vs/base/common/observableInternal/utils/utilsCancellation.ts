@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -11,6 +11,7 @@ import { CancellationError, CancellationToken, CancellationTokenSource } from '.
 import { strictEquals } from '../commonFacade/deps';
 import { autorun } from '../reactions/autorun';
 import { Derived } from '../observables/derivedImpl';
+import { DebugLocation } from '../debugLocation';
 
 /**
  * Resolves the promise when the observables state matches the predicate.
@@ -94,6 +95,7 @@ export function derivedWithCancellationToken<T>(computeFnOrOwner: ((reader: IRea
 			return computeFn(r, cancellationTokenSource.token);
 		}, undefined,
 		() => cancellationTokenSource?.dispose(),
-		strictEquals
+		strictEquals,
+		DebugLocation.ofCaller()
 	);
 }

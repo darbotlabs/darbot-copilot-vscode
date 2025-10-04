@@ -1,15 +1,10 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	BasePromptElementProps,
-	PromptElement,
-	PromptPiece,
-	SystemMessage,
-	UserMessage,
-} from '@vscode/prompt-tsx';
+
+import { BasePromptElementProps, PromptElement, PromptPiece, SystemMessage, UserMessage } from '@vscode/prompt-tsx';
 import { IChatEndpoint } from '../../../../platform/networking/common/networking';
 import { IBuildPromptContext } from '../../../prompt/common/intents';
 import { CopilotIdentityRules } from '../base/copilotIdentity';
@@ -29,7 +24,8 @@ export interface TerminalPromptProps extends BasePromptElementProps {
 	endpoint: IChatEndpoint;
 }
 
-export interface TerminalPromptState {}
+export interface TerminalPromptState {
+}
 
 const enum ShellExamples {
 	Sh = `
@@ -81,39 +77,26 @@ git commit -m "{message}"
 Assistant:
 \`\`\`sh
 cd foo
-\`\`\``,
+\`\`\``
 }
 
-export class TerminalPrompt extends PromptElement<
-	TerminalPromptProps,
-	TerminalPromptState
-> {
-	override render(
-		state: TerminalPromptState,
-	): PromptPiece<any, any> | undefined {
-		const { query, history, chatVariables } = this.props.promptContext;
+export class TerminalPrompt extends PromptElement<TerminalPromptProps, TerminalPromptState> {
+
+	override render(state: TerminalPromptState): PromptPiece<any, any> | undefined {
+		const { query, history, chatVariables, } = this.props.promptContext;
 		return (
 			<>
 				<SystemMessage priority={1000}>
-					You are a programmer who specializes in using the command
-					line. Your task is to help the Developer craft a command to
-					run on the command line.
-					<br />
+					You are a programmer who specializes in using the command line. Your task is to help the Developer craft a command to run on the command line.<br />
 					<CopilotIdentityRules />
 					<LegacySafetyRules />
 				</SystemMessage>
-				<HistoryWithInstructions
-					flexGrow={1}
-					historyPriority={600}
-					passPriority
-					history={history}
-				>
+				<HistoryWithInstructions flexGrow={1} historyPriority={600} passPriority history={history}>
 					<InstructionMessage priority={1000}>
 						<EditorIntegrationRules />
 						<ResponseTranslationRules />
 						<br />
-						Additional Rules
-						<br />
+						Additional Rules<br />
 						{`Think step by step:`}
 						{`
 1. Read the provided relevant workspace information (file names, project files in the project root) to understand the user's workspace.`}
@@ -124,6 +107,7 @@ export class TerminalPrompt extends PromptElement<
     - Provide the command suggestions using the active shell and operating system.
     - When there is text that needs to be replaced in the suggestion, prefix the text with '{', suffix the text with '}' and use underscores instead of whitespace. Only do this when the replacement text is NOT provided.
     - Say "I'm not quite sure how to do that." when you aren't confident in your explanation`}
+
 						{isPowerShell(this.props.shellType)
 							? `
     - Prefer idiomatic PowerShell over aliases for other shells or system utilities. For example use \`Stop-Process\` or \`Get-NetTCPConnection\` instead of \`kill\` or \`lsof\` respectively.
@@ -131,56 +115,39 @@ export class TerminalPrompt extends PromptElement<
     - Prefer cross-platform PowerShell scripting that works on any operating system.`
 							: `
     - Only use a tool like python or perl when it is not possible with the shell.`}
+
 						{`
 3. At the end of the response, list all text that needs to be replaced with associated descriptions in the form of a markdown list
-`.trim()}
-						<br />
+`.trim()}<br />
 					</InstructionMessage>
 					<InstructionMessage priority={700}>
-						Examples:
-						<br />
+						Examples:<br />
 						{getShellExamples(this.props.shellType)}
 					</InstructionMessage>
 				</HistoryWithInstructions>
 				<UserMessage flexGrow={1} priority={750}>
-					<CustomInstructions
-						languageId={
-							isPowerShell(this.props.shellType) ? 'ps1' : 'bash'
-						}
-						chatVariables={chatVariables}
-					/>
+					<CustomInstructions languageId={isPowerShell(this.props.shellType) ? 'ps1' : 'bash'} chatVariables={chatVariables} />
 				</UserMessage>
 				<UserMessage flexGrow={1} priority={800}>
-					The active terminal's shell type is:
-					<br />
+					The active terminal's shell type is:<br />
 					{this.props.shellType}
-				</UserMessage>
+				</UserMessage >
 				<UserMessage flexGrow={1} priority={800}>
-					The active operating system is:
-					<br />
+					The active operating system is:<br />
 					{this.props.osName}
-				</UserMessage>
+				</UserMessage >
 				<TerminalLastCommand priority={801} />
-				<ChatToolReferences
-					priority={899}
-					flexGrow={2}
-					promptContext={this.props.promptContext}
-					embeddedInsideUserMessage={false}
-				/>
-				<ChatVariablesAndQuery
-					flexGrow={2}
-					priority={900}
-					chatVariables={chatVariables}
-					query={query}
-					embeddedInsideUserMessage={false}
-				/>
+				<ChatToolReferences priority={899} flexGrow={2} promptContext={this.props.promptContext} embeddedInsideUserMessage={false} />
+				<ChatVariablesAndQuery flexGrow={2} priority={900} chatVariables={chatVariables} query={query} embeddedInsideUserMessage={false} />
 			</>
 		);
 	}
 }
 
 function getShellExamples(shellType: string) {
-	const examples: string[] = [ShellExamples.Generic];
+	const examples: string[] = [
+		ShellExamples.Generic
+	];
 	// Generic
 	if (!isPowerShell(shellType)) {
 		examples.push(ShellExamples.GenericNonPwsh);
@@ -206,9 +173,5 @@ function getShellExamples(shellType: string) {
 }
 
 function isPowerShell(shellType: string) {
-	return (
-		shellType === 'ps1' ||
-		shellType === 'pwsh' ||
-		shellType === 'powershell'
-	);
+	return shellType === 'ps1' || shellType === 'pwsh' || shellType === 'powershell';
 }

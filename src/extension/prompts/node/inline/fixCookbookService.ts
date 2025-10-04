@@ -1,10 +1,9 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { Diagnostic } from '../../../../vscodeTypes';
 
-import { IExperimentationService } from '../../../../platform/telemetry/common/nullExperimentationService';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry';
 import { createServiceIdentifier } from '../../../../util/common/services';
 import { pythonRuffCookbooks } from './pythonCookbookData';
@@ -34,14 +33,10 @@ export type ManualSuggestedFix = {
 export class FixCookbookService {
 	readonly _serviceBrand: undefined;
 	constructor(
-		@IExperimentationService private readonly _experimentationService: IExperimentationService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService
 	) {
-		// Ruff is a special case, as it is not a built-in provider.
-		const includeRuffCookbooks = this._experimentationService.getTreatmentVariable<boolean>('vscode', 'copilotchat.ruffDiagnosticsCookbook') ?? true;
-		if (includeRuffCookbooks) {
-			errorPrompts.Ruff = pythonRuffCookbooks;
-		}
+		// Always enable the Ruff cookbook by default
+		errorPrompts.Ruff = pythonRuffCookbooks;
 	}
 
 	getCookbook(language: string, diagnostic: Diagnostic): Cookbook {

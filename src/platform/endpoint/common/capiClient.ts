@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -21,6 +21,7 @@ export abstract class BaseCAPIClientService extends CAPIClient implements ICAPIC
 
 	constructor(
 		hmac: string | undefined,
+		forceDevMode: boolean,
 		fetcherService: IFetcherService,
 		envService: IEnvService
 	) {
@@ -31,7 +32,7 @@ export abstract class BaseCAPIClientService extends CAPIClient implements ICAPIC
 			buildType: envService.getBuildType(),
 			name: envService.getName(),
 			version: envService.getVersion(),
-		}, LICENSE_AGREEMENT, fetcherService, hmac);
+		}, LICENSE_AGREEMENT, fetcherService, hmac, forceDevMode);
 	}
 }
 export const ICAPIClientService = createServiceIdentifier<ICAPIClientService>('ICAPIClientService');

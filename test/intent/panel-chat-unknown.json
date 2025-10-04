@@ -27,8 +27,7 @@
 	{
 		"Intent": "unknown",
 		"Location": "panel",
-		"Request": "is this valid?"
-	},
+		"Request": "is this valid?" },
 	{
 		"Intent": "unknown",
 		"Location": "panel",

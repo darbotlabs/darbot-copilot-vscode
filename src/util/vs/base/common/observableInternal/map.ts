@@ -1,11 +1,13 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { observableValueOpts, IObservable, ITransaction } from '../observable';
+import { IObservable, ITransaction } from '../observable';
+import { observableValueOpts } from './observables/observableValueOpts';
+
 
 export class ObservableMap<K, V> implements Map<K, V> {
 	private readonly _data = new Map<K, V>();

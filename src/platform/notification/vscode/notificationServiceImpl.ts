@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -31,7 +31,7 @@ export class NotificationService implements INotificationService {
 		return window.showWarningMessage(message, ...items);
 	}
 
-	async showQuotaExceededDialog(): Promise<unknown> {
-		return commands.executeCommand('workbench.action.chat.openQuotaExceededDialog');
+	async showQuotaExceededDialog(options: { isNoAuthUser: boolean }): Promise<unknown> {
+		return commands.executeCommand(options.isNoAuthUser ? 'workbench.action.chat.triggerSetup' : 'workbench.action.chat.openQuotaExceededDialog');
 	}
 }

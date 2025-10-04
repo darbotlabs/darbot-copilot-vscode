@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -282,8 +282,95 @@ suite('applyPatch parser', () => {
 					}
 				}
 			},
-			4
+			6
 		]);
+	});
+
+	it('matches explicit \\n and \\t tab chars', () => {
+		const input = [
+			'*** Begin Patch',
+			'*** Update File: a.txt',
+			'@@',
+			'-hello\\n\\tworld\\nwoo',
+			'+hello\\n\\tcode!\\nwoo',
+			'*** End Patch'
+		].join('\n');
+
+		expect(text_to_patch(input, {
+			'a.txt': new StringTextDocumentWithLanguageId('prefix\nhello\n\tworld\nwoo\nsuffix', 'text/plain')
+		})).toMatchInlineSnapshot(`
+			[
+			  {
+			    "actions": {
+			      "a.txt": {
+			        "chunks": [
+			          {
+			            "delLines": [
+			              "hello
+				world
+			woo",
+			            ],
+			            "insLines": [
+			              "hello
+				code!
+			woo",
+			            ],
+			            "origIndex": 1,
+			          },
+			        ],
+			        "movePath": undefined,
+			        "type": "update",
+			      },
+			    },
+			  },
+			  134,
+			]
+		`);
+	});
+
+	it('always normalizes explicit \\t tab chars in replacement', () => {
+		// 4.1 likes to explicitly put tabs as `\\t` in its patches
+		const input = `*** Begin Patch\n*** Update File: a.txt\n@@\n-hello\n+\\t\\tworld\n*** End Patch`;
+
+		expect(text_to_patch(input, {
+			'a.txt': new StringTextDocumentWithLanguageId('hello', 'text/plain')
+		})).toMatchInlineSnapshot(`
+			[
+			  {
+			    "actions": {
+			      "a.txt": {
+			        "chunks": [
+			          {
+			            "delLines": [
+			              "hello",
+			            ],
+			            "insLines": [
+			              "		world",
+			            ],
+			            "origIndex": 0,
+			          },
+			        ],
+			        "movePath": undefined,
+			        "type": "update",
+			      },
+			    },
+			  },
+			  0,
+			]
+		`);
+	});
+
+	it('issue#262549', async () => {
+		const input = await fs.readFile(`${__dirname}/corpus/262549-input.txt`, 'utf-8');
+		const patchFmt = await fs.readFile(`${__dirname}/corpus/262549-call.txt`, 'utf-8');
+		const patch = JSON.parse('"' + patchFmt.replaceAll('\n', '\\n').replaceAll('\t', '\\t') + '"');
+
+		const docs = {
+			'/Users/omitted/projects/flagship/edge-ai/scripts/Fix-VisuallySimilarUnicode.ps1': new StringTextDocumentWithLanguageId(input, 'text/plain')
+		};
+		const [parsed] = text_to_patch(patch, docs);
+		const commit = patch_to_commit(parsed, docs);
+		expect(Object.values(commit.changes).at(0)?.newContent).toMatchFileSnapshot(`${__dirname}/corpus/262549-output.txt`);
 	});
 
 

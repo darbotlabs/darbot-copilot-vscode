@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -11,15 +11,9 @@ import { AsyncIterableObject } from '../../../../util/vs/base/common/async';
 import { CharCode } from '../../../../util/vs/base/common/charCode';
 import { URI } from '../../../../util/vs/base/common/uri';
 import { TextEdit, Uri } from '../../../../vscodeTypes';
-import {
-	OutcomeAnnotation,
-	OutcomeAnnotationLabel,
-} from '../../../inlineChat/node/promptCraftingTypes';
+import { OutcomeAnnotation, OutcomeAnnotationLabel } from '../../../inlineChat/node/promptCraftingTypes';
 import { Lines, LinesEdit } from '../../../prompt/node/editGeneration';
-import {
-	IGuessedIndentation,
-	guessIndentation,
-} from '../../../prompt/node/indentationGuesser';
+import { IGuessedIndentation, guessIndentation } from '../../../prompt/node/indentationGuesser';
 import { PartialAsyncTextReader } from '../../../prompt/node/streamingEdits';
 import { CodeBlock } from '../panel/safeElements';
 
@@ -34,32 +28,18 @@ export namespace Marker {
 	export const COMPLETE = MARKER_PREFIX + 'COMPLETE';
 }
 
+
 export class PatchEditRules extends PromptElement {
 	render() {
 		return (
 			<>
-				When proposing a code change, provide one or more modifications
-				in the following format:
-				<br />
-				Each modification consist of three sections headed by `
-				{Marker.FILEPATH}`, `{Marker.FIND}` and `{Marker.REPLACE}`.
-				<br />
-				After {Marker.FILEPATH} add the path to the file that needs to
-				be changed.
-				<br />
-				After {Marker.FIND} add a code block containing a section of the
-				program that will be replaced.
-				<br />
-				Add multiple lines so that a find tool can find and identify a
-				section of the programm. Start and end with a line that will not
-				be modified. <br />
-				Include all comments and empty lines exactly as they appear in
-				the original source code. Do not abreviate any line or summarize
-				the code with `...`. <br />
-				After {Marker.REPLACE} add a code block with the updated version
-				of the original code in the find section. Maintain the same
-				indentation and code style as in the original code.
-				<br />
+				When proposing a code change, provide one or more modifications in the following format:<br />
+				Each modification consist of three sections headed by `{Marker.FILEPATH}`, `{Marker.FIND}` and `{Marker.REPLACE}`.<br />
+				After {Marker.FILEPATH} add the path to the file that needs to be changed.<br />
+				After {Marker.FIND} add a code block containing a section of the program that will be replaced.<br />
+				Add multiple lines so that a find tool can find and identify a section of the programm. Start and end with a line that will not be modified. <br />
+				Include all comments and empty lines exactly as they appear in the original source code. Do not abreviate any line or summarize the code with `...`. <br />
+				After {Marker.REPLACE} add a code block with the updated version of the original code in the find section. Maintain the same indentation and code style as in the original code.<br />
 				After all modifications, add {Marker.COMPLETE}.<br />
 			</>
 		);
@@ -77,36 +57,20 @@ export interface PatchEditInputCodeBlockProps extends BasePromptElementProps {
 export class PatchEditInputCodeBlock extends PromptElement<PatchEditInputCodeBlockProps> {
 	constructor(
 		props: PatchEditInputCodeBlockProps,
-		@IPromptPathRepresentationService
-		private readonly promptPathRepresentationService: IPromptPathRepresentationService,
+		@IPromptPathRepresentationService private readonly promptPathRepresentationService: IPromptPathRepresentationService,
 	) {
 		super(props);
 	}
 
 	render() {
-		const code =
-			typeof this.props.code === 'string'
-				? this.props.code
-				: this.props.code.join('\n');
-		return (
-			<>
-				{getFileMarker(
-					this.promptPathRepresentationService.getFilePath(
-						this.props.uri,
-					),
-				)}
-				<br />
-				<CodeBlock
-					code={code}
-					uri={this.props.uri}
-					languageId={this.props.languageId}
-					includeFilepath={false}
-					shouldTrim={this.props.shouldTrim}
-				/>
-			</>
-		);
+		const code = typeof this.props.code === 'string' ? this.props.code : this.props.code.join('\n');
+		return <>
+			{getFileMarker(this.promptPathRepresentationService.getFilePath(this.props.uri))}<br />
+			<CodeBlock code={code} uri={this.props.uri} languageId={this.props.languageId} includeFilepath={false} shouldTrim={this.props.shouldTrim} />
+		</>;
 	}
 }
+
 
 export interface PatchEditExamplePatchProps extends BasePromptElementProps {
 	readonly changes: { uri: URI; find: Lines; replace: Lines }[];
@@ -115,46 +79,31 @@ export interface PatchEditExamplePatchProps extends BasePromptElementProps {
 export class PatchEditExamplePatch extends PromptElement<PatchEditExamplePatchProps> {
 	constructor(
 		props: PatchEditExamplePatchProps,
-		@IPromptPathRepresentationService
-		private readonly promptPathRepresentationService: IPromptPathRepresentationService,
+		@IPromptPathRepresentationService private readonly promptPathRepresentationService: IPromptPathRepresentationService,
 	) {
 		super(props);
 	}
 
 	render() {
-		return (
-			<>
-				{this.props.changes.map((patch) => (
-					<>
-						{getFileMarker(
-							this.promptPathRepresentationService.getFilePath(
-								patch.uri,
-							),
-						)}
-						<br />
-						{Marker.FIND}
-						<br />
-						```
-						<br />
-						{patch.find.join('\n')}
-						<br />
-						```
-						<br />
-						{Marker.REPLACE}
-						<br />
-						```
-						<br />
-						{patch.replace.join('\n')}
-						<br />
-						```
-						<br />
-					</>
-				))}
-				{Marker.COMPLETE}
-			</>
-		);
+		return <>
+			{this.props.changes.map(patch => (
+				<>
+					{getFileMarker(this.promptPathRepresentationService.getFilePath(patch.uri))}<br />
+					{Marker.FIND}<br />
+					```<br />
+					{patch.find.join('\n')}<br />
+					```<br />
+					{Marker.REPLACE}<br />
+					```<br />
+					{patch.replace.join('\n')}<br />
+					```<br />
+				</>
+			))}
+			{Marker.COMPLETE}
+		</>;
 	}
 }
+
 
 export function getFileMarker(filePath: string): string {
 	return `${Marker.FILEPATH} ${filePath}`;
@@ -168,36 +117,17 @@ function isWhitespaceOrEmpty(line: string): boolean {
 	return !line.match(/\S/);
 }
 
-export function findEdit(
-	code: Lines,
-	findLines: Lines,
-	replaceLines: Lines,
-	fallbackInsertLine: number,
-): LinesEdit | OutcomeAnnotation {
+
+export function findEdit(code: Lines, findLines: Lines, replaceLines: Lines, fallbackInsertLine: number): LinesEdit | OutcomeAnnotation {
 	let firstFindLineIndex = 0;
 	// find first non empty line
-	while (
-		firstFindLineIndex < findLines.length &&
-		isWhitespaceOrEmpty(findLines[firstFindLineIndex])
-	) {
+	while (firstFindLineIndex < findLines.length && isWhitespaceOrEmpty(findLines[firstFindLineIndex])) {
 		firstFindLineIndex++;
 	}
 	if (firstFindLineIndex === findLines.length) {
 		const codeIndentInfo = guessIndentation(code, 4, false);
-		const codeIndentLevel =
-			code.length > 0
-				? getMinimalIndentLevel(
-						code,
-						0,
-						code.length - 1,
-						codeIndentInfo.tabSize,
-					)
-				: 0;
-		const replaceString = getReplaceString(
-			replaceLines,
-			codeIndentLevel,
-			codeIndentInfo,
-		);
+		const codeIndentLevel = code.length > 0 ? getMinimalIndentLevel(code, 0, code.length - 1, codeIndentInfo.tabSize) : 0;
+		const replaceString = getReplaceString(replaceLines, codeIndentLevel, codeIndentInfo);
 		return LinesEdit.insert(fallbackInsertLine, replaceString);
 	}
 
@@ -205,25 +135,16 @@ export function findEdit(
 	const firstFindIndentLength = getIndentLength(firstFindLine);
 
 	let lastError: OutcomeAnnotation | undefined;
-	let i = 0,
-		k = firstFindLineIndex;
+	let i = 0, k = firstFindLineIndex;
 
 	outer: while (i < code.length) {
+
 		// find the first find line in the code
-		while (
-			i < code.length &&
-			!endsWith(code[i], firstFindLine, firstFindIndentLength)
-		) {
+		while (i < code.length && !endsWith(code[i], firstFindLine, firstFindIndentLength)) {
 			i++;
 		}
 		if (i === code.length) {
-			return (
-				lastError ?? {
-					message: `First find line not found`,
-					label: OutcomeAnnotationLabel.INVALID_PATCH,
-					severity: 'error',
-				}
-			);
+			return lastError ?? { message: `First find line not found`, label: OutcomeAnnotationLabel.INVALID_PATCH, severity: 'error' };
 		}
 
 		const firstLineIndex = i;
@@ -231,15 +152,13 @@ export function findEdit(
 		while (i < code.length && k < findLines.length) {
 			const codeLine = code[i];
 			const codeIndentLength = getIndentLength(codeLine);
-			if (codeIndentLength === codeLine.length) {
-				// all whitespace
+			if (codeIndentLength === codeLine.length) { // all whitespace
 				i++;
 				continue;
 			}
 			const findLine = findLines[k];
 			const findLineIndentLength = getIndentLength(findLine);
-			if (findLineIndentLength === findLine.length) {
-				// all whitespace
+			if (findLineIndentLength === findLine.length) { // all whitespace
 				k++;
 				continue;
 			}
@@ -252,23 +171,11 @@ export function findEdit(
 				i = firstLineIndex + 1; // try to find the find line again starting on the next line
 				k = firstFindLineIndex;
 				if (findLine.indexOf('...') !== -1) {
-					lastError = {
-						message: `Find contains ellipses`,
-						label: OutcomeAnnotationLabel.INVALID_PATCH_LAZY,
-						severity: 'error',
-					};
+					lastError = { message: `Find contains ellipses`, label: OutcomeAnnotationLabel.INVALID_PATCH_LAZY, severity: 'error' };
 				} else if (isComment(codeLine)) {
-					lastError = {
-						message: `Find not matching a comment`,
-						label: OutcomeAnnotationLabel.INVALID_PATCH_COMMENT,
-						severity: 'error',
-					};
+					lastError = { message: `Find not matching a comment`, label: OutcomeAnnotationLabel.INVALID_PATCH_COMMENT, severity: 'error' };
 				} else {
-					lastError = {
-						message: `Find line ${k} does not match line ${i}`,
-						label: OutcomeAnnotationLabel.INVALID_PATCH,
-						severity: 'error',
-					};
+					lastError = { message: `Find line ${k} does not match line ${i}`, label: OutcomeAnnotationLabel.INVALID_PATCH, severity: 'error' };
 				}
 				continue outer; // continue with the outer loop
 			}
@@ -276,38 +183,14 @@ export function findEdit(
 		while (k < findLines.length && isWhitespaceOrEmpty(findLines[k])) {
 			k++;
 		}
-		if (
-			k === findLines.length &&
-			firstLineIndex !== -1 &&
-			endLineIndex !== -1
-		) {
+		if (k === findLines.length && firstLineIndex !== -1 && endLineIndex !== -1) {
 			const codeIndentInfo = guessIndentation(code, 4, false);
-			const codeIndentLevel = getMinimalIndentLevel(
-				code,
-				firstLineIndex,
-				endLineIndex,
-				codeIndentInfo.tabSize,
-			);
-			const replaceString = getReplaceString(
-				replaceLines,
-				codeIndentLevel,
-				codeIndentInfo,
-			);
-			return LinesEdit.replace(
-				firstLineIndex,
-				endLineIndex + 1,
-				replaceString,
-				endLineIndex === code.length - 1,
-			);
+			const codeIndentLevel = getMinimalIndentLevel(code, firstLineIndex, endLineIndex, codeIndentInfo.tabSize);
+			const replaceString = getReplaceString(replaceLines, codeIndentLevel, codeIndentInfo);
+			return LinesEdit.replace(firstLineIndex, endLineIndex + 1, replaceString, endLineIndex === code.length - 1);
 		}
 	}
-	return (
-		lastError ?? {
-			message: `Not all lines of find found`,
-			label: OutcomeAnnotationLabel.INVALID_PATCH,
-			severity: 'error',
-		}
-	);
+	return lastError ?? { message: `Not all lines of find found`, label: OutcomeAnnotationLabel.INVALID_PATCH, severity: 'error' };
 }
 
 function isWhiteSpace(charCode: number): boolean {
@@ -318,26 +201,14 @@ function isComment(line: string): boolean {
 	return line.match(/^\s*(\/\/|\/\*|#)/) !== null;
 }
 
-function getReplaceString(
-	lines: Lines,
-	newIndentLevel: number,
-	indentInfo: IGuessedIndentation,
-): Lines {
-	let start,
-		end = 0;
-	for (
-		start = 0;
-		start < lines.length && isWhitespaceOrEmpty(lines[start]);
-		start++
-	) {}
+
+function getReplaceString(lines: Lines, newIndentLevel: number, indentInfo: IGuessedIndentation): Lines {
+	let start, end = 0;
+	for (start = 0; start < lines.length && isWhitespaceOrEmpty(lines[start]); start++) { }
 	if (start === lines.length) {
 		return [];
 	}
-	for (
-		end = lines.length;
-		end > start && isWhitespaceOrEmpty(lines[end - 1]);
-		end--
-	) {}
+	for (end = lines.length; end > start && isWhitespaceOrEmpty(lines[end - 1]); end--) { }
 
 	if (start === end) {
 		// all replace lines are empty or whitespace only
@@ -350,10 +221,7 @@ function getReplaceString(
 	for (let i = start; i < end; i++) {
 		const line = lines[i];
 		const indentation = computeIndentation(line, indentInfo.tabSize);
-		if (
-			indentation.length !== line.length /* more than whitespace */ &&
-			indentation.level < minIndentLevel
-		) {
+		if (indentation.length !== line.length /* more than whitespace */ && indentation.level < minIndentLevel) {
 			minIndentLevel = indentation.level;
 		}
 		indentations.push(indentation);
@@ -367,9 +235,7 @@ function getReplaceString(
 		const line = lines[i];
 		const { level, length } = indentations[i - start];
 		const newLevel = Math.max(0, newIndentLevel + level - minIndentLevel);
-		const newIndentation = indentInfo.insertSpaces
-			? ' '.repeat(indentInfo.tabSize * newLevel)
-			: '\t'.repeat(newLevel);
+		const newIndentation = indentInfo.insertSpaces ? ' '.repeat(indentInfo.tabSize * newLevel) : '\t'.repeat(newLevel);
 		adjustedLines.push(newIndentation + line.substring(length));
 	}
 	return adjustedLines;
@@ -383,20 +249,12 @@ function getIndentLength(line: string): number {
 	return i;
 }
 
-function getMinimalIndentLevel(
-	lines: Lines,
-	startLineIndex: number,
-	endLineIndex: number,
-	tabSize: number,
-): number {
+function getMinimalIndentLevel(lines: Lines, startLineIndex: number, endLineIndex: number, tabSize: number): number {
 	let minIndentLevel = Number.MAX_SAFE_INTEGER;
 	for (let i = startLineIndex; i <= endLineIndex; i++) {
 		const line = lines[i];
 		const indentation = computeIndentation(line, tabSize);
-		if (
-			indentation.length !== line.length /* more than whitespace */ &&
-			indentation.level < minIndentLevel
-		) {
+		if (indentation.length !== line.length /* more than whitespace */ && indentation.level < minIndentLevel) {
 			minIndentLevel = indentation.level;
 		}
 	}
@@ -432,18 +290,10 @@ function computeIndentation(line: string, tabSize: number): Indentation {
 	return { level, length };
 }
 
-function endsWith(
-	line: string,
-	suffix: string,
-	suffixIndentLength: number,
-): boolean {
-	let i = line.length - 1,
-		k = suffix.length - 1;
-	while (
-		i >= 0 &&
-		k >= suffixIndentLength &&
-		line.charCodeAt(i) === suffix.charCodeAt(k)
-	) {
+
+function endsWith(line: string, suffix: string, suffixIndentLength: number): boolean {
+	let i = line.length - 1, k = suffix.length - 1;
+	while (i >= 0 && k >= suffixIndentLength && line.charCodeAt(i) === suffix.charCodeAt(k)) {
 		i--;
 		k--;
 	}
@@ -464,12 +314,7 @@ export type Section = { marker: Marker | undefined; content: string[] };
 
 export interface PatchEditReplyProcessor {
 	getFirstParagraph(text: string): string;
-	process(
-		replyText: string,
-		documentText: string,
-		documentUri?: URI,
-		defaultInsertionLine?: number,
-	): PatchEditReplyProcessorResult;
+	process(replyText: string, documentText: string, documentUri?: URI, defaultInsertionLine?: number): PatchEditReplyProcessorResult;
 }
 
 export type PatchEditReplyProcessorResult = {
@@ -494,9 +339,7 @@ export function getReferencedFiles(replyText: string): string[] {
 	return [...result];
 }
 
-export function getPatchEditReplyProcessor(
-	promptPathRepresentationService: IPromptPathRepresentationService,
-): PatchEditReplyProcessor {
+export function getPatchEditReplyProcessor(promptPathRepresentationService: IPromptPathRepresentationService): PatchEditReplyProcessor {
 	return {
 		getFirstParagraph(text: string): string {
 			const result = [];
@@ -508,12 +351,7 @@ export function getPatchEditReplyProcessor(
 			}
 			return result.join('\n');
 		},
-		process(
-			replyText: string,
-			documentText: string,
-			documentUri?: URI,
-			defaultInsertionLine: number = 0,
-		): PatchEditReplyProcessorResult {
+		process(replyText: string, documentText: string, documentUri?: URI, defaultInsertionLine: number = 0): PatchEditReplyProcessorResult {
 			let original, filePath;
 			const annotations: OutcomeAnnotation[] = [];
 			const otherSections: Section[] = [];
@@ -524,9 +362,7 @@ export function getPatchEditReplyProcessor(
 			const filePaths = new Set<string>();
 			let contentBefore: string[] = [];
 			let contentAfter: string[] = [];
-			loop: for (const section of iterateSections(
-				iterateLines(replyText),
-			)) {
+			loop: for (const section of iterateSections(iterateLines(replyText))) {
 				switch (section.marker) {
 					case undefined:
 						contentBefore = section.content;
@@ -539,11 +375,7 @@ export function getPatchEditReplyProcessor(
 						break;
 					case Marker.REPLACE: {
 						if (section.content && original && filePath) {
-							patches.push({
-								filePath,
-								find: original,
-								replace: section.content,
-							});
+							patches.push({ filePath, find: original, replace: section.content });
 							filePaths.add(filePath);
 						}
 						break;
@@ -557,38 +389,16 @@ export function getPatchEditReplyProcessor(
 				}
 			}
 			if (patches.length === 0) {
-				annotations.push({
-					message: 'No patch sections found',
-					label: OutcomeAnnotationLabel.NO_PATCH,
-					severity: 'error',
-				});
-				return {
-					edits,
-					contentAfter,
-					contentBefore,
-					appliedPatches: [],
-					otherSections,
-					invalidPatches,
-					otherPatches,
-					annotations,
-				};
+				annotations.push({ message: 'No patch sections found', label: OutcomeAnnotationLabel.NO_PATCH, severity: 'error' });
+				return { edits, contentAfter, contentBefore, appliedPatches: [], otherSections, invalidPatches, otherPatches, annotations };
 			}
 			if (documentUri) {
-				const documentFilePath =
-					promptPathRepresentationService.getFilePath(documentUri);
+				const documentFilePath = promptPathRepresentationService.getFilePath(documentUri);
 				if (!filePaths.has(documentFilePath)) {
-					annotations.push({
-						message: `No patch for input document: ${documentFilePath}, patches for ${[...filePaths.keys()].join(', ')}`,
-						label: OutcomeAnnotationLabel.OTHER_FILE,
-						severity: 'warning',
-					});
+					annotations.push({ message: `No patch for input document: ${documentFilePath}, patches for ${[...filePaths.keys()].join(', ')}`, label: OutcomeAnnotationLabel.OTHER_FILE, severity: 'warning' });
 				}
 				if (filePaths.size > 1) {
-					annotations.push({
-						message: `Multiple files modified: ${[...filePaths.keys()].join(', ')}`,
-						label: OutcomeAnnotationLabel.MULTI_FILE,
-						severity: 'warning',
-					});
+					annotations.push({ message: `Multiple files modified: ${[...filePaths.keys()].join(', ')}`, label: OutcomeAnnotationLabel.MULTI_FILE, severity: 'warning' });
 				}
 				const patchesForDocument = [];
 				for (const patch of patches) {
@@ -605,39 +415,19 @@ export function getPatchEditReplyProcessor(
 				const documentLines = Lines.fromString(documentText);
 				for (const patch of patches) {
 					if (equals(patch.find, patch.replace)) {
-						annotations.push({
-							message: `Patch is a no-op`,
-							label: OutcomeAnnotationLabel.INVALID_PATCH_NOOP,
-							severity: 'error',
-						});
+						annotations.push({ message: `Patch is a no-op`, label: OutcomeAnnotationLabel.INVALID_PATCH_NOOP, severity: 'error' });
 						invalidPatches.push(patch);
 						continue;
 					}
 					if (patch.find.length <= 1) {
-						annotations.push({
-							message: `Small patch: ${Math.min(patch.find.length)}`,
-							label: OutcomeAnnotationLabel.INVALID_PATCH_SMALL,
-							severity: 'warning',
-						});
+						annotations.push({ message: `Small patch: ${Math.min(patch.find.length)}`, label: OutcomeAnnotationLabel.INVALID_PATCH_SMALL, severity: 'warning' });
 					}
 
-					const res = findEdit(
-						documentLines,
-						getCodeBlock(patch.find),
-						getCodeBlock(patch.replace),
-						defaultInsertionLine,
-					);
+					const res = findEdit(documentLines, getCodeBlock(patch.find), getCodeBlock(patch.replace), defaultInsertionLine);
 					if (res instanceof LinesEdit) {
-						const success = addEditIfDisjoint(
-							edits,
-							res.toTextEdit(),
-						);
+						const success = addEditIfDisjoint(edits, res.toTextEdit());
 						if (!success) {
-							annotations.push({
-								message: `Overlapping edits`,
-								label: OutcomeAnnotationLabel.INVALID_EDIT_OVERLAP,
-								severity: 'error',
-							});
+							annotations.push({ message: `Overlapping edits`, label: OutcomeAnnotationLabel.INVALID_EDIT_OVERLAP, severity: 'error' });
 							invalidPatches.push(patch);
 						}
 					} else {
@@ -646,17 +436,9 @@ export function getPatchEditReplyProcessor(
 					}
 				}
 			}
-			return {
-				edits,
-				appliedPatches: patches,
-				otherSections,
-				invalidPatches,
-				otherPatches,
-				annotations,
-				contentBefore,
-				contentAfter,
-			};
-		},
+			return { edits, appliedPatches: patches, otherSections, invalidPatches, otherPatches, annotations, contentBefore, contentAfter };
+		}
+
 	};
 }
 
@@ -675,6 +457,7 @@ function addEditIfDisjoint(edits: TextEdit[], edit: TextEdit): boolean {
 	edits.push(edit);
 	return true;
 }
+
 
 export function getCodeBlock(content: Lines): Lines {
 	const result = [];
@@ -699,19 +482,13 @@ export function getCodeBlock(content: Lines): Lines {
 	return content;
 }
 
-export async function* iterateSectionsForResponse(
-	lines: AsyncIterable<IResponsePart>,
-): AsyncIterable<Section> {
+export async function* iterateSectionsForResponse(lines: AsyncIterable<IResponsePart>): AsyncIterable<Section> {
+
 	let currentMarker: Marker | undefined = undefined;
 	let currentContent: string[] = [];
 
-	const textStream = AsyncIterableObject.map(
-		lines,
-		(part) => part.delta.text,
-	);
-	const reader = new PartialAsyncTextReader(
-		textStream[Symbol.asyncIterator](),
-	);
+	const textStream = AsyncIterableObject.map(lines, part => part.delta.text);
+	const reader = new PartialAsyncTextReader(textStream[Symbol.asyncIterator]());
 
 	while (!reader.endOfStream) {
 		const line = await reader.readLineIncludingLF();
@@ -776,17 +553,13 @@ function* iterateSections(lines: Iterable<string>): Iterable<Section> {
 }
 
 function* iterateLines(input: string): Iterable<string> {
-	let start = 0,
-		end = 0;
+	let start = 0, end = 0;
 	while (end < input.length) {
 		const ch = input.charCodeAt(end);
 		if (ch === CharCode.CarriageReturn || ch === CharCode.LineFeed) {
 			yield input.substring(start, end);
 			end++;
-			if (
-				ch === CharCode.CarriageReturn &&
-				input.charCodeAt(end) === CharCode.LineFeed
-			) {
+			if (ch === CharCode.CarriageReturn && input.charCodeAt(end) === CharCode.LineFeed) {
 				end++;
 			}
 			start = end;

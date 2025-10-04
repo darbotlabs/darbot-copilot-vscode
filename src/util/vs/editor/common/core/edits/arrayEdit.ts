@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -86,7 +86,7 @@ export class ArrayReplacement<T> extends BaseReplacement<ArrayReplacement<T>> {
 		return new ArrayReplacement(this.replaceRange.joinRightTouching(other.replaceRange), this.newValue.concat(other.newValue));
 	}
 
-	slice(range: OffsetRange, rangeInReplacement?: OffsetRange): ArrayReplacement<T> {
-		return new ArrayReplacement(range, rangeInReplacement ? rangeInReplacement.slice(this.newValue) : this.newValue);
+	slice(range: OffsetRange, rangeInReplacement: OffsetRange): ArrayReplacement<T> {
+		return new ArrayReplacement(range, rangeInReplacement.slice(this.newValue));
 	}
 }

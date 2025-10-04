@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -135,81 +135,81 @@ export class ConfigurationMigrationContribution implements IExtensionContributio
 }
 
 ConfigurationMigrationRegistry.registerConfigurationMigrations([{
-	key: 'darbot.chat.experimental.startDebugging.enabled',
+	key: 'github.copilot.chat.experimental.startDebugging.enabled',
 	migrateFn: async (value: any) => {
 		return [
-			['darbot.chat.startDebugging.enabled', { value }],
-			['darbot.chat.experimental.startDebugging.enabled', { value: undefined }]
+			['github.copilot.chat.startDebugging.enabled', { value }],
+			['github.copilot.chat.experimental.startDebugging.enabled', { value: undefined }]
 		];
 	}
 }]);
 
 ConfigurationMigrationRegistry.registerConfigurationMigrations([{
-	key: 'darbot.chat.experimental.setupTests.enabled',
+	key: 'github.copilot.chat.experimental.setupTests.enabled',
 	migrateFn: async (value: any) => {
 		return [
-			['darbot.chat.setupTests.enabled', { value }],
-			['darbot.chat.experimental.setupTests.enabled', { value: undefined }]
+			['github.copilot.chat.setupTests.enabled', { value }],
+			['github.copilot.chat.experimental.setupTests.enabled', { value: undefined }]
 		];
 	}
 }]);
 
 ConfigurationMigrationRegistry.registerConfigurationMigrations([{
-	key: 'darbot.chat.experimental.codeGeneration.instructions',
+	key: 'github.copilot.chat.experimental.codeGeneration.instructions',
 	migrateFn: async (value: any) => {
 		return [
-			['darbot.chat.codeGeneration.instructions', { value }],
-			['darbot.chat.experimental.codeGeneration.instructions', { value: undefined }]
+			['github.copilot.chat.codeGeneration.instructions', { value }],
+			['github.copilot.chat.experimental.codeGeneration.instructions', { value: undefined }]
 		];
 	}
 }]);
 
 ConfigurationMigrationRegistry.registerConfigurationMigrations([{
-	key: 'darbot.chat.experimental.codeGeneration.useInstructionFiles',
+	key: 'github.copilot.chat.experimental.codeGeneration.useInstructionFiles',
 	migrateFn: async (value: any) => {
 		return [
-			['darbot.chat.codeGeneration.useInstructionFiles', { value }],
-			['darbot.chat.experimental.codeGeneration.useInstructionFiles', { value: undefined }]
+			['github.copilot.chat.codeGeneration.useInstructionFiles', { value }],
+			['github.copilot.chat.experimental.codeGeneration.useInstructionFiles', { value: undefined }]
 		];
 	}
 }]);
 
 ConfigurationMigrationRegistry.registerConfigurationMigrations([{
-	key: 'darbot.chat.experimental.testGeneration.instructions',
+	key: 'github.copilot.chat.experimental.testGeneration.instructions',
 	migrateFn: async (value: any) => {
 		return [
-			['darbot.chat.testGeneration.instructions', { value }],
-			['darbot.chat.experimental.testGeneration.instructions', { value: undefined }]
+			['github.copilot.chat.testGeneration.instructions', { value }],
+			['github.copilot.chat.experimental.testGeneration.instructions', { value: undefined }]
 		];
 	}
 }]);
 
 ConfigurationMigrationRegistry.registerConfigurationMigrations([{
-	key: 'darbot.chat.experimental.generateTests.codeLens',
+	key: 'github.copilot.chat.experimental.generateTests.codeLens',
 	migrateFn: async (value: any) => {
 		return [
-			['darbot.chat.generateTests.codeLens', { value }],
-			['darbot.chat.experimental.generateTests.codeLens', { value: undefined }]
+			['github.copilot.chat.generateTests.codeLens', { value }],
+			['github.copilot.chat.experimental.generateTests.codeLens', { value: undefined }]
 		];
 	}
 }]);
 
 ConfigurationMigrationRegistry.registerConfigurationMigrations([{
-	key: 'darbot.chat.experimental.temporalContext.enabled',
+	key: 'github.copilot.chat.experimental.temporalContext.enabled',
 	migrateFn: async (value: any) => {
 		return [
-			['darbot.chat.editor.temporalContext.enabled', { value }],
-			['darbot.chat.experimental.temporalContext.enabled', { value: undefined }]
+			['github.copilot.chat.editor.temporalContext.enabled', { value }],
+			['github.copilot.chat.experimental.temporalContext.enabled', { value: undefined }]
 		];
 	}
 }]);
 
 ConfigurationMigrationRegistry.registerConfigurationMigrations([{
-	key: 'darbot.chat.temporalContext.enabled',
+	key: 'github.copilot.chat.temporalContext.enabled',
 	migrateFn: async (value: any) => {
 		return [
-			['darbot.chat.editor.temporalContext.enabled', { value }],
-			['darbot.chat.temporalContext.enabled', { value: undefined }]
+			['github.copilot.chat.editor.temporalContext.enabled', { value }],
+			['github.copilot.chat.temporalContext.enabled', { value: undefined }]
 		];
 	}
 }]);

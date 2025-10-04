@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs and GitHub. All rights reserved.
+ *  Copyright (c) Microsoft Corporation and GitHub. All rights reserved.
  *--------------------------------------------------------------------------------------------*/
 import React, { Component, useState } from 'react';
 
@@ -9,9 +9,7 @@ interface MyComponentProps {
 }
 
 // Define a functional component
-const MyFunctionalComponent: React.FC<MyComponentProps> = ({
-	initialCount,
-}) => {
+const MyFunctionalComponent: React.FC<MyComponentProps> = ({ initialCount }) => {
 	const [count, setCount] = useState(initialCount);
 
 	return (

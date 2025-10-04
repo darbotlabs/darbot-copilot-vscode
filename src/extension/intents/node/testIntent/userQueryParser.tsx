@@ -1,21 +1,16 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	PromptElement,
-	PromptElementProps,
-	PromptSizing,
-	SystemMessage,
-	UserMessage,
-} from '@vscode/prompt-tsx';
+import { PromptElement, PromptElementProps, PromptSizing, SystemMessage, UserMessage } from '@vscode/prompt-tsx';
 import { ChatLocation } from '../../../../platform/chat/common/commonTypes';
 import { IEndpointProvider } from '../../../../platform/endpoint/common/endpointProvider';
 import { ILogService } from '../../../../platform/log/common/logService';
 import { CancellationToken } from '../../../../util/vs/base/common/cancellation';
 import { IInstantiationService } from '../../../../util/vs/platform/instantiation/common/instantiation';
 import { PromptRenderer } from '../../../prompts/node/base/promptRenderer';
+
 
 type ParsedUserQuery = {
 	/**
@@ -32,19 +27,17 @@ type ParsedUserQuery = {
 export class UserQueryParser {
 	constructor(
 		@IEndpointProvider private readonly endpointProvider: IEndpointProvider,
-		@IInstantiationService
-		private readonly instantiationService: IInstantiationService,
+		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@ILogService private readonly logService: ILogService,
-	) {}
+	) { }
 
 	public async parse(query: string): Promise<ParsedUserQuery | null> {
-		const endpoint =
-			await this.endpointProvider.getChatEndpoint('gpt-4o-mini');
+		const endpoint = await this.endpointProvider.getChatEndpoint('gpt-4o-mini');
 		const promptRenderer = PromptRenderer.create(
 			this.instantiationService,
 			endpoint,
 			Prompt,
-			{ query },
+			{ query }
 		);
 		const renderResult = await promptRenderer.render();
 		const r = await endpoint.makeChatRequest(
@@ -52,14 +45,15 @@ export class UserQueryParser {
 			renderResult.messages,
 			undefined,
 			CancellationToken.None,
-			ChatLocation.Other,
+			ChatLocation.Other
 		);
 		return r.type === 'success' ? this.processResponse(r.value) : null;
 	}
 
 	private processResponse(response: string) {
+
 		// remove first (1-based) and last lines of response if they're backticks (```)
-		const lines = response.split(/\r\n|\r|\n/).filter((s) => s !== '');
+		const lines = response.split(/\r\n|\r|\n/).filter(s => s !== '');
 		if (lines.at(0) !== '```') {
 			lines.splice(0, 1);
 			if (lines.at(-1) === '```') {
@@ -72,9 +66,7 @@ export class UserQueryParser {
 		try {
 			parsedJson = JSON.parse(response);
 		} catch (e) {
-			this.logService.logger.error(
-				`Failed to parse user query response\nResponse:\n${response}\nError:\n${e}`,
-			);
+			this.logService.error(`Failed to parse user query response\nResponse:\n${response}\nError:\n${e}`);
 			return null;
 		}
 		return this.isParsedUserQuery(parsedJson) ? parsedJson : null;
@@ -87,10 +79,7 @@ export class UserQueryParser {
 
 		const parsedUserQuery = obj as ParsedUserQuery;
 
-		if (
-			parsedUserQuery.fileToTest !== undefined &&
-			typeof parsedUserQuery.fileToTest !== 'string'
-		) {
+		if (parsedUserQuery.fileToTest !== undefined && typeof parsedUserQuery.fileToTest !== 'string') {
 			return false;
 		}
 
@@ -107,6 +96,7 @@ export class UserQueryParser {
 
 		return true;
 	}
+
 }
 
 type Props = PromptElementProps<{
@@ -114,11 +104,15 @@ type Props = PromptElementProps<{
 }>;
 
 class Prompt extends PromptElement<Props> {
-	constructor(props: PromptElementProps<{ query: string }>) {
+
+	constructor(
+		props: PromptElementProps<{ query: string }>,
+	) {
 		super(props);
 	}
 
 	override render(state: void, sizing: PromptSizing) {
+
 		const { query } = this.props;
 
 		const format = `
@@ -142,16 +136,14 @@ Your job is to parse the user query into a JSON object of the following shape:
 
 You must return a JSON object of the given shape.
 `;
-		return (
-			<>
-				<SystemMessage>{format}</SystemMessage>
-				<UserMessage>
-					User query: {query}
-					<br />
-					Parsed query:
-					<br />
-				</UserMessage>
-			</>
-		);
+		return (<>
+			<SystemMessage>
+				{format}
+			</SystemMessage>
+			<UserMessage>
+				User query: {query}<br />
+				Parsed query:<br />
+			</UserMessage>
+		</>);
 	}
 }

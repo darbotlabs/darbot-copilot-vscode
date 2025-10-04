@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import type tt from 'typescript/lib/tsserverlibrary';
@@ -7,6 +7,7 @@ import TS from './typescript';
 const ts = TS();
 
 import type { Hash } from './host';
+import type { KeyComputationContext } from './types';
 
 const EmptyIterator = (function* () { })();
 namespace tss {
@@ -424,6 +425,8 @@ namespace tss {
 		}
 	}
 
+	export type DirectSuperSymbolInfo = { extends?: { symbol: tt.Symbol; name: string } | undefined; implements?: { symbol: tt.Symbol; name: string }[] }
+
 	export class Symbols {
 
 		private readonly program: tt.Program;
@@ -476,6 +479,10 @@ namespace tss {
 
 		public static isTypeAlias(symbol: tt.Symbol | undefined): boolean {
 			return symbol !== undefined && (symbol.getFlags() & ts.SymbolFlags.TypeAlias) !== 0;
+		}
+
+		public static isTypeParameter(symbol: tt.Symbol | undefined): boolean {
+			return symbol !== undefined && (symbol.getFlags() & ts.SymbolFlags.TypeParameter) !== 0;
 		}
 
 		public static isTypeLiteral(symbol: tt.Symbol | undefined): boolean {
@@ -632,7 +639,7 @@ namespace tss {
 		 * @param hashProvider Provides a hash function to create the key.
 		 * @returns A versioned key for the symbol or `undefined` if the key could not be created.
 		 */
-		public static createVersionedKey(symbol: tt.Symbol, versionProvider: { getScriptVersion(sourceFile: tt.SourceFile): string | undefined }, hashProvider: { createHash(algorithm: string): Hash }): string | undefined {
+		public static createVersionedKey(symbol: tt.Symbol, context: KeyComputationContext): string | undefined {
 			const declarations = symbol.getDeclarations();
 			if (declarations === undefined) {
 				return undefined;
@@ -640,7 +647,7 @@ namespace tss {
 			const fragments: { f: string; v: string; s: number; e: number; k: number }[] = [];
 			for (const declaration of declarations) {
 				const sourceFile = declaration.getSourceFile();
-				const scriptVersion = versionProvider.getScriptVersion(sourceFile);
+				const scriptVersion = context.getScriptVersion(sourceFile);
 				if (scriptVersion === undefined) {
 					return undefined;
 				}
@@ -673,7 +680,7 @@ namespace tss {
 					return a.k - b.k;
 				});
 			}
-			const hash = hashProvider.createHash('md5'); // CodeQL [SM04514] The 'md5' algorithm is used to compute a shorter string to represent a symbol in a map. It has no security implications.
+			const hash = context.host.createHash('md5'); // CodeQL [SM04514] The 'md5' algorithm is used to compute a shorter string to represent a symbol in a map. It has no security implications.
 			if ((symbol.flags & ts.SymbolFlags.Transient) !== 0) {
 				hash.update(JSON.stringify({ trans: true }, undefined, 0));
 			}
@@ -775,6 +782,41 @@ namespace tss {
 				}
 			}
 			return [undefined, undefined];
+		}
+
+		public getDirectSuperSymbols(symbol: tt.Symbol): DirectSuperSymbolInfo | undefined {
+			const declarations = symbol.declarations;
+			if (declarations === undefined) {
+				return undefined;
+			}
+			const result: DirectSuperSymbolInfo = {};
+			for (const declaration of declarations) {
+				if (ts.isClassDeclaration(declaration)) {
+					const heritageClauses = declaration.heritageClauses;
+					if (heritageClauses !== undefined) {
+						for (const heritageClause of heritageClauses) {
+							const extendsNode = heritageClause.types[0]?.expression;
+							let candidate = this.typeChecker.getSymbolAtLocation(extendsNode);
+							if (Symbols.isAlias(candidate)) {
+								candidate = this.typeChecker.getAliasedSymbol(candidate!);
+							}
+							if (heritageClause.token === ts.SyntaxKind.ExtendsKeyword) {
+								if (Symbols.isClass(candidate)) {
+									result.extends = { symbol: candidate!, name: extendsNode.getText() };
+								}
+							} else if (heritageClause.token === ts.SyntaxKind.ImplementsKeyword) {
+								if (Symbols.isInterface(candidate)) {
+									if (result.implements === undefined) {
+										result.implements = [];
+									}
+									result.implements.push({ symbol: candidate!, name: extendsNode.getText() });
+								}
+							}
+						}
+					}
+				}
+			}
+			return result;
 		}
 
 		public getAliasedSymbolAtLocation(node: tt.Node): tt.Symbol | undefined {

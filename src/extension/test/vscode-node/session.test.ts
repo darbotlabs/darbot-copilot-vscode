@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -9,7 +9,7 @@ import { authentication, AuthenticationGetSessionOptions, AuthenticationSession,
 import { GITHUB_SCOPE_ALIGNED, GITHUB_SCOPE_READ_USER, GITHUB_SCOPE_USER_EMAIL } from '../../../platform/authentication/common/authentication';
 import { getAlignedSession, getAnyAuthSession } from '../../../platform/authentication/vscode-node/session';
 import { AuthProviderId, Config, ConfigKey, IConfigurationService } from '../../../platform/configuration/common/configurationService';
-import { DefaultsOnlyConfigurationService } from '../../../platform/configuration/test/common/defaultsOnlyConfigurationService';
+import { DefaultsOnlyConfigurationService } from '../../../platform/configuration/common/defaultsOnlyConfigurationService';
 import { InMemoryConfigurationService } from '../../../platform/configuration/test/common/inMemoryConfigurationService';
 import { ITelemetryUserConfig, TelemetryUserConfigImpl } from '../../../platform/telemetry/common/telemetry';
 import { SyncDescriptor } from '../../../util/vs/platform/instantiation/common/descriptors';

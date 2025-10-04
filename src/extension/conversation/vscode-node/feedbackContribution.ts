@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as vscode from 'vscode';
@@ -14,19 +14,17 @@ export class FeedbackCommandContribution extends Disposable {
 	) {
 		super();
 
-		this._register(vscode.commands.registerCommand('darbot.report', async (title: string = '') => {
+		this._register(vscode.commands.registerCommand('github.copilot.report', async (title: string = '') => {
 			const token = this.authenticationService.copilotToken;
 			const isTeamMember = token?.isVscodeTeamMember;
-			const isInternal = token?.isInternal;
 			const output: string[] = isTeamMember ? [`<details><summary>Prompt Details</summary>`] : [`<details><summary>Logs</summary>`];
 			appendPromptDetailsSection(output, LogMemory.getLogs().join('\n'), LogMemory.getRequestIds().join('\n'));
 			await vscode.commands.executeCommand('workbench.action.openIssueReporter', {
 				issueTitle: title,
 				extensionId: EXTENSION_ID,
-				uri: isTeamMember ? vscode.Uri.parse('https://github.com/microsoft/vscode-internalbacklog') :
-					(isInternal ? vscode.Uri.parse('https://github.com/microsoft/vscode-copilot-issues') :
-						vscode.Uri.parse('https://github.com/microsoft/vscode')),
+				uri: vscode.Uri.parse('https://github.com/microsoft/vscode'),
 				data: output.join('\n'),
+				privateUri: isTeamMember ? vscode.Uri.parse('https://github.com/microsoft/vscode-internalbacklog') : undefined,
 			});
 		}));
 	}

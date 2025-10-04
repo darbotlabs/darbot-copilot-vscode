@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -126,4 +126,30 @@ export class BatchedProcessor<TArg, TResult> {
 			queue[i].promise.complete(result);
 		}
 	}
+}
+
+export function raceFilter<T>(promises: Promise<T>[], filter: (result: T) => boolean): Promise<T | undefined> {
+	return new Promise((resolve, reject) => {
+		if (promises.length === 0) {
+			resolve(undefined);
+			return;
+		}
+
+		let resolved = false;
+		let unresolvedCount = promises.length;
+		for (const promise of promises) {
+			promise.then(result => {
+				unresolvedCount--;
+				if (!resolved) {
+					if (filter(result)) {
+						resolved = true;
+						resolve(result);
+					} else if (unresolvedCount === 0) {
+						// Last one has to resolve the promise
+						resolve(undefined);
+					}
+				}
+			}).catch(reject);
+		}
+	});
 }
