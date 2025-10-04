@@ -48,13 +48,13 @@ export const ErrorComparison = mobxlite.observer(
 						<DiffEditor
 							original={errorText(errorsOnlyInBefore)}
 							modified={errorText(errorsOnlyInAfter)}
-							languageId='plaintext'
+							languageId="plaintext"
 						/>
 					</div>
 				)}
 			</div>
 		);
-	}
+	},
 );
 
 function errorText(errors: EvaluationError[]) {

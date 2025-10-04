@@ -17,7 +17,8 @@ export interface TodoListContextPromptProps extends BasePromptElementProps {
 export class TodoListContextPrompt extends PromptElement<TodoListContextPromptProps> {
 	constructor(
 		props: any,
-		@ITodoListContextProvider private readonly todoListContextProvider: ITodoListContextProvider,
+		@ITodoListContextProvider
+		private readonly todoListContextProvider: ITodoListContextProvider,
 	) {
 		super(props);
 	}
@@ -27,14 +28,11 @@ export class TodoListContextPrompt extends PromptElement<TodoListContextPromptPr
 		if (!sessionId) {
 			return null;
 		}
-		const todoContext = await this.todoListContextProvider.getCurrentTodoContext(sessionId);
+		const todoContext =
+			await this.todoListContextProvider.getCurrentTodoContext(sessionId);
 		if (!todoContext) {
 			return null;
 		}
-		return (
-			<Tag name="todoList">
-				{todoContext}
-			</Tag>
-		);
+		return <Tag name="todoList">{todoContext}</Tag>;
 	}
 }

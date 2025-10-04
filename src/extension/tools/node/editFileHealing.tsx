@@ -20,7 +20,10 @@
 import { Raw } from '@vscode/prompt-tsx';
 import * as JSONC from 'jsonc-parser';
 import type { LanguageModelChat } from 'vscode';
-import { ChatFetchResponseType, ChatLocation } from '../../../platform/chat/common/commonTypes.js';
+import {
+	ChatFetchResponseType,
+	ChatLocation,
+} from '../../../platform/chat/common/commonTypes.js';
 import { ObjectJsonSchema } from '../../../platform/configuration/common/jsonSchema.js';
 import { IChatEndpoint } from '../../../platform/networking/common/networking.js';
 import { extractCodeBlocks } from '../../../util/common/markdown.js';
@@ -48,7 +51,9 @@ export interface CorrectedEditResult {
 
 function matchAndCount(currentContent: string, oldString: string, eol: string) {
 	const r = findAndReplaceOne(currentContent, oldString, '<none>', eol);
-	return r.type === 'multiple' ? r.matchPositions.length : r.editPosition.length;
+	return r.type === 'multiple'
+		? r.matchPositions.length
+		: r.editPosition.length;
 }
 
 /**
@@ -65,13 +70,17 @@ function matchAndCount(currentContent: string, oldString: string, eol: string) {
 export async function healReplaceStringParams(
 	model: LanguageModelChat | undefined,
 	currentContent: string,
-	originalParams: IReplaceStringToolParams & { expected_replacements?: number }, // This is the EditToolParams from edit.ts, without \'corrected\'
+	originalParams: IReplaceStringToolParams & {
+		expected_replacements?: number;
+	}, // This is the EditToolParams from edit.ts, without \'corrected\'
 	eol: string,
 	healEndpoint: IChatEndpoint,
 	token: CancellationToken,
 ): Promise<CorrectedEditResult> {
 	let finalNewString = originalParams.newString!;
-	const unescapeStringForGeminiBug = model?.family.includes('gemini') ? _unescapeStringForGeminiBug : (s: string) => s;
+	const unescapeStringForGeminiBug = model?.family.includes('gemini')
+		? _unescapeStringForGeminiBug
+		: (s: string) => s;
 	const newStringPotentiallyEscaped =
 		unescapeStringForGeminiBug(originalParams.newString!) !==
 		originalParams.newString;
@@ -122,7 +131,11 @@ export async function healReplaceStringParams(
 		const unescapedOldStringAttempt = unescapeStringForGeminiBug(
 			originalParams.oldString,
 		);
-		occurrences = matchAndCount(currentContent, unescapedOldStringAttempt, eol);
+		occurrences = matchAndCount(
+			currentContent,
+			unescapedOldStringAttempt,
+			eol,
+		);
 
 		if (occurrences === expectedReplacements) {
 			finalOldString = unescapedOldStringAttempt;
@@ -153,9 +166,8 @@ export async function healReplaceStringParams(
 				occurrences = llmOldOccurrences;
 
 				if (newStringPotentiallyEscaped) {
-					const baseNewStringForLLMCorrection = unescapeStringForGeminiBug(
-						originalParams.newString,
-					);
+					const baseNewStringForLLMCorrection =
+						unescapeStringForGeminiBug(originalParams.newString);
 					finalNewString = await correctNewString(
 						healEndpoint,
 						originalParams.oldString, // original old
@@ -244,7 +256,12 @@ Return ONLY the corrected target snippet in the specified JSON format with the k
 `.trim();
 
 	try {
-		const result = await getJsonResponse(healEndpoint, prompt, oldString_CORRECTION_SCHEMA, token);
+		const result = await getJsonResponse(
+			healEndpoint,
+			prompt,
+			oldString_CORRECTION_SCHEMA,
+			token,
+		);
 		if (
 			result &&
 			typeof result.corrected_target_snippet === 'string' &&
@@ -314,7 +331,12 @@ Return ONLY the corrected string in the specified JSON format with the key 'corr
   `.trim();
 
 	try {
-		const result = await getJsonResponse(endpoint, prompt, newString_CORRECTION_SCHEMA, token);
+		const result = await getJsonResponse(
+			endpoint,
+			prompt,
+			newString_CORRECTION_SCHEMA,
+			token,
+		);
 		if (
 			result &&
 			typeof result.corrected_newString === 'string' &&
@@ -369,7 +391,12 @@ Return ONLY the corrected string in the specified JSON format with the key 'corr
   `.trim();
 
 	try {
-		const result = await getJsonResponse(geminiClient, prompt, CORRECT_newString_ESCAPING_SCHEMA, token);
+		const result = await getJsonResponse(
+			geminiClient,
+			prompt,
+			CORRECT_newString_ESCAPING_SCHEMA,
+			token,
+		);
 		if (
 			result &&
 			typeof result.corrected_newString_escaping === 'string' &&
@@ -396,7 +423,12 @@ const CORRECT_STRING_ESCAPING_SCHEMA: ObjectJsonSchema = {
 	required: ['corrected_string_escaping'],
 };
 
-async function getJsonResponse(endpoint: IChatEndpoint, prompt: string, schema: ObjectJsonSchema, token: CancellationToken) {
+async function getJsonResponse(
+	endpoint: IChatEndpoint,
+	prompt: string,
+	schema: ObjectJsonSchema,
+	token: CancellationToken,
+) {
 	prompt += `\n\nYour response must follow the JSON format:
 
 	\`\`\`
@@ -406,17 +438,33 @@ ${JSON.stringify(schema, null, 2)}
 
 	const contents: Raw.ChatMessage[] = [
 		// Some system message to avoid tripping CAPI
-		{ role: Raw.ChatRole.System, content: [{ type: Raw.ChatCompletionContentPartKind.Text, text: 'You are an expert at analyzing files and patterns.' }] },
-		{ role: Raw.ChatRole.User, content: [{ type: Raw.ChatCompletionContentPartKind.Text, text: prompt }] },
+		{
+			role: Raw.ChatRole.System,
+			content: [
+				{
+					type: Raw.ChatCompletionContentPartKind.Text,
+					text: 'You are an expert at analyzing files and patterns.',
+				},
+			],
+		},
+		{
+			role: Raw.ChatRole.User,
+			content: [
+				{ type: Raw.ChatCompletionContentPartKind.Text, text: prompt },
+			],
+		},
 	];
 
-	const result = await endpoint.makeChatRequest2({
-		debugName: 'healStringReplace',
-		messages: contents,
-		finishedCb: undefined,
-		location: ChatLocation.Other,
-		enableRetryOnFilter: true
-	}, token);
+	const result = await endpoint.makeChatRequest2(
+		{
+			debugName: 'healStringReplace',
+			messages: contents,
+			finishedCb: undefined,
+			location: ChatLocation.Other,
+			enableRetryOnFilter: true,
+		},
+		token,
+	);
 
 	if (result.type !== ChatFetchResponseType.Success) {
 		return undefined;
@@ -455,9 +503,13 @@ If potentially_problematic_string is console.log(\\"Hello World\\"), it should b
 Return ONLY the corrected string in the specified JSON format with the key 'corrected_string_escaping'. If no escaping correction is needed, return the original potentially_problematic_string.
   `.trim();
 
-
 	try {
-		const result = await getJsonResponse(endpoint, prompt, CORRECT_STRING_ESCAPING_SCHEMA, token);
+		const result = await getJsonResponse(
+			endpoint,
+			prompt,
+			CORRECT_STRING_ESCAPING_SCHEMA,
+			token,
+		);
 
 		if (
 			result &&

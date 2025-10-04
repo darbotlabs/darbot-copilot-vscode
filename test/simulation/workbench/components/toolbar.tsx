@@ -4,7 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, ToggleButton, Tooltip } from '@fluentui/react-components';
-import { WeatherMoon20Regular, WeatherSunny20Regular } from '@fluentui/react-icons';
+import {
+	WeatherMoon20Regular,
+	WeatherSunny20Regular,
+} from '@fluentui/react-icons';
 import * as mobx from 'mobx';
 import * as mobxlite from 'mobx-react-lite';
 import * as React from 'react';
@@ -48,11 +51,10 @@ export const Toolbar = mobxlite.observer(
 		theme,
 		toggleTheme,
 	}: ToolbarProps) => {
-
 		return (
 			<div style={{ padding: '5px', display: 'flex' }}>
-				{(testSource.value === TestSource.Local)
-					? <LocalModeToolbar
+				{testSource.value === TestSource.Local ? (
+					<LocalModeToolbar
 						initArgs={initArgs}
 						runner={runner}
 						runnerOptions={runnerOptions}
@@ -60,37 +62,69 @@ export const Toolbar = mobxlite.observer(
 						simulationTestsProvider={simulationTestsProvider}
 						onFiltererChange={onFiltererChange}
 					/>
-					: <AMLModeToolbar
+				) : (
+					<AMLModeToolbar
 						amlProvider={amlProvider}
 						simulationTestsProvider={simulationTestsProvider}
 						onFiltererChange={onFiltererChange}
 						allLanguageIds={allLanguageIds}
-					/>}
-				<div style={{ display: 'flex', justifyContent: 'end', maxHeight: '35px' }}>
+					/>
+				)}
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'end',
+						maxHeight: '35px',
+					}}
+				>
 					<ThemeToggler theme={theme} toggleTheme={toggleTheme} />
-					<ModeToggler testSource={testSource} onFiltererChange={onFiltererChange} />
+					<ModeToggler
+						testSource={testSource}
+						onFiltererChange={onFiltererChange}
+					/>
 				</div>
 			</div>
 		);
-	}
+	},
 );
 
-const ThemeToggler = ({ theme, toggleTheme }: { theme: ThemeKind; toggleTheme: () => void }) => (
+const ThemeToggler = ({
+	theme,
+	toggleTheme,
+}: {
+	theme: ThemeKind;
+	toggleTheme: () => void;
+}) => (
 	<Tooltip content="Toggle workbench theme" relationship="label">
 		<ToggleButton
-			appearance='subtle'
-			icon={theme === 'dark' ? <WeatherSunny20Regular /> : <WeatherMoon20Regular />}
+			appearance="subtle"
+			icon={
+				theme === 'dark' ? (
+					<WeatherSunny20Regular />
+				) : (
+					<WeatherMoon20Regular />
+				)
+			}
 			onClick={toggleTheme}
 		/>
 	</Tooltip>
 );
 
-const ModeToggler = ({ testSource, onFiltererChange }: { testSource: TestSourceValue; onFiltererChange: (filter: TestFilterer | undefined) => void }) => (
+const ModeToggler = ({
+	testSource,
+	onFiltererChange,
+}: {
+	testSource: TestSourceValue;
+	onFiltererChange: (filter: TestFilterer | undefined) => void;
+}) => (
 	<Button
-		appearance='secondary'
+		appearance="secondary"
 		style={{ marginLeft: '8px' }}
 		onClick={mobx.action(() => {
-			testSource.value = testSource.value === TestSource.External ? TestSource.Local : TestSource.External;
+			testSource.value =
+				testSource.value === TestSource.External
+					? TestSource.Local
+					: TestSource.External;
 			onFiltererChange(undefined);
 		})}
 		title="Switch to workbench mode suited for viewing simulations in Azure ML"

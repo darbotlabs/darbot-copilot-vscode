@@ -3,20 +3,38 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { CancellationToken, ChatRequest, LanguageModelToolInformation, Progress } from 'vscode';
+import type {
+	CancellationToken,
+	ChatRequest,
+	LanguageModelToolInformation,
+	Progress,
+} from 'vscode';
 import { IAuthenticationChatUpgradeService } from '../../../platform/authentication/common/authenticationUpgrade';
-import { ChatLocation, ChatResponse } from '../../../platform/chat/common/commonTypes';
+import {
+	ChatLocation,
+	ChatResponse,
+} from '../../../platform/chat/common/commonTypes';
 import { IEndpointProvider } from '../../../platform/endpoint/common/endpointProvider';
 import { ILogService } from '../../../platform/log/common/logService';
 import { IRequestLogger } from '../../../platform/requestLogger/node/requestLogger';
 import { ITelemetryService } from '../../../platform/telemetry/common/telemetry';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
-import { ChatResponseProgressPart, ChatResponseReferencePart } from '../../../vscodeTypes';
-import { IToolCallingLoopOptions, ToolCallingLoop, ToolCallingLoopFetchOptions } from '../../intents/node/toolCallingLoop';
+import {
+	ChatResponseProgressPart,
+	ChatResponseReferencePart,
+} from '../../../vscodeTypes';
+import {
+	IToolCallingLoopOptions,
+	ToolCallingLoop,
+	ToolCallingLoopFetchOptions,
+} from '../../intents/node/toolCallingLoop';
 import { IBuildPromptContext } from '../../prompt/common/intents';
 import { IBuildPromptResult } from '../../prompt/node/intents';
 import { PromptRenderer } from '../../prompts/node/base/promptRenderer';
-import { IMcpToolCallingLoopPromptContext, McpToolCallingLoopPrompt } from './mcpToolCallingLoopPrompt';
+import {
+	IMcpToolCallingLoopPromptContext,
+	McpToolCallingLoopPrompt,
+} from './mcpToolCallingLoopPrompt';
 import { QuickInputTool, QuickPickTool } from './mcpToolCallingTools';
 
 export interface IMcpToolCallingLoopOptions extends IToolCallingLoopOptions {
@@ -28,25 +46,43 @@ export class McpToolCallingLoop extends ToolCallingLoop<IMcpToolCallingLoopOptio
 
 	constructor(
 		options: IMcpToolCallingLoopOptions,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IInstantiationService
+		private readonly instantiationService: IInstantiationService,
 		@ILogService logService: ILogService,
 		@IRequestLogger requestLogger: IRequestLogger,
 		@IEndpointProvider private readonly endpointProvider: IEndpointProvider,
-		@IAuthenticationChatUpgradeService authenticationChatUpgradeService: IAuthenticationChatUpgradeService,
-		@ITelemetryService telemetryService: ITelemetryService
+		@IAuthenticationChatUpgradeService
+		authenticationChatUpgradeService: IAuthenticationChatUpgradeService,
+		@ITelemetryService telemetryService: ITelemetryService,
 	) {
-		super(options, instantiationService, endpointProvider, logService, requestLogger, authenticationChatUpgradeService, telemetryService);
+		super(
+			options,
+			instantiationService,
+			endpointProvider,
+			logService,
+			requestLogger,
+			authenticationChatUpgradeService,
+			telemetryService,
+		);
 	}
 
 	private async getEndpoint(request: ChatRequest) {
-		let endpoint = await this.endpointProvider.getChatEndpoint(this.options.request);
+		let endpoint = await this.endpointProvider.getChatEndpoint(
+			this.options.request,
+		);
 		if (!endpoint.supportsToolCalls) {
 			endpoint = await this.endpointProvider.getChatEndpoint('gpt-4.1');
 		}
 		return endpoint;
 	}
 
-	protected async buildPrompt(buildPromptContext: IBuildPromptContext, progress: Progress<ChatResponseReferencePart | ChatResponseProgressPart>, token: CancellationToken): Promise<IBuildPromptResult> {
+	protected async buildPrompt(
+		buildPromptContext: IBuildPromptContext,
+		progress: Progress<
+			ChatResponseReferencePart | ChatResponseProgressPart
+		>,
+		token: CancellationToken,
+	): Promise<IBuildPromptResult> {
 		const endpoint = await this.getEndpoint(this.options.request);
 		const renderer = PromptRenderer.create(
 			this.instantiationService,
@@ -54,42 +90,53 @@ export class McpToolCallingLoop extends ToolCallingLoop<IMcpToolCallingLoopOptio
 			McpToolCallingLoopPrompt,
 			{
 				promptContext: buildPromptContext,
-				...this.options.props
-			}
+				...this.options.props,
+			},
 		);
 		return await renderer.render(progress, token);
 	}
 
-	protected async getAvailableTools(): Promise<LanguageModelToolInformation[]> {
+	protected async getAvailableTools(): Promise<
+		LanguageModelToolInformation[]
+	> {
 		if (this.options.conversation.turns.length > 5) {
 			return []; // force a response
 		}
 
-		return [{
-			description: QuickInputTool.description,
-			name: QuickInputTool.ID,
-			inputSchema: QuickInputTool.schema,
-			source: undefined,
-			tags: [],
-		}, {
-			description: QuickPickTool.description,
-			name: QuickPickTool.ID,
-			inputSchema: QuickPickTool.schema,
-			source: undefined,
-			tags: [],
-		}];
+		return [
+			{
+				description: QuickInputTool.description,
+				name: QuickInputTool.ID,
+				inputSchema: QuickInputTool.schema,
+				source: undefined,
+				tags: [],
+			},
+			{
+				description: QuickPickTool.description,
+				name: QuickPickTool.ID,
+				inputSchema: QuickPickTool.schema,
+				source: undefined,
+				tags: [],
+			},
+		];
 	}
 
-	protected async fetch(opts: ToolCallingLoopFetchOptions, token: CancellationToken): Promise<ChatResponse> {
+	protected async fetch(
+		opts: ToolCallingLoopFetchOptions,
+		token: CancellationToken,
+	): Promise<ChatResponse> {
 		const endpoint = await this.getEndpoint(this.options.request);
-		return endpoint.makeChatRequest2({
-			...opts,
-			debugName: McpToolCallingLoop.ID,
-			location: ChatLocation.Agent,
-			requestOptions: {
-				...opts.requestOptions,
-				temperature: 0
+		return endpoint.makeChatRequest2(
+			{
+				...opts,
+				debugName: McpToolCallingLoop.ID,
+				location: ChatLocation.Agent,
+				requestOptions: {
+					...opts.requestOptions,
+					temperature: 0,
+				},
 			},
-		}, token);
+			token,
+		);
 	}
 }

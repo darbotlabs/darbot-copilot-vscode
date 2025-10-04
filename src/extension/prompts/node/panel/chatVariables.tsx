@@ -3,9 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { BasePromptElementProps, PromptElement, PromptElementProps, PromptPiece, PromptReference, PromptSizing, TextChunk, UserMessage } from '@vscode/prompt-tsx';
-import type { Diagnostic, DiagnosticSeverity, LanguageModelToolInformation } from 'vscode';
-import { ChatFetchResponseType, ChatLocation } from '../../../../platform/chat/common/commonTypes';
+import {
+	BasePromptElementProps,
+	PromptElement,
+	PromptElementProps,
+	PromptPiece,
+	PromptReference,
+	PromptSizing,
+	TextChunk,
+	UserMessage,
+} from '@vscode/prompt-tsx';
+import type {
+	Diagnostic,
+	DiagnosticSeverity,
+	LanguageModelToolInformation,
+} from 'vscode';
+import {
+	ChatFetchResponseType,
+	ChatLocation,
+} from '../../../../platform/chat/common/commonTypes';
 import { IEndpointProvider } from '../../../../platform/endpoint/common/endpointProvider';
 import { IFileSystemService } from '../../../../platform/filesystem/common/fileSystemService';
 import { FileType } from '../../../../platform/filesystem/common/fileTypes';
@@ -23,14 +39,27 @@ import { CancellationToken } from '../../../../util/vs/base/common/cancellation'
 import { Schemas } from '../../../../util/vs/base/common/network';
 import { URI } from '../../../../util/vs/base/common/uri';
 import { IInstantiationService } from '../../../../util/vs/platform/instantiation/common/instantiation';
-import { ChatReferenceBinaryData, ChatReferenceDiagnostic, LanguageModelToolResult2, Range, Uri } from '../../../../vscodeTypes';
+import {
+	ChatReferenceBinaryData,
+	ChatReferenceDiagnostic,
+	LanguageModelToolResult2,
+	Range,
+	Uri,
+} from '../../../../vscodeTypes';
 import { GenericBasePromptElementProps } from '../../../context/node/resolvers/genericPanelIntentInvocation';
-import { ChatVariablesCollection, isPromptFile, isPromptInstruction } from '../../../prompt/common/chatVariablesCollection';
+import {
+	ChatVariablesCollection,
+	isPromptFile,
+	isPromptInstruction,
+} from '../../../prompt/common/chatVariablesCollection';
 import { InternalToolReference } from '../../../prompt/common/intents';
 import { ToolName } from '../../../tools/common/toolNames';
 import { normalizeToolSchema } from '../../../tools/common/toolSchemaNormalizer';
 import { IToolsService } from '../../../tools/common/toolsService';
-import { EmbeddedInsideUserMessage, embeddedInsideUserMessageDefault } from '../base/promptElement';
+import {
+	EmbeddedInsideUserMessage,
+	embeddedInsideUserMessageDefault,
+} from '../base/promptElement';
 import { IPromptEndpoint, PromptRenderer } from '../base/promptRenderer';
 import { Tag } from '../base/tag';
 import { SummarizedDocumentLineNumberStyle } from '../inline/summarizedDocument/implementation';
@@ -39,10 +68,20 @@ import { Image } from './image';
 import { NotebookCellOutputVariable } from './notebookVariables';
 import { PanelChatBasePrompt } from './panelChatBasePrompt';
 import { PromptFile } from './promptFile';
-import { sendInvokedToolTelemetry, toolCallErrorToResult, ToolResult, ToolResultMetadata } from './toolCalling';
-import { IFileTreeData, workspaceVisualFileTree } from './workspace/visualFileTree';
+import {
+	sendInvokedToolTelemetry,
+	toolCallErrorToResult,
+	ToolResult,
+	ToolResultMetadata,
+} from './toolCalling';
+import {
+	IFileTreeData,
+	workspaceVisualFileTree,
+} from './workspace/visualFileTree';
 
-export interface ChatVariablesProps extends BasePromptElementProps, EmbeddedInsideUserMessage {
+export interface ChatVariablesProps
+	extends BasePromptElementProps,
+		EmbeddedInsideUserMessage {
 	readonly chatVariables: ChatVariablesCollection;
 	readonly includeFilepath?: boolean;
 	readonly omitReferences?: boolean;
@@ -52,27 +91,48 @@ export interface ChatVariablesProps extends BasePromptElementProps, EmbeddedInsi
 export class ChatVariables extends PromptElement<ChatVariablesProps, void> {
 	constructor(
 		props: ChatVariablesProps,
-		@IFileSystemService private readonly fileSystemService: IFileSystemService,
+		@IFileSystemService
+		private readonly fileSystemService: IFileSystemService,
 	) {
 		super(props);
 	}
 
-	override async render(state: void, sizing: PromptSizing): Promise<PromptPiece<any, any> | undefined> {
-		const elements = await renderChatVariables(this.props.chatVariables, this.fileSystemService, this.props.includeFilepath, this.props.omitReferences, this.props.isAgent);
+	override async render(
+		state: void,
+		sizing: PromptSizing,
+	): Promise<PromptPiece<any, any> | undefined> {
+		const elements = await renderChatVariables(
+			this.props.chatVariables,
+			this.fileSystemService,
+			this.props.includeFilepath,
+			this.props.omitReferences,
+			this.props.isAgent,
+		);
 		if (elements.length === 0) {
 			return undefined;
 		}
 
-		if (this.props.embeddedInsideUserMessage ?? embeddedInsideUserMessageDefault) {
+		if (
+			this.props.embeddedInsideUserMessage ??
+			embeddedInsideUserMessageDefault
+		) {
 			return (
 				<>
-					{Boolean(elements.length) && <Tag name='attachments' priority={this.props.priority}>
-						{...elements}
-					</Tag>}
+					{Boolean(elements.length) && (
+						<Tag name="attachments" priority={this.props.priority}>
+							{...elements}
+						</Tag>
+					)}
 				</>
 			);
 		}
-		return (<>{...elements.map(element => asUserMessage(element, this.props.priority))}</>);
+		return (
+			<>
+				{...elements.map((element) =>
+					asUserMessage(element, this.props.priority),
+				)}
+			</>
+		);
 	}
 }
 
@@ -82,13 +142,21 @@ export interface QueryProps extends BasePromptElementProps {
 }
 
 export class UserQuery extends PromptElement<QueryProps, void> {
-	override render(state: void, sizing: PromptSizing): PromptPiece<any, any> | undefined {
-		const rewrittenMessage = this.props.chatVariables.substituteVariablesWithReferences(this.props.query);
-		return (<>{rewrittenMessage}</>);
+	override render(
+		state: void,
+		sizing: PromptSizing,
+	): PromptPiece<any, any> | undefined {
+		const rewrittenMessage =
+			this.props.chatVariables.substituteVariablesWithReferences(
+				this.props.query,
+			);
+		return <>{rewrittenMessage}</>;
 	}
 }
 
-export interface ChatVariablesAndQueryProps extends BasePromptElementProps, EmbeddedInsideUserMessage {
+export interface ChatVariablesAndQueryProps
+	extends BasePromptElementProps,
+		EmbeddedInsideUserMessage {
 	readonly query: string;
 	readonly chatVariables: ChatVariablesCollection;
 	/**
@@ -99,111 +167,225 @@ export interface ChatVariablesAndQueryProps extends BasePromptElementProps, Embe
 	readonly omitReferences?: boolean;
 }
 
-export class ChatVariablesAndQuery extends PromptElement<ChatVariablesAndQueryProps, void> {
+export class ChatVariablesAndQuery extends PromptElement<
+	ChatVariablesAndQueryProps,
+	void
+> {
 	constructor(
 		props: ChatVariablesAndQueryProps,
-		@IFileSystemService private readonly fileSystemService: IFileSystemService,
+		@IFileSystemService
+		private readonly fileSystemService: IFileSystemService,
 	) {
 		super(props);
 	}
 
-	override async render(state: void, sizing: PromptSizing): Promise<PromptPiece<any, any> | undefined> {
-		const chatVariables = this.props.maintainOrder ? this.props.chatVariables : this.props.chatVariables.reverse();
-		const elements = await renderChatVariables(chatVariables, this.fileSystemService, this.props.includeFilepath, this.props.omitReferences, undefined);
+	override async render(
+		state: void,
+		sizing: PromptSizing,
+	): Promise<PromptPiece<any, any> | undefined> {
+		const chatVariables = this.props.maintainOrder
+			? this.props.chatVariables
+			: this.props.chatVariables.reverse();
+		const elements = await renderChatVariables(
+			chatVariables,
+			this.fileSystemService,
+			this.props.includeFilepath,
+			this.props.omitReferences,
+			undefined,
+		);
 
-		if (this.props.embeddedInsideUserMessage ?? embeddedInsideUserMessageDefault) {
+		if (
+			this.props.embeddedInsideUserMessage ??
+			embeddedInsideUserMessageDefault
+		) {
 			if (!elements.length) {
 				return (
-					<Tag name='prompt'>
-						<UserQuery chatVariables={chatVariables} query={this.props.query} priority={this.props.priority} />
+					<Tag name="prompt">
+						<UserQuery
+							chatVariables={chatVariables}
+							query={this.props.query}
+							priority={this.props.priority}
+						/>
 					</Tag>
 				);
 			}
-			return (<>
-				{Boolean(elements.length) && <Tag name='attachments' flexGrow={1} priority={this.props.priority}>
-					{elements}
-				</Tag>}
-				<Tag name='prompt'>
-					<UserQuery chatVariables={chatVariables} query={this.props.query} priority={this.props.priority} />
-				</Tag>
-			</>);
+			return (
+				<>
+					{Boolean(elements.length) && (
+						<Tag
+							name="attachments"
+							flexGrow={1}
+							priority={this.props.priority}
+						>
+							{elements}
+						</Tag>
+					)}
+					<Tag name="prompt">
+						<UserQuery
+							chatVariables={chatVariables}
+							query={this.props.query}
+							priority={this.props.priority}
+						/>
+					</Tag>
+				</>
+			);
 		}
 
-		return (<>
-			{...elements.map(element => asUserMessage(element, this.props.priority && this.props.priority - 1))}
-			{asUserMessage(<UserQuery chatVariables={chatVariables} query={this.props.query} />, this.props.priority)}
-		</>);
+		return (
+			<>
+				{...elements.map((element) =>
+					asUserMessage(
+						element,
+						this.props.priority && this.props.priority - 1,
+					),
+				)}
+				{asUserMessage(
+					<UserQuery
+						chatVariables={chatVariables}
+						query={this.props.query}
+					/>,
+					this.props.priority,
+				)}
+			</>
+		);
 	}
 }
 
-function asUserMessage(element: PromptElement, priority: number | undefined): UserMessage {
-	return (<UserMessage priority={priority}>{element}</UserMessage>);
+function asUserMessage(
+	element: PromptElement,
+	priority: number | undefined,
+): UserMessage {
+	return <UserMessage priority={priority}>{element}</UserMessage>;
 }
 
-
-export async function renderChatVariables(chatVariables: ChatVariablesCollection, fileSystemService: IFileSystemService, includeFilepathInCodeBlocks = true, omitReferences?: boolean, isAgent?: boolean): Promise<PromptElement[]> {
+export async function renderChatVariables(
+	chatVariables: ChatVariablesCollection,
+	fileSystemService: IFileSystemService,
+	includeFilepathInCodeBlocks = true,
+	omitReferences?: boolean,
+	isAgent?: boolean,
+): Promise<PromptElement[]> {
 	const elements = [];
-	const filePathMode = (isAgent && includeFilepathInCodeBlocks)
-		? FilePathMode.AsAttribute
-		: includeFilepathInCodeBlocks
-			? FilePathMode.AsComment
-			: FilePathMode.None;
+	const filePathMode =
+		isAgent && includeFilepathInCodeBlocks
+			? FilePathMode.AsAttribute
+			: includeFilepathInCodeBlocks
+				? FilePathMode.AsComment
+				: FilePathMode.None;
 	for (const variable of chatVariables) {
-		const { uniqueName: variableName, value: variableValue, reference } = variable;
-		if (isPromptInstruction(variable)) { // prompt instructions are handled in the `CustomInstructions` element
+		const {
+			uniqueName: variableName,
+			value: variableValue,
+			reference,
+		} = variable;
+		if (isPromptInstruction(variable)) {
+			// prompt instructions are handled in the `CustomInstructions` element
 			continue;
 		}
 		if (isPromptFile(variable)) {
-			elements.push(<PromptFile variable={variable} omitReferences={omitReferences} filePathMode={filePathMode} />);
+			elements.push(
+				<PromptFile
+					variable={variable}
+					omitReferences={omitReferences}
+					filePathMode={filePathMode}
+				/>,
+			);
 			continue;
 		}
 
 		if (URI.isUri(variableValue) || isLocation(variableValue)) {
-			const uri = 'uri' in variableValue ? variableValue.uri : variableValue;
+			const uri =
+				'uri' in variableValue ? variableValue.uri : variableValue;
 
 			// Check if the variable is a directory
 			let isDirectory = false;
 			try {
 				const stat = await fileSystemService.stat(uri);
 				isDirectory = stat.type === FileType.Directory;
-			} catch { }
+			} catch {}
 
 			if (isDirectory) {
-				elements.push(<FolderVariable variableName={variableName} folderUri={uri} omitReferences={omitReferences} description={reference.modelDescription} />);
+				elements.push(
+					<FolderVariable
+						variableName={variableName}
+						folderUri={uri}
+						omitReferences={omitReferences}
+						description={reference.modelDescription}
+					/>,
+				);
 			} else {
-				const file = <FileVariable
-					alwaysIncludeSummary={true}
-					filePathMode={filePathMode}
-					variableName={variableName}
-					variableValue={variableValue}
-					omitReferences={omitReferences}
-					description={reference.modelDescription}
-					lineNumberStyle={isAgent ? SummarizedDocumentLineNumberStyle.OmittedRanges : undefined}
-				/>;
+				const file = (
+					<FileVariable
+						alwaysIncludeSummary={true}
+						filePathMode={filePathMode}
+						variableName={variableName}
+						variableValue={variableValue}
+						omitReferences={omitReferences}
+						description={reference.modelDescription}
+						lineNumberStyle={
+							isAgent
+								? SummarizedDocumentLineNumberStyle.OmittedRanges
+								: undefined
+						}
+					/>
+				);
 
-				if (!isAgent || (!URI.isUri(variableValue) || variableValue.scheme !== Schemas.vscodeNotebookCellOutput)) {
+				if (
+					!isAgent ||
+					!URI.isUri(variableValue) ||
+					variableValue.scheme !== Schemas.vscodeNotebookCellOutput
+				) {
 					// When attaching outupts, there's no need to add the entire notebook file again, as model can request the notebook file.
 					// In non agent mode, we need to add the file for context.
 					elements.push(file);
 				}
-				if (URI.isUri(variableValue) && variableValue.scheme === Schemas.vscodeNotebookCellOutput) {
-					elements.push(<NotebookCellOutputVariable outputUri={variableValue} />);
+				if (
+					URI.isUri(variableValue) &&
+					variableValue.scheme === Schemas.vscodeNotebookCellOutput
+				) {
+					elements.push(
+						<NotebookCellOutputVariable
+							outputUri={variableValue}
+						/>,
+					);
 				}
 			}
 		} else if (typeof variableValue === 'string') {
 			elements.push(
-				<Tag name='attachment' attrs={variableName ? { id: variableName } : undefined} >
+				<Tag
+					name="attachment"
+					attrs={variableName ? { id: variableName } : undefined}
+				>
 					<TextChunk>
-						{!omitReferences && <references value={[new PromptReference({ variableName })]} />}
-						{reference.modelDescription ? reference.modelDescription + ':\n' : ''}
+						{!omitReferences && (
+							<references
+								value={[new PromptReference({ variableName })]}
+							/>
+						)}
+						{reference.modelDescription
+							? reference.modelDescription + ':\n'
+							: ''}
 						{variableValue}
 					</TextChunk>
-				</Tag>
+				</Tag>,
 			);
 		} else if (variableValue instanceof ChatReferenceBinaryData) {
-			elements.push(<Image variableName={variableName} variableValue={await variableValue.data()} reference={variableValue.reference} omitReferences={omitReferences}></Image>);
-		} else if (typeof ChatReferenceDiagnostic !== 'undefined' && variableValue instanceof ChatReferenceDiagnostic) { // check undefined to avoid breaking old Insiders versions
-			elements.push(<DiagnosticVariable diagnostics={variableValue.diagnostics} />);
+			elements.push(
+				<Image
+					variableName={variableName}
+					variableValue={await variableValue.data()}
+					reference={variableValue.reference}
+					omitReferences={omitReferences}
+				></Image>,
+			);
+		} else if (
+			typeof ChatReferenceDiagnostic !== 'undefined' &&
+			variableValue instanceof ChatReferenceDiagnostic
+		) {
+			// check undefined to avoid breaking old Insiders versions
+			elements.push(
+				<DiagnosticVariable diagnostics={variableValue.diagnostics} />,
+			);
 		}
 	}
 	return elements;
@@ -217,47 +399,70 @@ const diangosticSeverityMap: { [K in DiagnosticSeverity]: string } = {
 	[0]: 'error',
 	[1]: 'warning',
 	[2]: 'info',
-	[3]: 'hint'
+	[3]: 'hint',
 };
 
 class DiagnosticVariable extends PromptElement<IDiagnosticVariableProps> {
 	constructor(
 		props: PromptElementProps<IDiagnosticVariableProps>,
-		@IPromptPathRepresentationService private readonly promptPathRepresentationService: IPromptPathRepresentationService,
+		@IPromptPathRepresentationService
+		private readonly promptPathRepresentationService: IPromptPathRepresentationService,
 		@IWorkspaceService private readonly workspaceService: IWorkspaceService,
-		@IAlternativeNotebookContentService private readonly alternativeNotebookContent: IAlternativeNotebookContentService,
+		@IAlternativeNotebookContentService
+		private readonly alternativeNotebookContent: IAlternativeNotebookContentService,
 		@IPromptEndpoint private readonly endpoint: IPromptEndpoint,
 	) {
 		super(props);
 	}
 
 	render() {
-		return <>
-			{this.props.diagnostics.flatMap(([uri, diagnostics]) =>
-				diagnostics.map(d => {
-					let range = d.range;
-					([uri, range] = this.translateNotebookUri(uri, range));
-					return <Tag name="error" attrs={{ path: this.promptPathRepresentationService.getFilePath(uri), line: range.start.line + 1, code: getDiagnosticCode(d), severity: diangosticSeverityMap[d.severity] }}>
-						{d.message}
-					</Tag>;
-				}
-				)
-			)}
-		</>;
+		return (
+			<>
+				{this.props.diagnostics.flatMap(([uri, diagnostics]) =>
+					diagnostics.map((d) => {
+						let range = d.range;
+						[uri, range] = this.translateNotebookUri(uri, range);
+						return (
+							<Tag
+								name="error"
+								attrs={{
+									path: this.promptPathRepresentationService.getFilePath(
+										uri,
+									),
+									line: range.start.line + 1,
+									code: getDiagnosticCode(d),
+									severity: diangosticSeverityMap[d.severity],
+								}}
+							>
+								{d.message}
+							</Tag>
+						);
+					}),
+				)}
+			</>
+		);
 	}
 	private translateNotebookUri(uri: Uri, range: Range): [Uri, Range] {
 		if (uri.scheme !== Schemas.vscodeNotebookCell) {
 			return [uri, range];
 		}
-		const [notebook, cell] = getNotebookAndCellFromUri(uri, this.workspaceService.notebookDocuments);
+		const [notebook, cell] = getNotebookAndCellFromUri(
+			uri,
+			this.workspaceService.notebookDocuments,
+		);
 		if (!notebook || !cell) {
 			return [uri, range];
 		}
-		if (range.start.line > cell.document.lineCount || range.end.line > cell.document.lineCount) {
+		if (
+			range.start.line > cell.document.lineCount ||
+			range.end.line > cell.document.lineCount
+		) {
 			return [uri, range];
 		}
 
-		const altDocument = this.alternativeNotebookContent.create(this.alternativeNotebookContent.getFormat(this.endpoint)).getAlternativeDocument(notebook);
+		const altDocument = this.alternativeNotebookContent
+			.create(this.alternativeNotebookContent.getFormat(this.endpoint))
+			.getAlternativeDocument(notebook);
 		const start = altDocument.fromCellPosition(cell, range.start);
 		const end = altDocument.fromCellPosition(cell, range.end);
 		const newRange = new Range(start, end);
@@ -266,7 +471,10 @@ class DiagnosticVariable extends PromptElement<IDiagnosticVariableProps> {
 }
 
 function getDiagnosticCode(diagnostic: Diagnostic): string {
-	const code = (typeof diagnostic.code === 'object' && !!diagnostic.code) ? diagnostic.code.value : diagnostic.code;
+	const code =
+		typeof diagnostic.code === 'object' && !!diagnostic.code
+			? diagnostic.code.value
+			: diagnostic.code;
 	return String(code);
 }
 
@@ -277,19 +485,31 @@ interface IFolderVariableProps extends BasePromptElementProps {
 	description?: string;
 }
 
-class FolderVariable extends PromptElement<IFolderVariableProps, IFileTreeData | undefined> {
+class FolderVariable extends PromptElement<
+	IFolderVariableProps,
+	IFileTreeData | undefined
+> {
 	constructor(
 		props: PromptElementProps<IFolderVariableProps>,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@IPromptPathRepresentationService private readonly promptPathRepresentationService: IPromptPathRepresentationService,
+		@IInstantiationService
+		private readonly instantiationService: IInstantiationService,
+		@IPromptPathRepresentationService
+		private readonly promptPathRepresentationService: IPromptPathRepresentationService,
 	) {
 		super(props);
 	}
 
-	override async prepare(sizing: PromptSizing): Promise<IFileTreeData | undefined> {
+	override async prepare(
+		sizing: PromptSizing,
+	): Promise<IFileTreeData | undefined> {
 		try {
-			return this.instantiationService.invokeFunction(accessor =>
-				workspaceVisualFileTree(accessor, this.props.folderUri, { maxLength: 2000, excludeDotFiles: false }, CancellationToken.None)
+			return this.instantiationService.invokeFunction((accessor) =>
+				workspaceVisualFileTree(
+					accessor,
+					this.props.folderUri,
+					{ maxLength: 2000, excludeDotFiles: false },
+					CancellationToken.None,
+				),
 			);
 		} catch {
 			// Directory doesn't exist or is not accessible
@@ -298,21 +518,45 @@ class FolderVariable extends PromptElement<IFolderVariableProps, IFileTreeData |
 	}
 
 	render(state: IFileTreeData | undefined) {
-		const folderPath = this.promptPathRepresentationService.getFilePath(this.props.folderUri);
+		const folderPath = this.promptPathRepresentationService.getFilePath(
+			this.props.folderUri,
+		);
 		return (
-			<Tag name='attachment' attrs={this.props.variableName ? { id: this.props.variableName, folderPath } : undefined}>
+			<Tag
+				name="attachment"
+				attrs={
+					this.props.variableName
+						? { id: this.props.variableName, folderPath }
+						: undefined
+				}
+			>
 				<TextChunk>
-					{!this.props.omitReferences && <references value={[new PromptReference({ variableName: this.props.variableName })]} />}
-					{this.props.description ? this.props.description + ':\n' : ''}
-					The user attached the folder `{folderPath}`{state ? ' which has the following structure: ' + createFencedCodeBlock('', state.tree) : ''}
+					{!this.props.omitReferences && (
+						<references
+							value={[
+								new PromptReference({
+									variableName: this.props.variableName,
+								}),
+							]}
+						/>
+					)}
+					{this.props.description
+						? this.props.description + ':\n'
+						: ''}
+					The user attached the folder `{folderPath}`
+					{state
+						? ' which has the following structure: ' +
+							createFencedCodeBlock('', state.tree)
+						: ''}
 				</TextChunk>
 			</Tag>
 		);
 	}
 }
 
-export interface ChatToolCallProps extends GenericBasePromptElementProps, EmbeddedInsideUserMessage {
-}
+export interface ChatToolCallProps
+	extends GenericBasePromptElementProps,
+		EmbeddedInsideUserMessage {}
 
 interface IToolCallResult {
 	readonly name: string | undefined;
@@ -325,17 +569,21 @@ interface IToolCallResult {
 export class ChatToolReferences extends PromptElement<ChatToolCallProps, void> {
 	constructor(
 		props: ChatToolCallProps,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IInstantiationService
+		private readonly instantiationService: IInstantiationService,
 		@IToolsService private readonly toolsService: IToolsService,
 		@ILogService private readonly logService: ILogService,
 		@IEndpointProvider private readonly endpointProvider: IEndpointProvider,
 		@IPromptEndpoint private readonly promptEndpoint: IPromptEndpoint,
-		@ITelemetryService private readonly telemetryService: ITelemetryService
+		@ITelemetryService private readonly telemetryService: ITelemetryService,
 	) {
 		super(props);
 	}
 
-	override async render(state: void, sizing: PromptSizing): Promise<PromptPiece<any, any> | undefined> {
+	override async render(
+		state: void,
+		sizing: PromptSizing,
+	): Promise<PromptPiece<any, any> | undefined> {
 		const { tools, toolCallResults } = this.props.promptContext;
 		if (!tools || !tools.toolReferences.length) {
 			return;
@@ -349,18 +597,39 @@ export class ChatToolReferences extends PromptElement<ChatToolCallProps, void> {
 			}
 
 			if (toolCallResults?.[toolReference.id]) {
-				results.push({ name: toolReference.name, value: toolCallResults[toolReference.id] });
+				results.push({
+					name: toolReference.name,
+					value: toolCallResults[toolReference.id],
+				});
 				continue;
 			}
 
-			const toolArgsEndpoint = await this.endpointProvider.getChatEndpoint('gpt-4o-mini');
+			const toolArgsEndpoint =
+				await this.endpointProvider.getChatEndpoint('gpt-4o-mini');
 			const internalToolArgs = toolReference.input ?? {};
 			const toolArgs = await this.fetchToolArgs(tool, toolArgsEndpoint);
 
-			const name = toolReference.range ? this.props.promptContext.query.slice(toolReference.range[0], toolReference.range[1]) : undefined;
+			const name = toolReference.range
+				? this.props.promptContext.query.slice(
+						toolReference.range[0],
+						toolReference.range[1],
+					)
+				: undefined;
 			try {
-				const result = await this.toolsService.invokeTool(tool.name, { input: { ...toolArgs, ...internalToolArgs }, toolInvocationToken: tools.toolInvocationToken }, CancellationToken.None);
-				sendInvokedToolTelemetry(this.promptEndpoint.acquireTokenizer(), this.telemetryService, tool.name, result);
+				const result = await this.toolsService.invokeTool(
+					tool.name,
+					{
+						input: { ...toolArgs, ...internalToolArgs },
+						toolInvocationToken: tools.toolInvocationToken,
+					},
+					CancellationToken.None,
+				);
+				sendInvokedToolTelemetry(
+					this.promptEndpoint.acquireTokenizer(),
+					this.telemetryService,
+					tool.name,
+					result,
+				);
 				results.push({ name, value: result });
 			} catch (err) {
 				const errResult = toolCallErrorToResult(err);
@@ -368,8 +637,15 @@ export class ChatToolReferences extends PromptElement<ChatToolCallProps, void> {
 			}
 		}
 
-		if (this.props.embeddedInsideUserMessage ?? embeddedInsideUserMessageDefault) {
-			return this._renderChatToolResults(tools.toolReferences, results, this.props.priority);
+		if (
+			this.props.embeddedInsideUserMessage ??
+			embeddedInsideUserMessageDefault
+		) {
+			return this._renderChatToolResults(
+				tools.toolReferences,
+				results,
+				this.props.priority,
+			);
 		}
 
 		return (
@@ -379,23 +655,51 @@ export class ChatToolReferences extends PromptElement<ChatToolCallProps, void> {
 		);
 	}
 
-	private _renderChatToolResults(tools: readonly InternalToolReference[], results: readonly IToolCallResult[], priority?: number) {
+	private _renderChatToolResults(
+		tools: readonly InternalToolReference[],
+		results: readonly IToolCallResult[],
+		priority?: number,
+	) {
 		return (
 			<>
-				These attachments may have useful context for the user's query. The user may refer to these attachments directly using a term that starts with #.<br />
-				{...results.map((toolResult, i) => this.renderChatToolResult(tools[i].id, toolResult, priority))}
+				These attachments may have useful context for the user's query.
+				The user may refer to these attachments directly using a term
+				that starts with #.
+				<br />
+				{...results.map((toolResult, i) =>
+					this.renderChatToolResult(
+						tools[i].id,
+						toolResult,
+						priority,
+					),
+				)}
 			</>
 		);
 	}
 
-	private renderChatToolResult(id: string, toolResult: IToolCallResult, priority?: number): PromptElement {
-		return <Tag name='attachment' attrs={toolResult.name ? { tool: toolResult.name } : undefined} priority={priority}>
-			<meta value={new ToolResultMetadata(id, toolResult.value)}></meta>
-			<ToolResult content={toolResult.value.content} />
-		</Tag>;
+	private renderChatToolResult(
+		id: string,
+		toolResult: IToolCallResult,
+		priority?: number,
+	): PromptElement {
+		return (
+			<Tag
+				name="attachment"
+				attrs={toolResult.name ? { tool: toolResult.name } : undefined}
+				priority={priority}
+			>
+				<meta
+					value={new ToolResultMetadata(id, toolResult.value)}
+				></meta>
+				<ToolResult content={toolResult.value.content} />
+			</Tag>
+		);
 	}
 
-	private async fetchToolArgs(tool: LanguageModelToolInformation, endpoint: IChatEndpoint): Promise<any> {
+	private async fetchToolArgs(
+		tool: LanguageModelToolInformation,
+		endpoint: IChatEndpoint,
+	): Promise<any> {
 		const ownTool = this.toolsService.getCopilotTool(tool.name as ToolName);
 		if (typeof ownTool?.provideInput === 'function') {
 			const input = await ownTool.provideInput(this.props.promptContext);
@@ -412,11 +716,22 @@ export class ChatToolReferences extends PromptElement<ChatToolCallProps, void> {
 			...this.props,
 			promptContext: {
 				...this.props.promptContext,
-				tools: undefined
-			}
+				tools: undefined,
+			},
 		};
-		const toolTokens = await endpoint.acquireTokenizer().countToolTokens([tool]);
-		const { messages } = await PromptRenderer.create(this.instantiationService, { ...endpoint, modelMaxPromptTokens: endpoint.modelMaxPromptTokens - toolTokens }, PanelChatBasePrompt, argFetchProps).render();
+		const toolTokens = await endpoint
+			.acquireTokenizer()
+			.countToolTokens([tool]);
+		const { messages } = await PromptRenderer.create(
+			this.instantiationService,
+			{
+				...endpoint,
+				modelMaxPromptTokens:
+					endpoint.modelMaxPromptTokens - toolTokens,
+			},
+			PanelChatBasePrompt,
+			argFetchProps,
+		).render();
 		let fnCall: ICopilotToolCall | undefined;
 		const fetchResult = await endpoint.makeChatRequest(
 			'fetchToolArgs',
@@ -439,27 +754,32 @@ export class ChatToolReferences extends PromptElement<ChatToolCallProps, void> {
 							function: {
 								name: tool.name,
 								description: tool.description,
-								parameters: tool.inputSchema
-							}
-						}
+								parameters: tool.inputSchema,
+							},
+						},
 					],
-					(tool, rule) => this.logService.warn(`Tool ${tool} failed validation: ${rule}`)
+					(tool, rule) =>
+						this.logService.warn(
+							`Tool ${tool} failed validation: ${rule}`,
+						),
 				),
 				tool_choice: {
 					type: 'function',
 					function: {
 						name: tool.name,
-					}
+					},
 				},
 			},
-			false
+			false,
 		);
 		if (!fnCall) {
 			throw new Error(`Failed to compute args for tool: "${tool.name}"`);
 		}
 
 		if (fetchResult.type !== ChatFetchResponseType.Success) {
-			throw new Error(`Fetching tool args failed: ${fetchResult.type} ${fetchResult.reason}`);
+			throw new Error(
+				`Fetching tool args failed: ${fetchResult.type} ${fetchResult.reason}`,
+			);
 		}
 
 		try {

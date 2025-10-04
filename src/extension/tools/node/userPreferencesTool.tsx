@@ -4,9 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from '@vscode/l10n';
-import { BasePromptElementProps, PromptElement, Raw, SystemMessage, UserMessage } from '@vscode/prompt-tsx';
+import {
+	BasePromptElementProps,
+	PromptElement,
+	Raw,
+	SystemMessage,
+	UserMessage,
+} from '@vscode/prompt-tsx';
 import type * as vscode from 'vscode';
-import { ChatFetchResponseType, ChatLocation } from '../../../platform/chat/common/commonTypes';
+import {
+	ChatFetchResponseType,
+	ChatLocation,
+} from '../../../platform/chat/common/commonTypes';
 import { Proxy4oEndpoint } from '../../../platform/endpoint/node/proxy4oEndpoint';
 import { IVSCodeExtensionContext } from '../../../platform/extContext/common/extensionContext';
 import { IFileSystemService } from '../../../platform/filesystem/common/fileSystemService';
@@ -15,7 +24,10 @@ import { extractCodeBlocks } from '../../../util/common/markdown';
 import { CancellationToken } from '../../../util/vs/base/common/cancellation';
 import { URI } from '../../../util/vs/base/common/uri';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
-import { LanguageModelTextPart, LanguageModelToolResult } from '../../../vscodeTypes';
+import {
+	LanguageModelTextPart,
+	LanguageModelToolResult,
+} from '../../../vscodeTypes';
 import { renderPromptElement } from '../../prompts/node/base/promptRenderer';
 import { CodeBlock } from '../../prompts/node/panel/safeElements';
 import { ToolName } from '../common/toolNames';
@@ -41,59 +53,118 @@ class UserPreferenceUpdatePrompt extends PromptElement<IUserPreferenceUpdateProm
 		return (
 			<>
 				<SystemMessage priority={1000}>
-					You are an AI programming assistant. The user has provided new preferences to be added to their existing preferences file.<br />
-					Please incorporate the following new preferences into the existing file content:<br />
-					<CodeBlock uri={userPreferenceFile} code={facts.join('\n')} languageId="markdown" shouldTrim={false} includeFilepath={false} /><br />
-					Ensure the final content is well-formatted and correctly indented.<br />
+					You are an AI programming assistant. The user has provided
+					new preferences to be added to their existing preferences
+					file.
+					<br />
+					Please incorporate the following new preferences into the
+					existing file content:
+					<br />
+					<CodeBlock
+						uri={userPreferenceFile}
+						code={facts.join('\n')}
+						languageId="markdown"
+						shouldTrim={false}
+						includeFilepath={false}
+					/>
+					<br />
+					Ensure the final content is well-formatted and correctly
+					indented.
+					<br />
 				</SystemMessage>
 				<UserMessage priority={700}>
-					<CodeBlock uri={userPreferenceFile} code={currentContent} languageId="markdown" shouldTrim={false} includeFilepath={false} /><br />
+					<CodeBlock
+						uri={userPreferenceFile}
+						code={currentContent}
+						languageId="markdown"
+						shouldTrim={false}
+						includeFilepath={false}
+					/>
+					<br />
 				</UserMessage>
 			</>
 		);
 	}
 }
 
-class UpdateUserPreferencesTool implements ICopilotTool<IUpdateUserPreferencesToolParams> {
-
+class UpdateUserPreferencesTool
+	implements ICopilotTool<IUpdateUserPreferencesToolParams>
+{
 	public static readonly toolName = ToolName.UpdateUserPreferences;
-	private readonly endpoint = this.instantiationService.createInstance(Proxy4oEndpoint);
+	private readonly endpoint =
+		this.instantiationService.createInstance(Proxy4oEndpoint);
 
 	constructor(
-		@IVSCodeExtensionContext private readonly extensionContext: IVSCodeExtensionContext,
-		@IFileSystemService private readonly fileSystemService: IFileSystemService,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
-	) {
-	}
+		@IVSCodeExtensionContext
+		private readonly extensionContext: IVSCodeExtensionContext,
+		@IFileSystemService
+		private readonly fileSystemService: IFileSystemService,
+		@IInstantiationService
+		private readonly instantiationService: IInstantiationService,
+	) {}
 
 	private get userPreferenceFile(): URI {
-		return URI.joinPath(this.extensionContext.globalStorageUri, 'copilotUserPreferences.md');
+		return URI.joinPath(
+			this.extensionContext.globalStorageUri,
+			'copilotUserPreferences.md',
+		);
 	}
 
-	async invoke(options: vscode.LanguageModelToolInvocationOptions<IUpdateUserPreferencesToolParams>, token: CancellationToken): Promise<vscode.LanguageModelToolResult> {
-
+	async invoke(
+		options: vscode.LanguageModelToolInvocationOptions<IUpdateUserPreferencesToolParams>,
+		token: CancellationToken,
+	): Promise<vscode.LanguageModelToolResult> {
 		try {
-			const currentContent = await this.fileSystemService.readFile(this.userPreferenceFile).catch(() => '');
-			const newContent = await this.generateNewContent(currentContent.toString(), options.input.facts, token);
-			await this.fileSystemService.writeFile(this.userPreferenceFile, Buffer.from(newContent));
+			const currentContent = await this.fileSystemService
+				.readFile(this.userPreferenceFile)
+				.catch(() => '');
+			const newContent = await this.generateNewContent(
+				currentContent.toString(),
+				options.input.facts,
+				token,
+			);
+			await this.fileSystemService.writeFile(
+				this.userPreferenceFile,
+				Buffer.from(newContent),
+			);
 			return new LanguageModelToolResult([
-				new LanguageModelTextPart('User preferences updated')
+				new LanguageModelTextPart('User preferences updated'),
 			]);
 		} catch (ex) {
 			return new LanguageModelToolResult([
-				new LanguageModelTextPart('Encountered an error while updating user preferences')
+				new LanguageModelTextPart(
+					'Encountered an error while updating user preferences',
+				),
 			]);
 		}
 	}
 
-	private async generateNewContent(currentContent: string, facts: string[], token: CancellationToken): Promise<string> {
-
-		const { messages } = await renderPromptElement(this.instantiationService, this.endpoint, UserPreferenceUpdatePrompt, { facts: facts, currentContent, userPreferenceFile: this.userPreferenceFile }, undefined, token);
+	private async generateNewContent(
+		currentContent: string,
+		facts: string[],
+		token: CancellationToken,
+	): Promise<string> {
+		const { messages } = await renderPromptElement(
+			this.instantiationService,
+			this.endpoint,
+			UserPreferenceUpdatePrompt,
+			{
+				facts: facts,
+				currentContent,
+				userPreferenceFile: this.userPreferenceFile,
+			},
+			undefined,
+			token,
+		);
 		return this.doFetch(messages, this.endpoint, currentContent, token);
 	}
 
-	private async doFetch(promptMessages: Raw.ChatMessage[], endpoint: IChatEndpoint, speculation: string, token: CancellationToken) {
-
+	private async doFetch(
+		promptMessages: Raw.ChatMessage[],
+		endpoint: IChatEndpoint,
+		speculation: string,
+		token: CancellationToken,
+	) {
 		const result = await endpoint.makeChatRequest(
 			'updateUserPreferences',
 			promptMessages,
@@ -103,7 +174,11 @@ class UpdateUserPreferencesTool implements ICopilotTool<IUpdateUserPreferencesTo
 			token,
 			ChatLocation.Other,
 			undefined,
-			{ stream: true, temperature: 0, prediction: { type: 'content', content: speculation } }
+			{
+				stream: true,
+				temperature: 0,
+				prediction: { type: 'content', content: speculation },
+			},
 		);
 		if (result.type !== ChatFetchResponseType.Success) {
 			throw new Error('Failed to update user preferences');
@@ -111,10 +186,13 @@ class UpdateUserPreferencesTool implements ICopilotTool<IUpdateUserPreferencesTo
 		return extractCodeBlocks(result.value)[0].code;
 	}
 
-	prepareInvocation?(options: vscode.LanguageModelToolInvocationPrepareOptions<IUpdateUserPreferencesToolParams>, token: vscode.CancellationToken): vscode.ProviderResult<vscode.PreparedToolInvocation> {
+	prepareInvocation?(
+		options: vscode.LanguageModelToolInvocationPrepareOptions<IUpdateUserPreferencesToolParams>,
+		token: vscode.CancellationToken,
+	): vscode.ProviderResult<vscode.PreparedToolInvocation> {
 		return {
 			invocationMessage: l10n.t`Updating user preferences`,
-			pastTenseMessage: l10n.t`Updated user preferences`
+			pastTenseMessage: l10n.t`Updated user preferences`,
 		};
 	}
 }

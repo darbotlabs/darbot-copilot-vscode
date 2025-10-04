@@ -19,54 +19,48 @@ headerEslint.rules.header.meta.schema = false;
 import localEslint from './.eslintplugin/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ignores = fs.readFileSync(path.join(__dirname, '.eslint-ignore'), 'utf8')
+const ignores = fs
+	.readFileSync(path.join(__dirname, '.eslint-ignore'), 'utf8')
 	.toString()
 	.split(/\r\n|\n/)
-	.filter(line => line && !line.startsWith('#'));
+	.filter((line) => line && !line.startsWith('#'));
 
 export default tseslint.config(
 	// Global ignores
 	{
-		ignores: [
-			...ignores,
-			'!**/.eslint-plugin-local/**/*'
-		],
+		ignores: [...ignores, '!**/.eslint-plugin-local/**/*'],
 	},
 	// All js/ts files
 	{
-		files: [
-			'**/*.{js,jsx,mjs,cjs,ts,tsx}',
-		],
-		ignores: [
-			'./src/extension/completions-core/**/*'
-		],
+		files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
+		ignores: ['./src/extension/completions-core/**/*'],
 		languageOptions: {
 			parser: tsParser,
 		},
 		plugins: {
 			'@stylistic': stylisticEslint,
-			'header': headerEslint,
+			header: headerEslint,
 		},
 		rules: {
-			'indent': [
+			indent: [
 				'error',
 				'tab',
 				{
 					ignoredNodes: [
 						'SwitchCase',
 						'ClassDeclaration',
-						'TemplateLiteral *' // Conflicts with tsfmt
-					]
-				}
+						'TemplateLiteral *', // Conflicts with tsfmt
+					],
+				},
 			],
 			'constructor-super': 'error',
-			'curly': 'error',
-			'eqeqeq': 'error',
+			curly: 'error',
+			eqeqeq: 'error',
 			'prefer-const': [
 				'error',
 				{
-					destructuring: 'all'
-				}
+					destructuring: 'all',
+				},
 			],
 			'no-buffer-constructor': 'error',
 			'no-caller': 'error',
@@ -93,10 +87,10 @@ export default tseslint.config(
 				'status',
 				'origin',
 				'orientation',
-				'context'
+				'context',
 			], // non-complete list of globals that are easy to access unintentionally
 			'no-var': 'error',
-			'semi': 'error',
+			semi: 'error',
 			'header/header': [
 				'error',
 				'block',
@@ -104,30 +98,28 @@ export default tseslint.config(
 					'---------------------------------------------------------------------------------------------',
 					' *  Copyright (c) Microsoft Corporation. All rights reserved.',
 					' *  Licensed under the MIT License. See License.txt in the project root for license information.',
-					' *--------------------------------------------------------------------------------------------'
-				]
-			]
+					' *--------------------------------------------------------------------------------------------',
+				],
+			],
 		},
 		settings: {
 			'import/resolver': {
 				typescript: {
-					extensions: ['.ts', '.tsx']
-				}
-			}
+					extensions: ['.ts', '.tsx'],
+				},
+			},
 		},
 	},
 	// All ts files
 	{
-		files: [
-			'**/*.{ts,tsx}',
-		],
+		files: ['**/*.{ts,tsx}'],
 		languageOptions: {
 			parser: tsParser,
 		},
 		plugins: {
 			'@typescript-eslint': tsEslint,
 			'@stylistic': stylisticEslint,
-			'jsdoc': jsdocEslint,
+			jsdoc: jsdocEslint,
 		},
 		rules: {
 			'jsdoc/no-types': 'error',
@@ -136,33 +128,28 @@ export default tseslint.config(
 				'error',
 				{
 					selector: 'class',
-					format: ['PascalCase']
-				}
+					format: ['PascalCase'],
+				},
 			],
 		},
 		settings: {
 			'import/resolver': {
 				typescript: {
-					extensions: ['.ts', '.tsx']
-				}
-			}
+					extensions: ['.ts', '.tsx'],
+				},
+			},
 		},
 	},
 	// Main extension sources
 	{
-		files: [
-			'src/**/*.{ts,tsx}',
-			'test/**/*.{ts,tsx}',
-		],
-		ignores: [
-			'**/.esbuild.ts',
-		],
+		files: ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}'],
+		ignores: ['**/.esbuild.ts'],
 		languageOptions: {
 			parser: tseslint.parser,
 		},
 		plugins: {
-			'import': importEslint,
-			'local': localEslint,
+			import: importEslint,
+			local: localEslint,
 		},
 		rules: {
 			'no-restricted-imports': [
@@ -230,7 +217,7 @@ export default tseslint.config(
 				'minimatch',
 				'source-map-support',
 				'vscode-tas-client',
-				'web-tree-sitter'
+				'web-tree-sitter',
 			],
 			'import/no-restricted-paths': [
 				'error',
@@ -243,8 +230,8 @@ export default tseslint.config(
 								'**/node/**',
 								'**/vscode-node/**',
 								'**/worker/**',
-								'**/vscode-worker/**'
-							]
+								'**/vscode-worker/**',
+							],
 						},
 						{
 							target: '**/vscode/**',
@@ -252,8 +239,8 @@ export default tseslint.config(
 								'**/node/**',
 								'**/vscode-node/**',
 								'**/worker/**',
-								'**/vscode-worker/**'
-							]
+								'**/vscode-worker/**',
+							],
 						},
 						{
 							target: '**/node/**',
@@ -261,15 +248,12 @@ export default tseslint.config(
 								'**/vscode/**',
 								'**/vscode-node/**',
 								'**/worker/**',
-								'**/vscode-worker/**'
-							]
+								'**/vscode-worker/**',
+							],
 						},
 						{
 							target: '**/vscode-node/**',
-							from: [
-								'**/worker/**',
-								'**/vscode-worker/**'
-							]
+							from: ['**/worker/**', '**/vscode-worker/**'],
 						},
 						{
 							target: '**/worker/**',
@@ -277,34 +261,34 @@ export default tseslint.config(
 								'**/vscode/**',
 								'**/node/**',
 								'**/vscode-node/**',
-								'**/vscode-worker/**'
-							]
+								'**/vscode-worker/**',
+							],
 						},
 						{
 							target: '**/vscode-worker/**',
-							from: [
-								'**/node/**',
-								'**/vscode-node/**'
-							]
+							from: ['**/node/**', '**/vscode-node/**'],
 						},
 						{
 							target: './src/',
-							from: './test/'
+							from: './test/',
 						},
 						{
 							target: './src/util',
-							from: ['./src/platform', './src/extension']
+							from: ['./src/platform', './src/extension'],
 						},
 						{
 							target: './src/platform',
-							from: ['./src/extension']
+							from: ['./src/extension'],
 						},
 						{
-							target: ['./test', '!./test/base/extHostContext/*.ts'],
-							from: ['**/vscode-node/**', '**/vscode-worker/**']
-						}
-					]
-				}
+							target: [
+								'./test',
+								'!./test/base/extHostContext/*.ts',
+							],
+							from: ['**/vscode-node/**', '**/vscode-worker/**'],
+						},
+					],
+				},
 			],
 			'local/no-instanceof-uri': ['error'],
 			'local/no-test-imports': ['error'],
@@ -313,8 +297,8 @@ export default tseslint.config(
 				{
 					test: ['vscode'],
 					'src/**/common/**/*': ['vscode'],
-					'src/**/node/**/*': ['vscode']
-				}
+					'src/**/node/**/*': ['vscode'],
+				},
 			],
 			'local/no-funny-filename': ['error'],
 			'local/no-bad-gdpr-comment': ['error'],
@@ -324,34 +308,37 @@ export default tseslint.config(
 				'error',
 				{
 					className: 'GitHubPullRequestProviders',
-					string: 'Generate with Copilot'
-				}
+					string: 'Generate with Copilot',
+				},
 			],
-		}
+		},
 	},
 	{
-		files: ['**/{vscode-node,node}/**/*.ts', '**/{vscode-node,node}/**/*.tsx'],
+		files: [
+			'**/{vscode-node,node}/**/*.ts',
+			'**/{vscode-node,node}/**/*.tsx',
+		],
 		rules: {
-			'no-restricted-imports': 'off'
-		}
+			'no-restricted-imports': 'off',
+		},
 	},
 	{
 		files: ['**/*.js'],
 		rules: {
-			'jsdoc/no-types': 'off'
-		}
+			'jsdoc/no-types': 'off',
+		},
 	},
 	{
 		files: ['src/extension/**/*.tsx'],
 		rules: {
-			'local/no-missing-linebreak': 'error'
-		}
+			'local/no-missing-linebreak': 'error',
+		},
 	},
 	{
 		files: ['**/*.test.ts', '**/*.test.tsx'],
 		rules: {
-			'local/no-test-only': 'error'
-		}
+			'local/no-test-only': 'error',
+		},
 	},
 	{
 		files: [
@@ -359,11 +346,11 @@ export default tseslint.config(
 			'src/vscodeTypes.ts',
 			'script/**',
 			'src/extension/*.d.ts',
-			'build/**'
+			'build/**',
 		],
 		rules: {
 			'local/no-unlayered-files': 'off',
-			'no-restricted-imports': 'off'
-		}
-	}
+			'no-restricted-imports': 'off',
+		},
+	},
 );

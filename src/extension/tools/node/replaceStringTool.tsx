@@ -20,12 +20,26 @@ export interface IReplaceStringToolParams {
 export class ReplaceStringTool extends AbstractReplaceStringTool<IReplaceStringToolParams> {
 	public static toolName = ToolName.ReplaceString;
 
-	protected override urisForInput(input: IReplaceStringToolParams): readonly URI[] {
-		return [resolveToolInputPath(input.filePath, this.promptPathRepresentationService)];
+	protected override urisForInput(
+		input: IReplaceStringToolParams,
+	): readonly URI[] {
+		return [
+			resolveToolInputPath(
+				input.filePath,
+				this.promptPathRepresentationService,
+			),
+		];
 	}
 
-	async invoke(options: vscode.LanguageModelToolInvocationOptions<IReplaceStringToolParams>, token: vscode.CancellationToken) {
-		const prepared = await this.prepareEditsForFile(options, options.input, token);
+	async invoke(
+		options: vscode.LanguageModelToolInvocationOptions<IReplaceStringToolParams>,
+		token: vscode.CancellationToken,
+	) {
+		const prepared = await this.prepareEditsForFile(
+			options,
+			options.input,
+			token,
+		);
 		return this.applyAllEdits(options, [prepared], token);
 	}
 

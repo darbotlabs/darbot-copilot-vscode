@@ -21,16 +21,33 @@ export interface IMultiReplaceStringToolParams {
 export class MultiReplaceStringTool extends AbstractReplaceStringTool<IMultiReplaceStringToolParams> {
 	public static toolName = ToolName.MultiReplaceString;
 
-	protected override urisForInput(input: IMultiReplaceStringToolParams): readonly URI[] {
-		return input.replacements.map(r => resolveToolInputPath(r.filePath, this.promptPathRepresentationService));
+	protected override urisForInput(
+		input: IMultiReplaceStringToolParams,
+	): readonly URI[] {
+		return input.replacements.map((r) =>
+			resolveToolInputPath(
+				r.filePath,
+				this.promptPathRepresentationService,
+			),
+		);
 	}
 
-	async invoke(options: vscode.LanguageModelToolInvocationOptions<IMultiReplaceStringToolParams>, token: vscode.CancellationToken) {
-		if (!options.input.replacements || !Array.isArray(options.input.replacements)) {
+	async invoke(
+		options: vscode.LanguageModelToolInvocationOptions<IMultiReplaceStringToolParams>,
+		token: vscode.CancellationToken,
+	) {
+		if (
+			!options.input.replacements ||
+			!Array.isArray(options.input.replacements)
+		) {
 			throw new Error('Invalid input, no replacements array');
 		}
 
-		const prepared = await Promise.all(options.input.replacements.map(r => this.prepareEditsForFile(options, r, token)));
+		const prepared = await Promise.all(
+			options.input.replacements.map((r) =>
+				this.prepareEditsForFile(options, r, token),
+			),
+		);
 
 		let successes = 0;
 		let failures = 0;
@@ -58,16 +75,19 @@ export class MultiReplaceStringTool extends AbstractReplaceStringTool<IMultiRepl
 				"individualEdits": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "The number of individual text edits made.", "isMeasurement": true }
 			}
 		*/
-		this.telemetryService.sendMSFTTelemetryEvent('multiStringReplaceCall', {
-			requestId: this._promptContext?.requestId,
-			model: await this.modelForTelemetry(options),
-		}, {
-			successes,
-			failures,
-			individualEdits,
-			uniqueUris: uniqueUris.size,
-		});
-
+		this.telemetryService.sendMSFTTelemetryEvent(
+			'multiStringReplaceCall',
+			{
+				requestId: this._promptContext?.requestId,
+				model: await this.modelForTelemetry(options),
+			},
+			{
+				successes,
+				failures,
+				individualEdits,
+				uniqueUris: uniqueUris.size,
+			},
+		);
 
 		for (let i = 0; i < prepared.length; i++) {
 			const e1 = prepared[i];
@@ -83,7 +103,12 @@ export class MultiReplaceStringTool extends AbstractReplaceStringTool<IMultiRepl
 				const e2 = prepared[k];
 				// Merge successful edits of the same type and URI so that edits come in
 				// a single correct batch and positions aren't later clobbered.
-				if (!e2.generatedEdit.success || e2.uri.toString() !== e1.uri.toString() || (!!e2.generatedEdit.notebookEdits !== !!e1.generatedEdit.notebookEdits)) {
+				if (
+					!e2.generatedEdit.success ||
+					e2.uri.toString() !== e1.uri.toString() ||
+					!!e2.generatedEdit.notebookEdits !==
+						!!e1.generatedEdit.notebookEdits
+				) {
 					continue;
 				}
 
@@ -91,9 +116,15 @@ export class MultiReplaceStringTool extends AbstractReplaceStringTool<IMultiRepl
 				k--;
 
 				if (e2.generatedEdit.notebookEdits) {
-					e1.generatedEdit.notebookEdits = mergeNotebookAndTextEdits(e1.generatedEdit.notebookEdits!, e2.generatedEdit.notebookEdits);
+					e1.generatedEdit.notebookEdits = mergeNotebookAndTextEdits(
+						e1.generatedEdit.notebookEdits!,
+						e2.generatedEdit.notebookEdits,
+					);
 				} else {
-					e1.generatedEdit.textEdits = e1.generatedEdit.textEdits.concat(e2.generatedEdit.textEdits);
+					e1.generatedEdit.textEdits =
+						e1.generatedEdit.textEdits.concat(
+							e2.generatedEdit.textEdits,
+						);
 					e1.generatedEdit.textEdits.sort(textEditSorter);
 				}
 			}
@@ -110,14 +141,20 @@ export class MultiReplaceStringTool extends AbstractReplaceStringTool<IMultiRepl
 ToolRegistry.registerTool(MultiReplaceStringTool);
 
 function textEditSorter(a: vscode.TextEdit, b: vscode.TextEdit) {
-	return b.range.end.compareTo(a.range.end) || b.range.start.compareTo(a.range.start);
+	return (
+		b.range.end.compareTo(a.range.end) ||
+		b.range.start.compareTo(a.range.start)
+	);
 }
 
 /**
  * Merge two arrays of notebook edits or text edits grouped by URI.
  * Text edits for the same URI are concatenated and sorted in reverse file order (descending by start position).
  */
-function mergeNotebookAndTextEdits(left: CellOrNotebookEdit[], right: CellOrNotebookEdit[]): CellOrNotebookEdit[] {
+function mergeNotebookAndTextEdits(
+	left: CellOrNotebookEdit[],
+	right: CellOrNotebookEdit[],
+): CellOrNotebookEdit[] {
 	const notebookEdits: vscode.NotebookEdit[] = [];
 	const textEditsByUri = new ResourceMap<vscode.TextEdit[]>();
 

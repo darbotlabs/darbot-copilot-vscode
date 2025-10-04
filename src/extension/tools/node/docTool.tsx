@@ -8,19 +8,20 @@ import { IPromptPathRepresentationService } from '../../../platform/prompts/comm
 import { IWorkspaceService } from '../../../platform/workspace/common/workspaceService';
 import { isLocation } from '../../../util/common/types';
 import { URI } from '../../../util/vs/base/common/uri';
-import { LanguageModelTextPart, LanguageModelToolResult } from '../../../vscodeTypes';
+import {
+	LanguageModelTextPart,
+	LanguageModelToolResult,
+} from '../../../vscodeTypes';
 import { IBuildPromptContext } from '../../prompt/common/intents';
 import { ToolName } from '../common/toolNames';
 import { ToolRegistry } from '../common/toolsRegistry';
 import { checkCancellation } from './toolUtils';
-
 
 interface IDocInfoTool {
 	readonly filePaths: string[];
 }
 
 class DocInfoTool implements vscode.LanguageModelTool<IDocInfoTool> {
-
 	static readonly toolName = ToolName.DocInfo;
 
 	private static _docTypeNames = new Map<string, string>([
@@ -33,60 +34,99 @@ class DocInfoTool implements vscode.LanguageModelTool<IDocInfoTool> {
 
 	constructor(
 		@IWorkspaceService private readonly workspaceService: IWorkspaceService,
-		@IPromptPathRepresentationService private readonly _promptPathRepresentationService: IPromptPathRepresentationService,
-	) { }
+		@IPromptPathRepresentationService
+		private readonly _promptPathRepresentationService: IPromptPathRepresentationService,
+	) {}
 
-	async invoke(options: vscode.LanguageModelToolInvocationOptions<IDocInfoTool>, token: vscode.CancellationToken) {
-
+	async invoke(
+		options: vscode.LanguageModelToolInvocationOptions<IDocInfoTool>,
+		token: vscode.CancellationToken,
+	) {
 		const docNames = new Set<string>();
 
 		for (const filePath of options.input.filePaths) {
-			const uri = this._promptPathRepresentationService.resolveFilePath(filePath);
+			const uri =
+				this._promptPathRepresentationService.resolveFilePath(filePath);
 			if (!uri) {
 				continue;
 			}
-			const doc = await this.workspaceService.openTextDocumentAndSnapshot(uri);
-			const docName: string = DocInfoTool._docTypeNames.get(doc.languageId) || 'documentation comment';
+			const doc =
+				await this.workspaceService.openTextDocumentAndSnapshot(uri);
+			const docName: string =
+				DocInfoTool._docTypeNames.get(doc.languageId) ||
+				'documentation comment';
 			docNames.add(docName);
 		}
 
 		checkCancellation(token);
 		return new LanguageModelToolResult([
-			new LanguageModelTextPart(`Please generate ${Array.from(docNames).join(', ')} for the respective files. ONLY add documentation and do not change the code.`)
+			new LanguageModelTextPart(
+				`Please generate ${Array.from(docNames).join(', ')} for the respective files. ONLY add documentation and do not change the code.`,
+			),
 		]);
 	}
 
-	async prepareInvocation(options: vscode.LanguageModelToolInvocationPrepareOptions<IDocInfoTool>, token: vscode.CancellationToken): Promise<vscode.PreparedToolInvocation> {
+	async prepareInvocation(
+		options: vscode.LanguageModelToolInvocationPrepareOptions<IDocInfoTool>,
+		token: vscode.CancellationToken,
+	): Promise<vscode.PreparedToolInvocation> {
 		return {
 			presentation: 'hidden',
 		};
 	}
 
-	async provideInput(promptContext: IBuildPromptContext): Promise<IDocInfoTool | undefined> {
+	async provideInput(
+		promptContext: IBuildPromptContext,
+	): Promise<IDocInfoTool | undefined> {
 		const seen = new Set<string>();
 
 		const filePaths: string[] = [];
-		const ranges: ([a: number, b: number, c: number, d: number] | undefined)[] = [];
+		const ranges: (
+			| [a: number, b: number, c: number, d: number]
+			| undefined
+		)[] = [];
 
 		function addPath(path: string, range: vscode.Range | undefined) {
 			if (!seen.has(path)) {
 				seen.add(path);
 				filePaths.push(path);
-				ranges.push(range && [range.start.line, range.start.character, range.end.line, range.end.character]);
+				ranges.push(
+					range && [
+						range.start.line,
+						range.start.character,
+						range.end.line,
+						range.end.character,
+					],
+				);
 			}
 		}
 
 		for (const ref of promptContext.chatVariables) {
 			if (URI.isUri(ref.value)) {
-				addPath(this._promptPathRepresentationService.getFilePath(ref.value), undefined);
+				addPath(
+					this._promptPathRepresentationService.getFilePath(
+						ref.value,
+					),
+					undefined,
+				);
 			} else if (isLocation(ref.value)) {
-				addPath(this._promptPathRepresentationService.getFilePath(ref.value.uri), ref.value.range);
+				addPath(
+					this._promptPathRepresentationService.getFilePath(
+						ref.value.uri,
+					),
+					ref.value.range,
+				);
 			}
 		}
 
 		if (promptContext.workingSet) {
 			for (const file of promptContext.workingSet) {
-				addPath(this._promptPathRepresentationService.getFilePath(file.document.uri), file.range);
+				addPath(
+					this._promptPathRepresentationService.getFilePath(
+						file.document.uri,
+					),
+					file.range,
+				);
 			}
 		}
 
