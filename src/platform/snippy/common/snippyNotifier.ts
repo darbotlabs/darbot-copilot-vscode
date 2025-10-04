@@ -12,7 +12,7 @@ import { INotificationService } from '../../notification/common/notificationServ
 
 export class SnippyNotifier {
 
-	private static readonly matchCodeMessage = 'We found a reference to public code in a recent suggestion. To learn more about public code references, review the [documentation](https://aka.ms/github-copilot-match-public-code).';
+	private static readonly matchCodeMessage = 'We found a reference to public code in a recent suggestion. To learn more about public code references, review the [documentation](https://aka.ms/darbot-copilot-match-public-code).';
 	private static readonly MatchAction = 'View Reference';
 	private static readonly SettingAction = 'Change Setting';
 	public static readonly CodeReferenceKey = 'copilot.chat.codeReference.notified';
@@ -41,7 +41,7 @@ export class SnippyNotifier {
 					break;
 				}
 				case SnippyNotifier.SettingAction: {
-					this.envService.openExternal(URI.parse('https://aka.ms/github-copilot-settings'));
+					this.envService.openExternal(URI.parse('https://aka.ms/darbot-copilot-settings'));
 					break;
 				}
 				case undefined: {

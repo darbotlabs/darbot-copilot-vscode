@@ -12,7 +12,7 @@ export interface IImageService {
 	readonly _serviceBrand: undefined;
 
 	/**
-	 * Upload image data to GitHub Copilot chat attachments endpoint
+	 * Upload image data to Darbot Copilot chat attachments endpoint
 	 * @param binaryData The image binary data as Uint8Array
 	 * @param name The name for the uploaded file
 	 * @param mimeType The MIME type of the image

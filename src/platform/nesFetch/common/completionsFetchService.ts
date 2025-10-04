@@ -103,7 +103,7 @@ export function getErrorDetailsFromFetchError(requestId: string, error: Completi
 			};
 		case 'quota-exceeded':
 			return {
-				message: l10n.t(`You've reached your monthly chat messages limit. [Upgrade to Copilot Pro]({0}) (30-day Free Trial) or wait for your limit to reset.`, 'https://aka.ms/github-copilot-upgrade-plan'),
+				message: l10n.t(`You've reached your monthly chat messages limit. [Upgrade to Copilot Pro]({0}) (30-day Free Trial) or wait for your limit to reset.`, 'https://aka.ms/darbot-copilot-upgrade-plan'),
 			};
 		case 'model_overloaded':
 		case 'model_error':

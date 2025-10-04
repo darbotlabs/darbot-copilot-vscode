@@ -28,7 +28,7 @@ export class ReviewServiceImpl implements IReviewService {
 	private _repositoryDisposables = new DisposableStore();
 	private _reviewDiffReposString: string | undefined;
 	private _diagnosticCollection: vscode.DiagnosticCollection | undefined;
-	private _commentController = vscode.comments.createCommentController('github-copilot-review', 'Code Review');
+	private _commentController = vscode.comments.createCommentController('darbot-copilot-review', 'Code Review');
 	private _comments: InternalComment[] = [];
 	private _monitorActiveThread: any | undefined;
 	private _activeThread: vscode.CommentThread | undefined;

@@ -60,7 +60,7 @@ export class LoggingActionsContrib {
 			const electronConfig = getShadowedConfig<boolean>(this.configurationService, this.experimentationService, ConfigKey.Shared.DebugUseElectronFetcher, ConfigKey.Internal.DebugExpUseElectronFetcher);
 			const nodeConfig = getShadowedConfig<boolean>(this.configurationService, this.experimentationService, ConfigKey.Shared.DebugUseNodeFetcher, ConfigKey.Internal.DebugExpUseNodeFetcher);
 			const nodeFetchConfig = getShadowedConfig<boolean>(this.configurationService, this.experimentationService, ConfigKey.Shared.DebugUseNodeFetchFetcher, ConfigKey.Internal.DebugExpUseNodeFetchFetcher);
-			await appendText(editor, `## GitHub Copilot Chat
+			await appendText(editor, `## Darbot Copilot Chat
 
 - Extension Version: ${this.envService.getVersion()} (${this.envService.getBuildType()})
 - VS Code: ${this.envService.getEditorInfo().format()}
@@ -214,7 +214,7 @@ User Settings:
 			await appendText(editor, `
 ## Documentation
 
-In corporate networks: [Troubleshooting firewall settings for GitHub Copilot](https://docs.github.com/en/copilot/troubleshooting-github-copilot/troubleshooting-firewall-settings-for-github-copilot).`);
+In corporate networks: [Troubleshooting firewall settings for Darbot Copilot](https://docs.github.com/en/copilot/troubleshooting-darbot-copilot/troubleshooting-firewall-settings-for-darbot-copilot).`);
 		}));
 	}
 }

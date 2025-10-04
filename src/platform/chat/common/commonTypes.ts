@@ -205,7 +205,7 @@ function getRateLimitMessage(fetchResult: ChatFetchError, hideRateLimitTimeEstim
 	if (fetchResult?.capiError?.code && fetchResult?.capiError?.message) {
 		return l10n.t({
 			message: 'Sorry, you have been rate-limited. Please wait {0} before trying again. [Learn More]({1})\n\nServer Error: {2}\nError Code: {3}',
-			args: [retryAfterString, 'https://aka.ms/github-copilot-rate-limit-error', fetchResult.capiError.message, fetchResult.capiError.code],
+			args: [retryAfterString, 'https://aka.ms/darbot-copilot-rate-limit-error', fetchResult.capiError.message, fetchResult.capiError.code],
 			comment: ["{Locked=']({'}"]
 		});
 	}
@@ -213,14 +213,14 @@ function getRateLimitMessage(fetchResult: ChatFetchError, hideRateLimitTimeEstim
 	if (!globalTPSRateLimit) {
 		return l10n.t({
 			message: 'Sorry, you have exhausted this model\'s rate limit. Please wait {0} before trying again, or switch to a different model. [Learn More]({1})',
-			args: [retryAfterString, 'https://aka.ms/github-copilot-rate-limit-error'],
+			args: [retryAfterString, 'https://aka.ms/darbot-copilot-rate-limit-error'],
 			comment: ["{Locked=']({'}"]
 		});
 	}
 
 	return l10n.t({
 		message: 'Sorry, your request was rate-limited. Please wait {0} before trying again. [Learn More]({1})',
-		args: [retryAfterString, 'https://aka.ms/github-copilot-rate-limit-error'],
+		args: [retryAfterString, 'https://aka.ms/darbot-copilot-rate-limit-error'],
 		comment: ["{Locked=']({'}"]
 	});
 }

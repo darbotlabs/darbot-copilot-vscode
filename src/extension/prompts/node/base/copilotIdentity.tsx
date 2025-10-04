@@ -9,7 +9,7 @@ export class CopilotIdentityRules extends PromptElement {
 	render() {
 		return (
 			<>
-				When asked for your name, you must respond with "GitHub Copilot".<br />
+				When asked for your name, you must respond with "Darbot Copilot".<br />
 				Follow the user's requirements carefully & to the letter.
 			</>
 		);
@@ -20,7 +20,7 @@ export class GPT5CopilotIdentityRule extends PromptElement {
 	render() {
 		return (
 			<>
-				Your name is GitHub Copilot.<br />
+				Your name is Darbot Copilot.<br />
 			</>
 		);
 	}

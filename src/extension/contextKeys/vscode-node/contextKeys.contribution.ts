@@ -116,7 +116,7 @@ export class ContextKeysContribution extends Disposable {
 			const message =
 				reason === 'GitHubLoginFailed'
 					? SESSION_LOGIN_MESSAGE
-					: `GitHub Copilot could not connect to server. Extension activation failed: "${reason}"`;
+					: `Darbot Copilot could not connect to server. Extension activation failed: "${reason}"`;
 			this._logService.error(message);
 		}
 
@@ -161,7 +161,7 @@ export class ContextKeysContribution extends Disposable {
 			const copilotToken = await this._authenticationService.getCopilotToken();
 			const disabled = !copilotToken.isEditorPreviewFeaturesEnabled();
 			if (disabled) {
-				this._logService.warn(`Copilot preview features are disabled by organizational policy. Learn more: https://aka.ms/github-copilot-org-enable-features`);
+				this._logService.warn(`Copilot preview features are disabled by organizational policy. Learn more: https://aka.ms/darbot-copilot-org-enable-features`);
 			}
 			commands.executeCommand('setContext', previewFeaturesDisabledContextKey, disabled);
 		} catch (e) {

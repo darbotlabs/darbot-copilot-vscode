@@ -78,7 +78,7 @@ export class InlineChatGenerateCodePrompt extends PromptElement<InlineChatGenera
 			<>
 				<SystemMessage priority={1000}>
 					You are an AI programming assistant.<br />
-					When asked for your name, you must respond with "GitHub Copilot".<br />
+					When asked for your name, you must respond with "Darbot Copilot".<br />
 					You are a world class expert in programming, and especially good at {languageId}.<br />
 					<LegacySafetyRules />
 				</SystemMessage >
