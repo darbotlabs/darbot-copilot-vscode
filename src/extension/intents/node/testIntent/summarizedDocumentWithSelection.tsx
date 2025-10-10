@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -231,7 +231,7 @@ export class SummarizedDocumentWithSelection extends PromptElement<SummarizedDoc
 			splitDoc = documentData.summarizeDocument(tokenBudget);
 		}
 
-		this.logger.logger.info(
+		this.logger.info(
 			`Summarized doc to fit token budget (${tokenBudget} / ${sizing.endpoint.modelMaxPromptTokens}): ${splitDoc.codeAbove.length} + ${splitDoc.codeSelected.length} + ${splitDoc.codeBelow.length}`,
 		);
 

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import path from 'path';
@@ -86,6 +86,18 @@ suite('Type Alias', () => {
 			kind: ContextKind.Snippet,
 			value: 'export class W implements Both { name() { return \'w\'; } length() { return \'w\'.length; } }',
 			fileName: /p4\/source\/f2.ts$/
+		}, {
+			kind: ContextKind.Snippet,
+			value: 'export type Both = Name & NameLength;',
+			fileName: /p4\/source\/f1.ts$/
+		}, {
+			kind: ContextKind.Snippet,
+			value: 'interface Name { name(): string; }',
+			fileName: /p4\/source\/f1.ts$/
+		}, {
+			kind: ContextKind.Snippet,
+			value: 'type NameLength = { length(): number; }',
+			fileName: /p4\/source\/f1.ts$/
 		}];
 		const context = computeContext(session, path.join(root, 'p4/source/f5.ts'), { line: 3, character: 0 }, ContextKind.Snippet);
 		assertContextItems(context, expected);
@@ -101,7 +113,7 @@ suite('Method - Simple', () => {
 	test('complete method', () => {
 		const expected: testing.ExpectedCodeSnippet[] = [{
 			kind: ContextKind.Snippet,
-			value: 'declare class B { /** * The length of the line. */ protected _length: number; /** * Returns the occurrence of \'foo\'. * * @returns the occurrence of \'foo\'. */ public foo(): number; /** * The distance between two points. */ protected distance: number; }',
+			value: 'declare class B { /** * The distance between two points. */ protected distance: number; /** * The length of the line. */ protected _length: number; /** * Returns the occurrence of \'foo\'. * * @returns the occurrence of \'foo\'. */ public foo(): number; }',
 			fileName: /p2\/source\/f1.ts$/
 		}];
 		const context = computeContext(session, path.join(root, 'p2/source/f2.ts'), { line: 5, character: 0 }, ContextKind.Snippet);
@@ -303,12 +315,12 @@ suite('PropertyTypes', () => {
 		const expected: testing.ExpectedCodeSnippet[] = [
 			{
 				kind: ContextKind.Snippet,
-				value: 'declare class Street { constructor(name: string); public getName(); }',
+				value: 'type Age = { value: number; }',
 				fileName: /p13\/source\/f1.ts$/
 			},
 			{
 				kind: ContextKind.Snippet,
-				value: 'type Age = { value: number; }',
+				value: 'declare class Street { constructor(name: string); public getName(); }',
 				fileName: /p13\/source\/f1.ts$/
 			}
 		];
@@ -330,6 +342,58 @@ suite('PropertyTypes', () => {
 		];
 		const context = computeContext(session, path.join(root, 'p13/source/f3.ts'), { line: 4, character: 0 }, ContextKind.Snippet);
 		assertContextItems(context, expected);
+	});
+});
+
+suite('TypeOfExpressionRunnable', () => {
+	let session: testing.TestSession;
+	beforeAll(() => {
+		session = create(path.join(root, 'p14'));
+	});
+
+	test('ignores property access without identifier', () => {
+		const context = computeContext(session, path.join(root, 'p14/source/f2.ts'), { line: 3, character: 19 }, ContextKind.Snippet);
+		assertContextItems(context, []);
+	});
+
+	test('type from method chain', () => {
+		const expected: testing.ExpectedCodeSnippet[] = [{
+			kind: ContextKind.Snippet,
+			value: 'declare class Calculator { constructor(initial: number = 0); public add(x: number): Calculator; public getResult(): Result; }',
+			fileName: /p14\/source\/f1.ts$/
+		}];
+		const context = computeContext(session, path.join(root, 'p14/source/f3.ts'), { line: 4, character: 22 }, ContextKind.Snippet);
+		assertContextItems(context, expected, 'contains');
+	});
+
+	test('type from method return (interface)', () => {
+		const expected: testing.ExpectedCodeSnippet[] = [{
+			kind: ContextKind.Snippet,
+			value: 'interface Result { value: number; message: string; }',
+			fileName: /p14\/source\/f1.ts$/
+		}];
+		const context = computeContext(session, path.join(root, 'p14/source/f4.ts'), { line: 4, character: 25 }, ContextKind.Snippet);
+		assertContextItems(context, expected, 'contains');
+	});
+
+	test('type from element access chain', () => {
+		const expected: testing.ExpectedCodeSnippet[] = [{
+			kind: ContextKind.Snippet,
+			value: 'declare class Calculator { constructor(initial: number = 0); public add(x: number): Calculator; public getResult(): Result; }',
+			fileName: /p14\/source\/f1.ts$/
+		}];
+		const context = computeContext(session, path.join(root, 'p14/source/f5.ts'), { line: 4, character: 19 }, ContextKind.Snippet);
+		assertContextItems(context, expected, 'contains');
+	});
+
+	test('type from deeply nested property access', () => {
+		const expected: testing.ExpectedCodeSnippet[] = [{
+			kind: ContextKind.Snippet,
+			value: 'declare class Calculator { constructor(initial: number = 0); public add(x: number): Calculator; public getResult(): Result; }',
+			fileName: /p14\/source\/f1.ts$/
+		}];
+		const context = computeContext(session, path.join(root, 'p14/source/f6.ts'), { line: 7, character: 25 }, ContextKind.Snippet);
+		assertContextItems(context, expected, 'contains');
 	});
 });
 

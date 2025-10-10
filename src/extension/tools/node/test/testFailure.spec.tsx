@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -21,11 +21,11 @@ import {
 	ITestProvider,
 } from '../../../../platform/testing/common/testProvider';
 import { IWorkspaceService } from '../../../../platform/workspace/common/workspaceService';
-import { Position } from '../../../../util/common/test/shims/position';
-import { Range } from '../../../../util/common/test/shims/range';
 import { Event } from '../../../../util/vs/base/common/event';
 import { URI } from '../../../../util/vs/base/common/uri';
 import { IInstantiationService } from '../../../../util/vs/platform/instantiation/common/instantiation';
+import { Position } from '../../../../util/vs/workbench/api/common/extHostTypes/position';
+import { Range } from '../../../../util/vs/workbench/api/common/extHostTypes/range';
 import { createExtensionUnitTestingServices } from '../../../test/node/services';
 import { TestFailureTool } from '../testFailureTool';
 import { toolResultToString } from './toolTestUtils';

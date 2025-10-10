@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -82,7 +82,7 @@ export class NotebookCellLinkifier extends Disposable implements IDisposable, IC
 			}
 			return new LinkifyLocationAnchor(cell.document.uri, `Cell ${cell.index + 1}`);
 		} catch (error) {
-			this.logger.logger.error(error, `Error resolving cell ID: ${cellId}`);
+			this.logger.error(error, `Error resolving cell ID: ${cellId}`);
 			return undefined;
 		}
 	}

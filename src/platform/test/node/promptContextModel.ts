@@ -1,18 +1,19 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 import * as fs from 'fs';
 import type * as vscode from 'vscode';
-import { ExtHostNotebookDocumentData, NotebookRange } from '../../../util/common/test/shims/notebookDocument';
+import { ExtHostNotebookDocumentData } from '../../../util/common/test/shims/notebookDocument';
 import { ExtHostNotebookEditor } from '../../../util/common/test/shims/notebookEditor';
-import { ExtHostDocumentData } from '../../../util/common/test/shims/textDocument';
+import { createTextDocumentData } from '../../../util/common/test/shims/textDocument';
 import { ExtHostTextEditor } from '../../../util/common/test/shims/textEditor';
 import { Event } from '../../../util/vs/base/common/event';
 import * as path from '../../../util/vs/base/common/path';
 import { isEqual } from '../../../util/vs/base/common/resources';
 import { URI } from '../../../util/vs/base/common/uri';
+import { NotebookRange } from '../../../util/vs/workbench/api/common/extHostTypes/notebooks';
 import { Diagnostic, DiagnosticRelatedInformation, Location, Range, Selection, SymbolInformation, Uri } from '../../../vscodeTypes';
 import { RepoContext } from '../../git/common/gitService';
 import type { ISerializedWorkspaceState, IWorkspaceStateChangeFile, IWorkspaceStateTestFailure } from '../../workspaceState/common/promptContextModel';
@@ -177,7 +178,7 @@ export function deserializeWorkbenchState(scenarioFolderPath: string, stateFileP
 		);
 		visibleRanges.push(mockRange);
 	}
-	const mockTextDocument = ExtHostDocumentData.create(
+	const mockTextDocument = createTextDocumentData(
 		activeEditorFileUri,
 		fileContents,
 		state.activeTextEditor.languageId,

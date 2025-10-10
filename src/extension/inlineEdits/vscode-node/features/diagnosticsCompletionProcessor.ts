@@ -1,18 +1,22 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
 import { ConfigKey, IConfigurationService } from '../../../../platform/configuration/common/configurationService';
+import { applyEditsToRanges } from '../../../../platform/editSurvivalTracking/common/editSurvivalTracker';
 import { IFileSystemService } from '../../../../platform/filesystem/common/fileSystemService';
 import { DocumentId } from '../../../../platform/inlineEdits/common/dataTypes/documentId';
 import { Edits } from '../../../../platform/inlineEdits/common/dataTypes/edit';
-import { NesHistoryContextProvider } from '../../../../platform/inlineEdits/common/workspaceEditTracker/nesHistoryContextProvider';
-import { ILanguageDiagnosticsService } from '../../../../platform/languages/common/languageDiagnosticsService';
+import { ObservableGit } from '../../../../platform/inlineEdits/common/observableGit';
+import { IObservableDocument } from '../../../../platform/inlineEdits/common/observableWorkspace';
+import { autorunWithChanges } from '../../../../platform/inlineEdits/common/utils/observable';
+import { WorkspaceDocumentEditHistory } from '../../../../platform/inlineEdits/common/workspaceEditTracker/workspaceDocumentEditTracker';
 import { ILogService } from '../../../../platform/log/common/logService';
 import { ITabsAndEditorsService } from '../../../../platform/tabs/common/tabsAndEditorsService';
 import { IWorkspaceService } from '../../../../platform/workspace/common/workspaceService';
+import { isNotebookCell } from '../../../../util/common/notebooks';
 import { createTracer, ITracer } from '../../../../util/common/tracing';
 import { equals } from '../../../../util/vs/base/common/arrays';
 import { findFirstMonotonous } from '../../../../util/vs/base/common/arraysFind';
@@ -21,17 +25,20 @@ import { CancellationToken, CancellationTokenSource } from '../../../../util/vs/
 import { BugIndicatingError } from '../../../../util/vs/base/common/errors';
 import { Emitter } from '../../../../util/vs/base/common/event';
 import { Disposable, DisposableStore } from '../../../../util/vs/base/common/lifecycle';
-import { derived, IObservable } from '../../../../util/vs/base/common/observableInternal';
+import { autorun, derived, IObservable, runOnChange } from '../../../../util/vs/base/common/observableInternal';
 import { isEqual } from '../../../../util/vs/base/common/resources';
+import { StringEdit } from '../../../../util/vs/editor/common/core/edits/stringEdit';
 import { Position } from '../../../../util/vs/editor/common/core/position';
+import { OffsetRange } from '../../../../util/vs/editor/common/core/ranges/offsetRange';
 import { StringText } from '../../../../util/vs/editor/common/core/text/abstractText';
 import { getInformationDelta, InformationDelta } from '../../common/ghNearbyNesProvider';
 import { RejectionCollector } from '../../common/rejectionCollector';
 import { IVSCodeObservableDocument, VSCodeWorkspace } from '../parts/vscodeWorkspace';
 import { AnyDiagnosticCompletionItem, AnyDiagnosticCompletionProvider } from './diagnosticsBasedCompletions/anyDiagnosticsCompletionProvider';
 import { AsyncDiagnosticCompletionProvider } from './diagnosticsBasedCompletions/asyncDiagnosticsCompletionProvider';
-import { Diagnostic, DiagnosticCompletionItem, DiagnosticInlineEditRequestLogContext, DiagnosticSeverity, distanceToClosestDiagnostic, IDiagnosticCompletionProvider, log, logList, sortDiagnosticsByDistance, toInternalPosition } from './diagnosticsBasedCompletions/diagnosticsCompletions';
+import { Diagnostic, DiagnosticCompletionItem, DiagnosticInlineEditRequestLogContext, distanceToClosestDiagnostic, IDiagnosticCompletionProvider, log, logList, sortDiagnosticsByDistance } from './diagnosticsBasedCompletions/diagnosticsCompletions';
 import { ImportDiagnosticCompletionItem, ImportDiagnosticCompletionProvider } from './diagnosticsBasedCompletions/importDiagnosticsCompletionProvider';
+import { toInternalPosition } from '../utils/translations';
 
 interface IDiagnosticsCompletionState<T extends DiagnosticCompletionItem = DiagnosticCompletionItem> {
 	completionItem: T | null;
@@ -46,9 +53,78 @@ function diagnosticCompletionRunResultEquals(a: IDiagnosticsCompletionState, b: 
 	return a.completionItem === b.completionItem;
 }
 
-class DiagnosticsCollection {
+// Only exported for testing
+export class DiagnosticsCollection {
 
 	private _diagnostics: Diagnostic[] = [];
+
+	applyEdit(previous: StringText, edit: StringEdit, after: StringText): boolean {
+
+		let hasInvalidated = false;
+		for (const diagnostic of this._diagnostics) {
+			const oldRange = diagnostic.range;
+			const newRange = applyEditsToRanges([oldRange], edit)[0];
+
+			// If the range shrank then the diagnostic will have changed
+			if (!newRange || newRange.length < oldRange.length) {
+				diagnostic.invalidate();
+				hasInvalidated = true;
+				continue;
+			}
+
+			const contentAtOldRange = oldRange.substring(previous.value);
+
+			// If the range stays the same then the diagnostic is still valid if the content is the same
+			if (newRange.length === oldRange.length) {
+				const contentAtNewRange = newRange.substring(after.value);
+				if (contentAtOldRange === contentAtNewRange) {
+					diagnostic.updateRange(newRange);
+				} else {
+					diagnostic.invalidate();
+					hasInvalidated = true;
+				}
+				continue;
+			}
+
+			// If the range grew then we need to check what got added
+			const isSamePrefix = contentAtOldRange === new OffsetRange(newRange.start, newRange.start + oldRange.length).substring(after.value);
+			const isSameSuffix = contentAtOldRange === new OffsetRange(newRange.endExclusive - oldRange.length, newRange.endExclusive).substring(after.value);
+			if (!isSamePrefix && !isSameSuffix) {
+				// The content at the diagnostic range has changed
+				diagnostic.invalidate();
+				hasInvalidated = true;
+				continue;
+			}
+
+			let edgeCharacter;
+			if (isSamePrefix) {
+				const offsetAfterOldRange = newRange.start + oldRange.length;
+				edgeCharacter = new OffsetRange(offsetAfterOldRange, offsetAfterOldRange + 1).substring(after.value);
+			} else {
+				const offsetBeforeOldRange = newRange.endExclusive - oldRange.length - 1;
+				edgeCharacter = new OffsetRange(offsetBeforeOldRange, offsetBeforeOldRange + 1).substring(after.value);
+			}
+
+			if (edgeCharacter.length !== 1 || /^[a-zA-Z0-9_]$/.test(edgeCharacter)) {
+				// The content at the diagnostic range has changed
+				diagnostic.invalidate();
+				hasInvalidated = true;
+				continue;
+			}
+
+			// We need to update the range of the diagnostic after applying the edits
+			let updatedRange: OffsetRange;
+			if (isSamePrefix) {
+				updatedRange = new OffsetRange(newRange.start, newRange.start + oldRange.length);
+			} else {
+				updatedRange = new OffsetRange(newRange.endExclusive - oldRange.length, newRange.endExclusive);
+			}
+
+			diagnostic.updateRange(updatedRange);
+		}
+
+		return hasInvalidated;
+	}
 
 	isEqualAndUpdate(relevantDiagnostics: Diagnostic[]): boolean {
 		if (equals(this._diagnostics, relevantDiagnostics, Diagnostic.equals)) {
@@ -85,22 +161,25 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 
 	private readonly _rejectionCollector: RejectionCollector;
 	private readonly _diagnosticsCompletionProviders: IObservable<IDiagnosticCompletionProvider[]>;
+	private readonly _workspaceDocumentEditHistory: WorkspaceDocumentEditHistory;
+	private readonly _currentDiagnostics = new DiagnosticsCollection();
 
 	private readonly _tracer: ITracer;
 
 	constructor(
 		private readonly _workspace: VSCodeWorkspace,
-		private readonly _historyContextProvider: NesHistoryContextProvider,
+		git: ObservableGit,
 		@ILogService logService: ILogService,
 		@IConfigurationService configurationService: IConfigurationService,
 		@IWorkspaceService workspaceService: IWorkspaceService,
 		@IFileSystemService fileSystemService: IFileSystemService,
 		@ITabsAndEditorsService private readonly _tabsAndEditorsService: ITabsAndEditorsService,
-		@ILanguageDiagnosticsService private readonly _languageDiagnosticsService: ILanguageDiagnosticsService
 	) {
 		super();
 
-		this._tracer = createTracer(['NES', 'DiagnosticsInlineCompletionProvider'], (s) => logService.logger.trace(s));
+		this._workspaceDocumentEditHistory = this._register(new WorkspaceDocumentEditHistory(this._workspace, git, 100));
+
+		this._tracer = createTracer(['NES', 'DiagnosticsInlineCompletionProvider'], (s) => logService.trace(s));
 
 		const diagnosticsExplorationEnabled = configurationService.getConfigObservable(ConfigKey.Internal.InlineEditsDiagnosticsExplorationEnabled);
 
@@ -120,34 +199,33 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 			return providers;
 		}).recomputeInitiallyAndOnChange(this._store);
 
-		this._rejectionCollector = new RejectionCollector(this._workspace, s => this._tracer.trace(s));
+		this._rejectionCollector = this._register(new RejectionCollector(this._workspace, s => this._tracer.trace(s)));
 
-		this._register(this._languageDiagnosticsService.onDidChangeDiagnostics(async e => {
+		const isValidEditor = (editor: vscode.TextEditor | undefined): editor is vscode.TextEditor => {
+			return !!editor && (isNotebookCell(editor.document.uri) || isEditorFromEditorGrid(editor));
+		};
+
+		this._register(autorun(reader => {
+			const activeDocument = this._workspace.lastActiveDocument.read(reader);
+			if (!activeDocument) { return; }
+
 			const activeEditor = this._tabsAndEditorsService.activeTextEditor;
-			if (!activeEditor || !isEditorFromEditorGrid(activeEditor)) {
+			if (!activeEditor || !isEditorFromEditorGrid(activeEditor) || !isEqual(activeDocument.id.toUri(), activeEditor.document.uri)) {
 				return;
 			}
 
-			const diagnosticsChangedForActiveEditor = e.uris.some(uri => isEqual(uri, activeEditor.document.uri));
-			if (!diagnosticsChangedForActiveEditor) {
-				return;
-			}
-
+			// update state because document changed
 			this._updateState();
-		}));
 
-		this._register(this._tabsAndEditorsService.onDidChangeActiveTextEditor(async e => {
-			const activeEditor = e;
-			if (!activeEditor || !isEditorFromEditorGrid(activeEditor)) {
-				return;
-			}
-
-			this._updateState();
+			// update state because diagnostics changed
+			reader.store.add(runOnChange(activeDocument.diagnostics, () => {
+				this._updateState();
+			}));
 		}));
 
 		this._register(vscode.window.onDidChangeTextEditorSelection(async e => {
 			const activeEditor = this._tabsAndEditorsService.activeTextEditor;
-			if (!activeEditor || !isEditorFromEditorGrid(activeEditor)) {
+			if (!isValidEditor(activeEditor)) {
 				return;
 			}
 
@@ -161,9 +239,24 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 		this._register(this._worker.onDidChange(result => {
 			this._onDidChange.fire(!!result.completionItem);
 		}));
-	}
 
-	private readonly _previousConsideredDiagnostics = new DiagnosticsCollection();
+		this._register(autorun(reader => {
+			const document = this._workspace.lastActiveDocument.read(reader);
+			if (!document) { return; }
+
+			reader.store.add(autorunWithChanges(this, {
+				value: document.value,
+			}, (data) => {
+				for (const edit of data.value.changes) {
+					if (!data.value.previous) { continue; }
+					const hasInvalidatedRange = this._currentDiagnostics.applyEdit(data.value.previous, edit, data.value.value);
+					if (hasInvalidatedRange) {
+						this._updateState();
+					}
+				}
+			}));
+		}));
+	}
 
 	private async _updateState(): Promise<void> {
 		const activeTextEditor = this._tabsAndEditorsService.activeTextEditor;
@@ -172,14 +265,19 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 		const workspaceDocument = this._workspace.getDocumentByTextDocument(activeTextEditor.document);
 		if (!workspaceDocument) { return; }
 
+		const range = new vscode.Range(activeTextEditor.selection.active, activeTextEditor.selection.active);
+		const selection = workspaceDocument.toRange(activeTextEditor.document, range);
+		if (!selection) {
+			return;
+		}
+
+		const cursor = toInternalPosition(selection.start);
 		const log = new DiagnosticInlineEditRequestLogContext();
 
-		const cursor = toInternalPosition(activeTextEditor.selection.active);
-
 		const { availableDiagnostics, relevantDiagnostics } = this._getDiagnostics(workspaceDocument, cursor, log);
-		const diagnosticsSorted = sortDiagnosticsByDistance(relevantDiagnostics, cursor);
+		const diagnosticsSorted = sortDiagnosticsByDistance(workspaceDocument, relevantDiagnostics, cursor);
 
-		if (this._previousConsideredDiagnostics.isEqualAndUpdate(diagnosticsSorted)) {
+		if (this._currentDiagnostics.isEqualAndUpdate(diagnosticsSorted)) {
 			return;
 		}
 
@@ -189,11 +287,7 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 	}
 
 	private _getDiagnostics(workspaceDocument: IVSCodeObservableDocument, cursor: Position, logContext: DiagnosticInlineEditRequestLogContext): { availableDiagnostics: Diagnostic[]; relevantDiagnostics: Diagnostic[] } {
-		const availableDiagnostics = this._languageDiagnosticsService
-			.getDiagnostics(workspaceDocument.textDocument.uri)
-			.map(diagnostic => Diagnostic.fromVSCodeDiagnostic(diagnostic))
-			.filter(diagnostic => diagnostic.severity !== DiagnosticSeverity.Information)
-			.filter(diagnostic => diagnostic.severity !== DiagnosticSeverity.Hint);
+		const availableDiagnostics = workspaceDocument.diagnostics.get().map(d => new Diagnostic(d));
 
 		if (availableDiagnostics.length === 0) {
 			return { availableDiagnostics: [], relevantDiagnostics: [] };
@@ -212,7 +306,7 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 		const providers = this._diagnosticsCompletionProviders.get();
 
 		let relevantDiagnostics = [...availableDiagnostics];
-		relevantDiagnostics = filterDiagnosticsAndLog(relevantDiagnostics, 'Filtered by provider', ds => ds.filter(diagnostic => providers.some(provider => provider.providesCompletionsForDiagnostic(diagnostic, language, cursor))));
+		relevantDiagnostics = filterDiagnosticsAndLog(relevantDiagnostics, 'Filtered by provider', ds => ds.filter(diagnostic => providers.some(provider => provider.providesCompletionsForDiagnostic(workspaceDocument, diagnostic, language, cursor))));
 		relevantDiagnostics = filterDiagnosticsAndLog(relevantDiagnostics, 'Filtered by recent acceptance', ds => ds.filter(diagnostic => !this._hasDiagnosticRecentlyBeenAccepted(diagnostic)));
 		relevantDiagnostics = filterDiagnosticsAndLog(relevantDiagnostics, 'Filtered by no recent edit', ds => this._filterDiagnosticsByRecentEditNearby(ds, workspaceDocument));
 
@@ -232,14 +326,14 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 
 		// Distance to the closest diagnostic which is not supported by any provider
 		const allNoneSupportedDiagnostics = allDiagnostics.filter(diagnostic => !diagnosticsSorted.includes(diagnostic));
-		telemetryBuilder.setDistanceToUnknownDiagnostic(distanceToClosestDiagnostic(allNoneSupportedDiagnostics, cursor));
+		telemetryBuilder.setDistanceToUnknownDiagnostic(distanceToClosestDiagnostic(workspaceDocument, allNoneSupportedDiagnostics, cursor));
 
 		// Distance to the closest none result diagnostic
 		const allAlternativeDiagnostics = allDiagnostics.filter(diagnostic => !completionItem || !completionItem.diagnostic.equals(diagnostic));
-		telemetryBuilder.setDistanceToAlternativeDiagnostic(distanceToClosestDiagnostic(allAlternativeDiagnostics, cursor));
+		telemetryBuilder.setDistanceToAlternativeDiagnostic(distanceToClosestDiagnostic(workspaceDocument, allAlternativeDiagnostics, cursor));
 
 		if (completionItem) {
-			const hasDiagnosticForSameRange = allAlternativeDiagnostics.some(diagnostic => completionItem.diagnostic.range.equalsRange(diagnostic.range));
+			const hasDiagnosticForSameRange = allAlternativeDiagnostics.some(diagnostic => completionItem.diagnostic.range.equals(diagnostic.range));
 			telemetryBuilder.setHasAlternativeDiagnosticForSameRange(hasDiagnosticForSameRange);
 		}
 
@@ -254,6 +348,9 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 	getCurrentState(docId: DocumentId): DiagnosticCompletionState {
 		const currentState = this._worker.getCurrentResult();
 
+		const workspaceDocument = this._workspace.getDocument(docId);
+		if (!workspaceDocument) { return { item: undefined, telemetry: new DiagnosticsCompletionHandlerTelemetry().addDroppedReason('WorkspaceDocumentNotFound').build(), logContext: undefined }; }
+
 		if (currentState === NoResultReason.HasNotRunYet) {
 			return { item: undefined, telemetry: new DiagnosticsCompletionHandlerTelemetry().build(), logContext: undefined };
 		}
@@ -266,7 +363,7 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 			return { item: undefined, telemetry: telemetryBuilder.build(), logContext };
 		}
 
-		if (!this._isCompletionItemValid(completionItem, currentState.logContext, telemetryBuilder)) {
+		if (!this._isCompletionItemValid(completionItem, workspaceDocument, currentState.logContext, telemetryBuilder)) {
 			return { item: undefined, telemetry: telemetryBuilder.build(), logContext };
 		}
 
@@ -275,7 +372,7 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 			return { item: undefined, telemetry: telemetryBuilder.addDroppedReason('wrong-document').build(), logContext };
 		}
 
-		log("following known diagnostics:\n" + this._previousConsideredDiagnostics.toString(), undefined, this._tracer);
+		log("following known diagnostics:\n" + this._currentDiagnostics.toString(), undefined, this._tracer);
 
 		return { item: completionItem, telemetry: telemetryBuilder.build(), logContext };
 	}
@@ -301,7 +398,7 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 
 		const diagnosticsCompletionItems = await this._fetchDiagnosticsBasedCompletions(workspaceDocument, diagnosticsSorted, pos, logContext, token);
 
-		return diagnosticsCompletionItems.find(item => this._isCompletionItemValid(item, logContext, tb)) ?? null;
+		return diagnosticsCompletionItems.find(item => this._isCompletionItemValid(item, workspaceDocument, logContext, tb)) ?? null;
 	}
 
 	private async _fetchDiagnosticsBasedCompletions(workspaceDocument: IVSCodeObservableDocument, sortedDiagnostics: Diagnostic[], pos: Position, logContext: DiagnosticInlineEditRequestLogContext, token: CancellationToken): Promise<DiagnosticCompletionItem[]> {
@@ -342,7 +439,14 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 
 	// Filters
 
-	private _isCompletionItemValid(item: DiagnosticCompletionItem, logContext: DiagnosticInlineEditRequestLogContext, tb: DiagnosticsCompletionHandlerTelemetry): boolean {
+	private _isCompletionItemValid(item: DiagnosticCompletionItem, workspaceDocument: IObservableDocument, logContext: DiagnosticInlineEditRequestLogContext, tb: DiagnosticsCompletionHandlerTelemetry): boolean {
+		if (!item.diagnostic.isValid()) {
+			log('Diagnostic completion item is no longer valid', logContext, this._tracer);
+			tb.addDroppedReason('no-longer-valid', item);
+			logContext.markToBeLogged();
+			return false;
+		}
+
 		if (this._isDiagnosticCompletionRejected(item)) {
 			log('Diagnostic completion item has been rejected before', logContext, this._tracer);
 			tb.addDroppedReason('recently-rejected', item);
@@ -372,7 +476,7 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 		}
 
 		const provider = this._diagnosticsCompletionProviders.get().find(p => p.providerName === item.providerName);
-		if (provider && provider.isCompletionItemStillValid && !provider.isCompletionItemStillValid(item)) {
+		if (provider && provider.isCompletionItemStillValid && !provider.isCompletionItemStillValid(item, workspaceDocument)) {
 			log(`${provider.providerName}: Completion item is no longer valid`, logContext, this._tracer);
 			tb.addDroppedReason(`${provider.providerName}-no-longer-valid`, item);
 			logContext.markToBeLogged();
@@ -387,12 +491,13 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 	}
 
 	private _hasRecentlyBeenAddedWithoutNES(item: DiagnosticCompletionItem): boolean {
-		const history = this._historyContextProvider.getHistoryContext(item.documentId);
-		const document = history?.getDocument(item.documentId);
-		if (!document) {
+		const recentEdits = this._workspaceDocumentEditHistory.getNRecentEdits(item.documentId, 5)?.edits;
+		if (!recentEdits) {
 			return false;
 		}
-		return document.lastEdit.edit.replacements.some(edit => edit.equals(item.toOffsetEdit()));
+
+		const offsetEdit = item.toOffsetEdit();
+		return recentEdits.replacements.some(edit => edit.replaceRange.intersectsOrTouches(offsetEdit.replaceRange));
 	}
 
 	private _hasDiagnosticRecentlyBeenAccepted(diagnostic: Diagnostic): boolean {
@@ -403,33 +508,24 @@ export class DiagnosticsCompletionProcessor extends Disposable {
 	}
 
 	private _isUndoRecentEdit(diagnostic: DiagnosticCompletionItem): boolean {
-		const historyContext = this._historyContextProvider.getHistoryContext(diagnostic.documentId);
-		const doc = historyContext?.getDocument(diagnostic.documentId);
-		if (!doc) {
+		const documentHistory = this._workspaceDocumentEditHistory.getRecentEdits(diagnostic.documentId);
+		if (!documentHistory) {
 			return false;
 		}
 
-		const documentBefore = doc.base;
-		const documentAfter = doc.lastEdit.edit.applyOnText(doc.base);
-		const edits = doc.lastEdits;
-		return diagnosticWouldUndoUserEdit(diagnostic, documentBefore, documentAfter, edits);
+		return diagnosticWouldUndoUserEdit(diagnostic, documentHistory.before, documentHistory.after, Edits.single(documentHistory.edits));
 	}
 
 	private _filterDiagnosticsByRecentEditNearby(diagnostics: Diagnostic[], document: IVSCodeObservableDocument): Diagnostic[] {
-		const historyContext = this._historyContextProvider.getHistoryContext(document.id);
-		const doc = historyContext?.getDocument(document.id);
-		if (!doc) {
+		const recentEdits = this._workspaceDocumentEditHistory.getRecentEdits(document.id)?.edits;
+		if (!recentEdits) {
 			return [];
 		}
 
-		const transformer = document.value.get().getTransformer();
-
 		return diagnostics.filter(diagnostic => {
-			const currentOffsetRange = transformer.getOffsetRange(diagnostic.range);
-			const newRanges = doc.lastEdits.compose().getNewRanges();
-
-			const potentialIntersection = findFirstMonotonous(newRanges, (r) => r.endExclusive >= currentOffsetRange.start);
-			return potentialIntersection?.intersectsOrTouches(currentOffsetRange);
+			const newRanges = recentEdits.getNewRanges();
+			const potentialIntersection = findFirstMonotonous(newRanges, (r) => r.endExclusive >= diagnostic.range.start);
+			return potentialIntersection?.intersectsOrTouches(diagnostic.range);
 		});
 	}
 }

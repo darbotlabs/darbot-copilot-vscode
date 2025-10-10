@@ -1,16 +1,16 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 import { beforeAll, describe, expect, it } from 'vitest';
 import type * as vscode from 'vscode';
 import { ConfigKey } from '../../../../platform/configuration/common/configurationService';
-import { DefaultsOnlyConfigurationService } from '../../../../platform/configuration/test/common/defaultsOnlyConfigurationService';
+import { DefaultsOnlyConfigurationService } from '../../../../platform/configuration/common/defaultsOnlyConfigurationService';
 import { InMemoryConfigurationService } from '../../../../platform/configuration/test/common/inMemoryConfigurationService';
 import { IIgnoreService, NullIgnoreService } from '../../../../platform/ignore/common/ignoreService';
 import { URI } from '../../../../util/vs/base/common/uri';
-import { DocumentFilter } from '../../vscode-node/parts/vscodeWorkspace';
+import { DocumentFilter } from '../../vscode-node/parts/documentFilter';
 
 describe('DocumentFilter', () => {
 

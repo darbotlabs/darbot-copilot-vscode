@@ -1,8 +1,9 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Raw } from '@vscode/prompt-tsx';
 import { afterAll, beforeAll, beforeEach, expect, suite, test } from 'vitest';
 import { IChatMLFetcher } from '../../../../../platform/chat/common/chatMLFetcher';
 import { ChatLocation } from '../../../../../platform/chat/common/commonTypes';
@@ -15,14 +16,10 @@ import {
 import { MockEndpoint } from '../../../../../platform/endpoint/test/node/mockEndpoint';
 import { messageToMarkdown } from '../../../../../platform/log/common/messageStringify';
 import { IResponseDelta } from '../../../../../platform/networking/common/fetch';
-import {
-	ChatRole,
-	rawMessageToCAPI,
-} from '../../../../../platform/networking/common/openai';
 import { ITestingServicesAccessor } from '../../../../../platform/test/node/services';
 import { TestWorkspaceService } from '../../../../../platform/test/node/testWorkspaceService';
 import { IWorkspaceService } from '../../../../../platform/workspace/common/workspaceService';
-import { ExtHostDocumentData } from '../../../../../util/common/test/shims/textDocument';
+import { createTextDocumentData } from '../../../../../util/common/test/shims/textDocument';
 import { URI } from '../../../../../util/vs/base/common/uri';
 import { SyncDescriptor } from '../../../../../util/vs/platform/instantiation/common/descriptors';
 import { IInstantiationService } from '../../../../../util/vs/platform/instantiation/common/instantiation';
@@ -30,6 +27,7 @@ import {
 	LanguageModelTextPart,
 	LanguageModelToolResult,
 } from '../../../../../vscodeTypes';
+import { addCacheBreakpoints } from '../../../../intents/node/cacheBreakpoints';
 import { ChatVariablesCollection } from '../../../../prompt/common/chatVariablesCollection';
 import {
 	Conversation,
@@ -52,7 +50,6 @@ import {
 	SummarizedConversationHistoryMetadata,
 	SummarizedConversationHistoryPropsBuilder,
 } from '../summarizedConversationHistory';
-import { addCacheBreakpoints } from '../../../../intents/node/cacheBreakpoints';
 
 suite('Agent Summarization', () => {
 	let accessor: ITestingServicesAccessor;
@@ -62,7 +59,7 @@ suite('Agent Summarization', () => {
 	let conversation: Conversation;
 
 	beforeAll(() => {
-		const testDoc = ExtHostDocumentData.create(
+		const testDoc = createTextDocumentData(
 			fileTsUri,
 			'line 1\nline 2\n\nline 4\nline 5',
 			'ts',
@@ -110,7 +107,7 @@ suite('Agent Summarization', () => {
 		promptType: TestPromptType = TestPromptType.Agent,
 	): Promise<string> {
 		const instaService = accessor.get(IInstantiationService);
-		const endpoint = instaService.createInstance(MockEndpoint);
+		const endpoint = instaService.createInstance(MockEndpoint, undefined);
 		normalizeSummariesOnRounds(promptContext.history);
 		if (!promptContext.conversation) {
 			promptContext = { ...promptContext, conversation };
@@ -163,9 +160,9 @@ suite('Agent Summarization', () => {
 			}
 		}
 		addCacheBreakpoints(r.messages);
-		return rawMessageToCAPI(r.messages)
-			.filter((message) => message.role !== ChatRole.System)
-			.map(messageToMarkdown)
+		return r.messages
+			.filter((message) => message.role !== Raw.ChatRole.System)
+			.map((m) => messageToMarkdown(m))
 			.join('\n\n')
 			.replace(/\\+/g, '/')
 			.replace(/The current date is.*/g, '(Date removed from snapshot)');

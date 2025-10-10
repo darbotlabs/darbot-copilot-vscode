@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -13,7 +13,7 @@ import { INotebookService, PipPackage, Variable, VariablesResult } from '../comm
 import { NotebookExecutionServiceImpl } from './notebookExectionServiceImpl';
 
 export const NOTEBOOK_ALTERNATIVE_CONTENT_SCHEME = 'alternative-notebook-content';
-const NOTEBOOK_AGENT_USAGE_KEY = 'darbot.notebookAgentModeUsage';
+const NOTEBOOK_AGENT_USAGE_KEY = 'github.copilot.notebookAgentModeUsage';
 
 export interface ICellExecution {
 	cell: NotebookCell;
@@ -43,7 +43,7 @@ export class NotebookService implements INotebookService {
 		@IExperimentationService private readonly _experimentationService: IExperimentationService,
 		@IWorkspaceService private readonly _workspaceService: IWorkspaceService,
 	) {
-		this._isVariableFilteringEnabled = this._experimentationService.getTreatmentVariable('vscode', 'copilotchat.notebookVariableFiltering')
+		this._isVariableFilteringEnabled = this._experimentationService.getTreatmentVariable('copilotchat.notebookVariableFiltering')
 			|| this._configurationService.getConfig(ConfigKey.Internal.NotebookVariableFilteringEnabled);
 		this._registerExecutionListener();
 	}

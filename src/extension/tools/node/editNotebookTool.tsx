@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -12,7 +12,6 @@ import {
 } from '@vscode/prompt-tsx';
 import { EOL } from 'os';
 import type * as vscode from 'vscode';
-import { TextDocumentSnapshot } from '../../../platform/editing/common/textDocumentSnapshot';
 import { IEndpointProvider } from '../../../platform/endpoint/common/endpointProvider';
 import { IFileSystemService } from '../../../platform/filesystem/common/fileSystemService';
 import { ILogService } from '../../../platform/log/common/logService';
@@ -21,18 +20,25 @@ import { IAlternativeNotebookContentService } from '../../../platform/notebook/c
 import { BaseAlternativeNotebookContentProvider } from '../../../platform/notebook/common/alternativeContentProvider';
 import {
 	getCellId,
+	getCellIdMap,
 	getDefaultLanguage,
+	normalizeCellId,
 } from '../../../platform/notebook/common/helpers';
 import { IPromptPathRepresentationService } from '../../../platform/prompts/common/promptPathRepresentationService';
 import { ITelemetryService } from '../../../platform/telemetry/common/telemetry';
 import { IWorkspaceService } from '../../../platform/workspace/common/workspaceService';
 import { createSha256Hash } from '../../../util/common/crypto';
-import { findCell, findNotebook } from '../../../util/common/notebooks';
+import {
+	findCell,
+	findNotebook,
+	isJupyterNotebook,
+} from '../../../util/common/notebooks';
 import { findLast } from '../../../util/vs/base/common/arraysFind';
 import {
 	raceCancellation,
 	StatefulPromise,
 } from '../../../util/vs/base/common/async';
+import { isCancellationError } from '../../../util/vs/base/common/errors';
 import { createSingleCallFunction } from '../../../util/vs/base/common/functional';
 import {
 	DisposableStore,
@@ -41,10 +47,12 @@ import {
 import { isEqual } from '../../../util/vs/base/common/resources';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
 import {
+	EndOfLine,
 	EventEmitter,
 	LanguageModelPromptTsxPart,
 	LanguageModelTextPart,
 	LanguageModelToolResult,
+	MarkdownString,
 	NotebookCellData,
 	NotebookCellKind,
 	NotebookEdit,
@@ -56,20 +64,15 @@ import {
 import { IBuildPromptContext } from '../../prompt/common/intents';
 import { renderPromptElementJSON } from '../../prompts/node/base/promptRenderer';
 import { Tag } from '../../prompts/node/base/tag';
-import {
-	CodeMapper,
-	ICodeMapperRequestInput,
-} from '../../prompts/node/codeMapper/codeMapper';
 import { EXISTING_CODE_MARKER } from '../../prompts/node/panel/codeBlockFormattingRules';
 import { CodeBlock } from '../../prompts/node/panel/safeElements';
 import { ToolName } from '../common/toolNames';
 import { ICopilotTool, ToolRegistry } from '../common/toolsRegistry';
-import { isCancellationError } from '../../../util/vs/base/common/errors';
+import { formatUriForFileWidget, resolveToolInputPath } from './toolUtils';
 
 export interface IEditNotebookToolParams {
 	filePath: string;
-	explanation: string;
-	cellId?: string;
+	cellId: string;
 	newCode?: string | string[];
 	language?: string;
 	editType: 'insert' | 'delete' | 'edit';
@@ -93,11 +96,11 @@ class ErrorWithTelemetrySafeReason extends Error {
 	constructor(
 		message: string,
 		public readonly reason: string,
+		public readonly data?: string,
 	) {
 		super(message);
 	}
 }
-
 export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 	public static toolName = ToolName.EditNotebook;
 	private promptContext?: IBuildPromptContext;
@@ -197,7 +200,6 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 			return;
 		}
 
-		const codeMapperCompleted: Promise<any>[] = [];
 		const cells: ChangedCell[] = notebook
 			.getCells()
 			.map((cell, index) => ({ cell, index, type: 'existing' }));
@@ -232,26 +234,21 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 			stream.notebookEdit(notebookUri, true),
 		);
 		disposables.add(toDisposable(() => sendEndEdit()));
-		const counters = { insert: 0, edit: 0, delete: 0 };
 		let failureReason: string | undefined = undefined;
+		let failureData: string | undefined = undefined;
+		let editOperation: 'insert' | 'edit' | 'delete' | undefined = undefined;
 		try {
 			// First validate all of the args begore applying any changes.
-			this.fixInput(options.input, notebook, provider);
-			this.validateInput(options.input, notebook, provider);
+			const { editType, language, newCode, cellId } = this.fixInput(
+				options.input,
+				notebook,
+				provider,
+			);
+			editOperation = editType;
+			this.validateInput({ editType, cellId, newCode }, notebook);
 			stream.notebookEdit(notebookUri, []);
-			let previousCellIdUsedForInsertion = '';
-			const explanation = options.input.explanation;
-			const { editType, language, newCode } = options.input;
-			const cellCode = Array.isArray(newCode)
-				? newCode.join(EOL)
-				: newCode;
-			let cellId = options.input.cellId || '';
-
+			const cellMap = getCellIdMap(notebook);
 			if (editType === 'insert') {
-				counters.insert++;
-				// Model can send two subsequent inserts, and only first insert might contain the cellid.
-				previousCellIdUsedForInsertion = cellId =
-					cellId || previousCellIdUsedForInsertion;
 				let notebookCellIndex = -1; // Index in notebook where we are to insert this new cell.
 				let cellsCellIndex = -1; // Index in cells array.
 				let originalIndex = -1; // Original intended Notebook Cell Index.
@@ -281,13 +278,12 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 						(item) => item.type !== 'delete',
 					).length;
 				} else {
-					const cell = cellId
-						? provider.getCell(notebook, cellId)
-						: undefined;
-					if (cellId && !cell) {
+					const cell = cellId ? cellMap.get(cellId) : undefined;
+					if (!cell) {
 						throw new ErrorWithTelemetrySafeReason(
-							`Invalid cell id: ${cellId}, notebook may have been modified, try reading the file again`,
+							getInvalidCellErrorMessage(cellId),
 							'invalid_cell_id_insert_after',
+							cellId,
 						);
 					}
 					const entry = cells.find((item) => item.cell === cell)!;
@@ -308,18 +304,14 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 					}
 				}
 
-				previousCellIdUsedForInsertion =
-					cellId ?? previousCellIdUsedForInsertion;
-				const languageId =
-					language || getDefaultLanguage(notebook) || 'python'; // Default to Python if no language is provided
 				const cellKind =
 					language === 'markdown'
 						? NotebookCellKind.Markup
 						: NotebookCellKind.Code;
 				const cell = new NotebookCellData(
 					cellKind,
-					cellCode || '',
-					languageId,
+					newCode || '',
+					language,
 				);
 				expectedCellEdits.push({
 					type: 'insert',
@@ -344,26 +336,23 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 					NotebookEdit.insertCells(notebookCellIndex, [cell]),
 				);
 			} else {
-				previousCellIdUsedForInsertion = '';
-				const cell = cellId
-					? provider.getCell(notebook, cellId)
-					: undefined;
+				const cell = cellId ? cellMap.get(cellId) : undefined;
 				if (!cell) {
 					throw new ErrorWithTelemetrySafeReason(
-						`Invalid cell id: ${cellId}, notebook may have been modified, try reading the file again`,
+						getInvalidCellErrorMessage(cellId),
 						'invalid_cell_id_empty',
+						cellId,
 					);
 				}
 				const cellIndex = cells.find((i) => i.cell === cell)!.index;
 				if (cellIndex === -1) {
 					throw new ErrorWithTelemetrySafeReason(
-						`Invalid cell id: ${cellId}, notebook may have been modified, try reading the file again`,
+						getInvalidCellErrorMessage(cellId),
 						'invalid_cell_id_edit_or_delete',
 					);
 				}
 
 				if (editType === 'delete') {
-					counters.delete++;
 					const cellRange = new NotebookRange(
 						cellIndex,
 						cellIndex + 1,
@@ -389,91 +378,39 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 						NotebookEdit.deleteCells(cellRange),
 					);
 				} else {
-					if (cellCode === undefined) {
+					if (newCode === undefined) {
 						throw new ErrorWithTelemetrySafeReason(
 							'Invalid input: newCode is required for edit operation',
 							'invalid_input_new_code_required',
 						);
 					}
-					counters.edit++;
 					const existingCell = notebook.cellAt(cellIndex);
 					expectedCellEdits.push({
 						type: 'existing',
 						cell: existingCell,
 						index: cellIndex,
 					});
-					if (
-						existingCell.document.getText().length &&
-						cellCode.includes(EXISTING_CODE_MARKER)
-					) {
-						sendEditNotebookCellTelemetry(
-							this.telemetryService,
-							true,
-							existingCell.document.uri,
-							options,
-							this.endpointProvider,
-						);
-						const codeMapper =
-							this.instantiationService.createInstance(
-								CodeMapper,
-							);
-						const requestInput = createCodeMapperRequest(
-							existingCell,
-							notebookUri,
-							cellCode,
-							explanation ?? '',
-						);
-						const cellEditOperation = codeMapper.mapCode(
-							requestInput,
-							{
-								notebookEdit(target, edits) {
-									stream.notebookEdit(target, edits);
-								},
-								textEdit(_target, edits) {
-									stream.textEdit(
-										existingCell.document.uri,
-										edits,
-									);
-									if (typeof edits !== 'boolean') {
-										edits = Array.isArray(edits)
-											? edits
-											: [edits];
-										edits.forEach((e) =>
-											expectedCellTextEdits.push([
-												existingCell.document.uri,
-												e,
-											]),
-										);
-									}
-								},
-							},
-							undefined,
-							token,
-						);
-						codeMapperCompleted.push(cellEditOperation);
-					} else {
-						sendEditNotebookCellTelemetry(
-							this.telemetryService,
-							false,
-							existingCell.document.uri,
-							options,
-							this.endpointProvider,
-						);
-						const edit = new TextEdit(
-							new Range(
-								new Position(0, 0),
-								existingCell.document.lineAt(
-									existingCell.document.lineCount - 1,
-								).range.end,
-							),
-							cellCode,
-						);
-						stream.textEdit(existingCell.document.uri, edit);
-						expectedCellTextEdits.push([
-							existingCell.document.uri,
-							edit,
-						]);
-					}
+					sendEditNotebookCellTelemetry(
+						this.telemetryService,
+						false,
+						existingCell.document.uri,
+						options,
+						this.endpointProvider,
+					);
+					const edit = new TextEdit(
+						new Range(
+							new Position(0, 0),
+							existingCell.document.lineAt(
+								existingCell.document.lineCount - 1,
+							).range.end,
+						),
+						newCode,
+					);
+					stream.textEdit(existingCell.document.uri, edit);
+					expectedCellTextEdits.push([
+						existingCell.document.uri,
+						edit,
+					]);
 				}
 			}
 
@@ -481,11 +418,11 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 
 			const summaryOfExpectedEdits = summarizeOriginalEdits(
 				notebook,
-				options.input,
+				editType,
+				cellId,
 				expectedCellEdits,
 			);
-			this.logger.logger.trace(`[Notebook] ${summaryOfExpectedEdits}`);
-			await raceCancellation(Promise.all(codeMapperCompleted), token);
+			this.logger.trace(`[Notebook] ${summaryOfExpectedEdits}`);
 			if (token.isCancellationRequested) {
 				return;
 			}
@@ -501,7 +438,7 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 						if (expectedCellEdits.length) {
 							const summaryOfPendingEdits =
 								summarizeEdits(expectedCellEdits);
-							this.logger.logger.error(
+							this.logger.error(
 								`[Notebook] Timed out waiting for cell operations to complete.`,
 								`${summaryOfExpectedEdits}. Pending Cell Edits ${summaryOfPendingEdits}`,
 							);
@@ -511,7 +448,7 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 								notebook,
 								expectedCellTextEdits,
 							);
-							this.logger.logger.error(
+							this.logger.error(
 								`[Notebook] Timed out waiting for cell text edit operations to complete.`,
 								`${summaryOfExpectedEdits}. Pending Text Edits ${summaryOfPendingEdits}`,
 							);
@@ -571,6 +508,10 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 					error && error instanceof ErrorWithTelemetrySafeReason
 						? error.reason
 						: 'unknown';
+				failureData =
+					error && error instanceof ErrorWithTelemetrySafeReason
+						? error.data
+						: '';
 			}
 			throw error;
 		} finally {
@@ -580,7 +521,7 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 					this.telemetryService,
 					this.endpointProvider,
 					options,
-					counters,
+					editOperation,
 				);
 			}
 			sendEditNotebookToolOutcomeTelemetry(
@@ -588,6 +529,7 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 				this.endpointProvider,
 				options,
 				failureReason ?? 'success',
+				failureData,
 			);
 			sendEditNotebookTelemetry(
 				this.telemetryService,
@@ -612,34 +554,39 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 		options: vscode.LanguageModelToolInvocationPrepareOptions<IEditNotebookToolParams>,
 		token: vscode.CancellationToken,
 	): vscode.ProviderResult<vscode.PreparedToolInvocation> {
+		const uri = resolveToolInputPath(
+			options.input.filePath,
+			this.promptPathRepresentationService,
+		);
 		return {
-			invocationMessage:
-				options.input.explanation || l10n.t('Editing notebook'),
-			presentation:
-				options.input.explanation && typeof options.input.explanation
-					? undefined
-					: 'hidden',
+			invocationMessage: new MarkdownString(
+				l10n.t('Edit {0}', formatUriForFileWidget(uri)),
+			),
 		};
 	}
 
 	private validateInput(
-		input: IEditNotebookToolParams,
+		{
+			editType,
+			cellId,
+			newCode,
+		}: {
+			editType: 'edit' | 'insert' | 'delete';
+			cellId: string;
+			newCode: string | undefined;
+		},
 		notebook: vscode.NotebookDocument,
-		provider: BaseAlternativeNotebookContentProvider,
 	) {
-		const { editType, cellId, newCode } = input;
 		// Possible we'll get cellId as a number such as -1 when inserting a cell at the top.
-		const id = (
-			(typeof (cellId as any) === 'number' ? `${cellId}` : cellId) || ''
-		).trim();
+		const id = cellId;
+		const cellMap = getCellIdMap(notebook);
 		const cell =
-			id && id !== 'top' && id !== 'bottom'
-				? provider.getCell(notebook, id)
-				: undefined;
+			id && id !== 'top' && id !== 'bottom' ? cellMap.get(id) : undefined;
 		if (id && id !== 'top' && id !== 'bottom' && !cell) {
 			throw new ErrorWithTelemetrySafeReason(
-				`None of the edits were applied as cell id: ${id} is invalid. Notebook may have been modified, try reading the file again`,
-				'invalidCellId',
+				getInvalidCellErrorMessage(id),
+				`invalidCellId${editType}`,
+				cellId,
 			);
 		}
 		switch (editType) {
@@ -650,26 +597,49 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 						'missingNewCode',
 					);
 				}
+				if (newCode.length && isJupyterNotebook(notebook)) {
+					if (
+						newCode.startsWith('{') &&
+						newCode.includes('"cell_type') &&
+						newCode.includes('"source') &&
+						newCode.endsWith('}')
+					) {
+						// Possible the entire notebook JSON was provided as newCode.
+						// This is not supported.
+						throw new ErrorWithTelemetrySafeReason(
+							'When inserting cell(s) do NOT provide the entire notebook JSON as newCode. Provide the code (as plain text) for the cell instead.',
+							'gotEntireNotebookJson',
+						);
+					}
+				}
 				break;
 			case 'delete':
-				if (id === undefined) {
+				if (!id) {
 					throw new ErrorWithTelemetrySafeReason(
-						'None of the edits were applied as cellId is required for delete operation',
+						getInvalidCellErrorMessage(id),
 						'missingCellId',
+						id,
 					);
 				}
 				break;
 			case 'edit':
 				if (!id) {
 					throw new ErrorWithTelemetrySafeReason(
-						'None of the edits were applied as cellId is required for edit operation',
+						getInvalidCellErrorMessage(id),
 						'missingCellId',
+						id,
 					);
 				}
 				if (newCode === undefined) {
 					throw new ErrorWithTelemetrySafeReason(
 						'None of the edits were applied as newCode is required for edit operation',
 						'missingNewCode',
+					);
+				}
+				if (newCode.includes(EXISTING_CODE_MARKER)) {
+					throw new ErrorWithTelemetrySafeReason(
+						`When editing a cell do NOT use the marker ${EXISTING_CODE_MARKER} to identify existing code. Provide the full code instead.`,
+						'gotExistingCodeMarker',
 					);
 				}
 				break;
@@ -681,30 +651,38 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 		notebook: vscode.NotebookDocument,
 		provider: BaseAlternativeNotebookContentProvider,
 	) {
-		input.cellId = (input.cellId || '').toString().trim();
-		if (input.cellId.toLowerCase() === 'top') {
-			input.cellId = 'top';
+		const language =
+			input.language || getDefaultLanguage(notebook) || 'python'; // Default to Python if no language
+		let cellId = (input.cellId || '').toString().trim();
+		if (cellId.toLowerCase() === 'top') {
+			cellId = 'top';
 		}
-		if (input.cellId.toLowerCase() === 'bottom') {
-			input.cellId = 'bottom';
+		if (cellId.toLowerCase() === 'bottom') {
+			cellId = 'bottom';
 		}
-		if (input.editType === 'insert' && input.newCode) {
-			input.newCode = provider.stripCellMarkers(
-				Array.isArray(input.newCode)
-					? input.newCode.join(EOL)
-					: input.newCode,
-			);
+		// If the insertion has no cell id, then treat it as bottom.
+		if (input.editType === 'insert' && !cellId) {
+			cellId = 'bottom';
 		}
-		if (input.newCode && Array.isArray(input.newCode)) {
-			input.newCode = Array.isArray(input.newCode)
-				? input.newCode.join(EOL)
-				: input.newCode;
+		if (cellId && cellId !== 'top' && cellId !== 'bottom') {
+			cellId = normalizeCellId(cellId);
 		}
 
-		// If the insertion has no cell id, then treat it as bottom.
-		if (input.editType === 'insert' && !input.cellId) {
-			input.cellId = 'bottom';
+		let newCode = input.newCode;
+		if (newCode && Array.isArray(newCode)) {
+			const cellEOL = getCellEOL(cellId, language, notebook);
+			newCode = Array.isArray(newCode) ? newCode.join(cellEOL) : newCode;
 		}
+		if (input.editType === 'insert') {
+			newCode = newCode ? provider.stripCellMarkers(newCode) : '';
+		}
+
+		return {
+			cellId,
+			newCode,
+			editType: input.editType,
+			language,
+		};
 	}
 
 	async waitForCellOperationComplete(
@@ -841,9 +819,40 @@ export class EditNotebookTool implements ICopilotTool<IEditNotebookToolParams> {
 	}
 }
 
+function getInvalidCellErrorMessage(cellId: string) {
+	if (cellId) {
+		return `None of the edits were applied as provided cell id: '${cellId}' is invalid. Notebook may have been modified, try reading the Notebook file again or use the ${ToolName.GetNotebookSummary} to get a list of the notebook cells, types and Cell Ids`;
+	}
+	return `None of the edits were applied as the cell id was not provided or was empty`;
+}
+
+function getCellEOL(
+	cellId: string | undefined,
+	language: string,
+	notebook: vscode.NotebookDocument,
+) {
+	const cellMap = getCellIdMap(notebook);
+	if (cellId && cellId !== 'top' && cellId !== 'bottom') {
+		const cell = cellMap.get(cellId);
+		if (cell) {
+			return cell.document.eol === EndOfLine.LF ? '\n' : '\r\n';
+		}
+	}
+	const cellKind =
+		language === 'markdown'
+			? NotebookCellKind.Markup
+			: NotebookCellKind.Code;
+	const cell = notebook.getCells().find((cell) => cell.kind === cellKind);
+	if (cell) {
+		return cell.document.eol === EndOfLine.LF ? '\n' : '\r\n';
+	}
+	return EOL;
+}
+
 function summarizeOriginalEdits(
 	notebook: vscode.NotebookDocument,
-	inputEdit: IEditNotebookToolParams,
+	editType: 'insert' | 'edit' | 'delete',
+	cellId: string,
 	edits: ChangedCell[],
 ): string {
 	const summary: string[] = [];
@@ -856,15 +865,15 @@ function summarizeOriginalEdits(
 			.join(', ')}. `,
 	);
 	summary.push(`Requested Edits: =>`);
-	switch (inputEdit.editType) {
+	switch (editType) {
 		case 'edit':
-			summary.push(`Edit cell id ${inputEdit.cellId}`);
+			summary.push(`Edit cell id ${cellId}`);
 			break;
 		case 'insert':
-			summary.push(`Insert cell after ${inputEdit.cellId}`);
+			summary.push(`Insert cell after ${cellId}`);
 			break;
 		case 'delete':
-			summary.push(`Delete cell id ${inputEdit.cellId}`);
+			summary.push(`Delete cell id ${cellId}`);
 			break;
 	}
 	summary.push(`Final generated edits: =>`);
@@ -907,36 +916,6 @@ function summarizeTextEdits(
 		}
 	}
 	return summary.join('\n');
-}
-
-function createCodeMapperRequest(
-	existingCell: vscode.NotebookCell,
-	notebookUri: vscode.Uri,
-	newCode: string,
-	explanation: string,
-) {
-	// Create a TextDocumentSnapshot from the existing cell but with Notebook Uri.
-	// This is because Cell Uris contain schemes and query strings/fragments that
-	// do not work well with CodeMapper (i.e. Model doesn't handle such Uris well).
-	const documentSnapshot = TextDocumentSnapshot.fromJSON(
-		existingCell.document,
-		{
-			_text: existingCell.document.getText(),
-			eol: existingCell.document.eol,
-			languageId: existingCell.document.languageId,
-			version: existingCell.document.version,
-			uri: notebookUri,
-		},
-	);
-	const requestInput: ICodeMapperRequestInput = {
-		createNew: false,
-		codeBlock: newCode,
-		uri: notebookUri,
-		markdownBeforeBlock: explanation || undefined,
-		existingDocument: documentSnapshot,
-	};
-
-	return requestInput;
 }
 
 export interface IEditFileResultProps extends BasePromptElementProps {
@@ -1071,6 +1050,7 @@ async function sendEditNotebookToolOutcomeTelemetry(
 	endpointProvider: IEndpointProvider | undefined,
 	options: vscode.LanguageModelToolInvocationOptions<IEditNotebookToolParams>,
 	outcome: string,
+	failureData?: string,
 ) {
 	const model =
 		options.model &&
@@ -1084,12 +1064,13 @@ async function sendEditNotebookToolOutcomeTelemetry(
 			"requestId": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "The id of the current request turn." },
 			"isNotebook": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "comment": "Whether the document is a notebook (this measure is used to identify notebook related telemetry)." },
 			"outcome": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "Outcome of the edit operation" },
+			"failureData": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "Additional data about the failure, if any" },
 			"model": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "The model used for the request." }
 		}
 	*/
 	telemetryService.sendMSFTTelemetryEvent(
 		'editNotebook.toolOutcome',
-		{ requestId: options.chatRequestId, outcome, model },
+		{ requestId: options.chatRequestId, outcome, model, failureData },
 		{ isNotebook: 1 },
 	);
 }
@@ -1098,13 +1079,12 @@ async function sendEditNotebookCellOperationsTelemetry(
 	telemetryService: ITelemetryService,
 	endpointProvider: IEndpointProvider | undefined,
 	options: vscode.LanguageModelToolInvocationOptions<IEditNotebookToolParams>,
-	counters: { insert: number; edit: number; delete: number },
+	editOperation: 'insert' | 'edit' | 'delete' | undefined,
 ) {
 	const model =
 		options.model &&
 		endpointProvider &&
 		(await endpointProvider.getChatEndpoint(options.model)).model;
-
 	/* __GDPR__
 		"editNotebook.cellEditOps" : {
 			"owner": "donjayamanne",
@@ -1122,9 +1102,9 @@ async function sendEditNotebookCellOperationsTelemetry(
 		{ requestId: options.chatRequestId, model },
 		{
 			isNotebook: 1,
-			insert: counters.insert,
-			edit: counters.edit,
-			delete: counters.delete,
+			insert: editOperation === 'insert' ? 1 : 0,
+			edit: editOperation === 'edit' ? 1 : 0,
+			delete: editOperation === 'delete' ? 1 : 0,
 		},
 	);
 }
@@ -1178,25 +1158,21 @@ async function sendEditNotebookCellTelemetry(
 🛠️ edit_notebook_file (call_j3TEKk5R0KHfMYhJo1x88QeS) {
 	"filePath": "/Users/donjayamanne/demo/chat/sample.ipynb",
 	"cellIndex": 2,
-	"explanation": "Deleting empty cell",
 	"editType": "delete"
 }
 🛠️ edit_notebook_file (call_Gv6WxrMzSIDMPE0lqqM3GbWo) {
 	"filePath": "/Users/donjayamanne/demo/chat/sample.ipynb",
 	"cellIndex": 3,
-	"explanation": "Deleting empty cell",
 	"editType": "delete"
 }
 🛠️ edit_notebook_file (call_iPokgpiaeYDV7JwnbAFgdgZD) {
 	"filePath": "/Users/donjayamanne/demo/chat/sample.ipynb",
 	"cellIndex": 4,
-	"explanation": "Deleting empty cell",
 	"editType": "delete"
 }
 🛠️ edit_notebook_file (call_8t3Ls4C3QLVDAeFXwU1dE7Hh) {
 	"filePath": "/Users/donjayamanne/demo/chat/sample.ipynb",
 	"cellIndex": 6,
-	"explanation": "Deleting empty cell",
 	"editType": "delete"
 }
 ````

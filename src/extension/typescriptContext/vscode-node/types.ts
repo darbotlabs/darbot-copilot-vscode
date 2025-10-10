@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -11,6 +11,7 @@ import * as protocol from '../common/serverProtocol';
 export type ResolvedRunnableResult = {
 	id: protocol.ContextRunnableResultId;
 	state: protocol.ContextRunnableState;
+	priority: number;
 	items: protocol.FullContextItem[];
 	cache?: protocol.CacheInfo;
 }
@@ -19,6 +20,7 @@ export namespace ResolvedRunnableResult {
 		return {
 			id: result.id,
 			state: result.state,
+			priority: result.priority,
 			items: items,
 			cache: result.cache
 		};
@@ -28,13 +30,13 @@ export namespace ResolvedRunnableResult {
 export type ContextComputedEvent = {
 	document: vscode.TextDocument;
 	position: vscode.Position;
-	results: ReadonlyArray<ResolvedRunnableResult>;
+	source?: string;
 	summary: ContextItemSummary;
 }
 
-export type OnCachePopulatedEvent = ContextComputedEvent;
-export type OnContextComputedEvent = ContextComputedEvent;
-export type OnContextComputedOnTimeoutEvent = ContextComputedEvent;
+export type OnCachePopulatedEvent = ContextComputedEvent & { items: ReadonlyArray<ResolvedRunnableResult> };
+export type OnContextComputedEvent = ContextComputedEvent & { items: ReadonlyArray<ContextItem> };
+export type OnContextComputedOnTimeoutEvent = ContextComputedEvent & { items: ReadonlyArray<ContextItem> };
 
 export interface IInternalLanguageContextService extends ILanguageContextService {
 	onCachePopulated: vscode.Event<OnCachePopulatedEvent>;
@@ -166,7 +168,7 @@ export class ContextItemResultBuilder implements ContextItemSummary {
 		this.cancelled = token.isCancellationRequested;
 	}
 
-	public *update(runnableResult: ResolvedRunnableResult, fromCache: boolean = false): IterableIterator<ContextItem> {
+	public *update(runnableResult: ResolvedRunnableResult, fromCache: boolean = false): IterableIterator<{ item: ContextItem; size: number }> {
 		if (this.seenRunnableResults.has(runnableResult.id)) {
 			return;
 		}
@@ -179,19 +181,19 @@ export class ContextItemResultBuilder implements ContextItemSummary {
 				}
 				this.seenContextItems.add(item.key);
 			}
-			const converted = ContextItemResultBuilder.doConvert(item);
+			const converted = ContextItemResultBuilder.doConvert(item, runnableResult.priority);
 			if (converted === undefined) {
 				continue;
 			}
 			Stats.yielded(this.stats);
-			yield converted;
+			yield { item: converted, size: protocol.ContextItem.sizeInChars(item) };
 		}
 	}
 
 	public *convert(runnableResult: ResolvedRunnableResult): IterableIterator<ContextItem> {
 		Stats.update(this.stats, runnableResult);
 		for (const item of runnableResult.items) {
-			const converted = ContextItemResultBuilder.doConvert(item);
+			const converted = ContextItemResultBuilder.doConvert(item, runnableResult.priority);
 			if (converted === undefined) {
 				continue;
 			}
@@ -200,12 +202,12 @@ export class ContextItemResultBuilder implements ContextItemSummary {
 		}
 	}
 
-	private static doConvert(item: protocol.ContextItem): ContextItem | undefined {
+	private static doConvert(item: protocol.ContextItem, priority: number): ContextItem | undefined {
 		switch (item.kind) {
 			case protocol.ContextKind.Snippet:
 				return {
 					kind: ContextKind.Snippet,
-					priority: item.priority,
+					priority: priority,
 					uri: vscode.Uri.file(item.fileName),
 					additionalUris: item.additionalFileNames?.map(uri => vscode.Uri.file(uri)),
 					value: item.value
@@ -213,7 +215,7 @@ export class ContextItemResultBuilder implements ContextItemSummary {
 			case protocol.ContextKind.Trait:
 				return {
 					kind: ContextKind.Trait,
-					priority: item.priority,
+					priority: priority,
 					name: item.name,
 					value: item.value
 				};

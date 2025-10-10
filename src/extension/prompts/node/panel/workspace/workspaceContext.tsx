@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import {
@@ -32,6 +32,7 @@ import {
 	ResolvedWorkspaceChunkQuery,
 	WorkspaceChunkQuery,
 } from '../../../../../platform/workspaceChunkSearch/common/workspaceChunkSearch';
+import { LocalEmbeddingsIndexStatus } from '../../../../../platform/workspaceChunkSearch/node/embeddingsChunkSearch';
 import {
 	IWorkspaceChunkSearchService,
 	WorkspaceChunkSearchResult,
@@ -77,7 +78,7 @@ export const MAX_CHUNK_TOKEN_COUNT = 32_000;
 export const MAX_TOOL_CHUNK_TOKEN_COUNT = 20_000;
 
 type WorkspaceChunksState = {
-	readonly result: WorkspaceChunkSearchResult;
+	readonly result?: WorkspaceChunkSearchResult;
 };
 
 export interface ChunksToolProps extends BasePromptElementProps {
@@ -113,6 +114,15 @@ export class WorkspaceChunks extends PromptElement<
 		progress: vscode.Progress<vscode.ChatResponsePart> | undefined,
 		token = CancellationToken.None,
 	): Promise<WorkspaceChunksState> {
+		const indexState = await this.workspaceChunkSearch.getIndexState();
+		if (
+			indexState.localIndexState.status ===
+				LocalEmbeddingsIndexStatus.Disabled &&
+			indexState.remoteIndexState.status === 'disabled'
+		) {
+			return {};
+		}
+
 		const searchResult = await logExecTime(
 			this.logService,
 			'workspaceContext.perf.prepareWorkspaceChunks',
@@ -121,12 +131,11 @@ export class WorkspaceChunks extends PromptElement<
 					this.workspaceChunkSearch.searchFileChunks(
 						{
 							endpoint: this.promptEndpoint,
-							tokenBudget: Math.min(
-								Math.floor(sizing.tokenBudget * 0.7),
-								this.props.isToolCall
-									? MAX_TOOL_CHUNK_TOKEN_COUNT
-									: MAX_CHUNK_TOKEN_COUNT,
-							),
+							tokenBudget: this.props.isToolCall
+								? MAX_TOOL_CHUNK_TOKEN_COUNT
+								: MAX_CHUNK_TOKEN_COUNT,
+							// For full workspace, always use the full workspace token budget since it can be included quickly
+							fullWorkspaceTokenBudget: MAX_CHUNK_TOKEN_COUNT,
 							maxResults:
 								this.props.maxResults ?? MAX_CHUNKS_RESULTS,
 						},
@@ -181,6 +190,14 @@ export class WorkspaceChunks extends PromptElement<
 		state: WorkspaceChunksState,
 		sizing: PromptSizing,
 	): PromptPiece<any, any> | undefined {
+		if (state.result === undefined) {
+			return (
+				<TextChunk>
+					The workspace index is not available at this time.
+				</TextChunk>
+			);
+		}
+
 		return (
 			<WorkspaceChunkList
 				result={state.result}
@@ -432,7 +449,7 @@ export class WorkspaceContext extends PromptElement<
 			readonly query: Promise<string | undefined>;
 			readonly queryAndKeywords: Promise<ResolvedWorkspaceChunkQuery>;
 		}>(() => {
-			this.logService.logger.debug(
+			this.logService.debug(
 				'[Workspace Resolver] Asking the model to update the user question and provide queries...',
 			);
 

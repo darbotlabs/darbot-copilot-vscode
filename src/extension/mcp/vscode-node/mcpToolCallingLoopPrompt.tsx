@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -24,7 +24,7 @@ import {
 
 export interface IMcpToolCallingLoopPromptContext {
 	packageName: string;
-	packageType: 'npm' | 'pip' | 'docker';
+	packageType: 'npm' | 'pip' | 'docker' | 'nuget';
 	packageReadme: string | undefined;
 	packageVersion: string | undefined;
 	targetSchema: JsonSchema;
@@ -42,6 +42,8 @@ const packageTypePreferredCommands = {
 		`npx ${name}` + (version ? `@${version}` : ''),
 	docker: (name: string, _version: string | undefined) =>
 		`docker run -i --rm ${name}`,
+	nuget: (name: string, version: string | undefined) =>
+		`dnx ${name}` + (version ? `@${version}` : '') + ` --yes`,
 };
 
 export class McpToolCallingLoopPrompt extends PromptElement<IMcpToolCallingLoopProps> {

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -13,7 +13,10 @@ import {
 	ConfigKey,
 	IConfigurationService,
 } from '../../../../platform/configuration/common/configurationService';
-import { modelPrefersInstructionsAfterHistory } from '../../../../platform/endpoint/common/chatModelCapabilities';
+import {
+	modelNeedsStrongReplaceStringHint,
+	modelPrefersInstructionsAfterHistory,
+} from '../../../../platform/endpoint/common/chatModelCapabilities';
 import { IExperimentationService } from '../../../../platform/telemetry/common/nullExperimentationService';
 import { isLocation, isUri } from '../../../../util/common/types';
 import { ToolName } from '../../../tools/common/toolNames';
@@ -276,7 +279,7 @@ export class EditCodePrompt2 extends PromptElement<AgentPromptProps> {
 	}
 }
 
-export class EditCode2UserMessage extends PromptElement<AgentPromptProps> {
+class EditCode2UserMessage extends PromptElement<AgentPromptProps> {
 	constructor(
 		props: AgentPromptProps,
 		@IExperimentationService
@@ -301,6 +304,10 @@ export class EditCode2UserMessage extends PromptElement<AgentPromptProps> {
 		const hasEditFileTool =
 			!!this.props.promptContext.tools?.availableTools.find(
 				(tool) => tool.name === ToolName.EditFile,
+			);
+		const hasMultiReplaceStringTool =
+			!!this.props.promptContext.tools?.availableTools.find(
+				(tool) => tool.name === ToolName.MultiReplaceString,
 			);
 
 		return (
@@ -336,6 +343,10 @@ export class EditCode2UserMessage extends PromptElement<AgentPromptProps> {
 						{getEditingReminder(
 							hasEditFileTool,
 							hasReplaceStringTool,
+							modelNeedsStrongReplaceStringHint(
+								this.props.endpoint,
+							),
+							hasMultiReplaceStringTool,
 						)}
 						<NotebookReminderInstructions
 							chatVariables={chatVariables}

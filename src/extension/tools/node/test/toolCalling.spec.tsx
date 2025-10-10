@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -56,7 +56,9 @@ suite('TestFailureTool', () => {
 			: ChatToolCalls;
 		const renderer = PromptRenderer.create(
 			accessor.get(IInstantiationService),
-			accessor.get(IInstantiationService).createInstance(MockEndpoint),
+			accessor
+				.get(IInstantiationService)
+				.createInstance(MockEndpoint, undefined),
 			element,
 			{
 				promptContext: {
@@ -126,6 +128,7 @@ suite('TestFailureTool', () => {
 				description: '',
 				inputSchema: undefined,
 				tags: [],
+				source: undefined,
 			},
 			{
 				invoke: async () => {
@@ -178,6 +181,7 @@ suite('TestFailureTool', () => {
 				description: '',
 				inputSchema: undefined,
 				tags: [],
+				source: undefined,
 			},
 			{
 				invoke: async (options) => {

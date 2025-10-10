@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -260,11 +260,10 @@ export class FileVariable extends PromptElement<FileVariableProps, unknown> {
 						),
 					)
 					.getAlternativeDocument(notebook);
-				const cellIndex = notebook.getCells().indexOf(cell);
 				//Translate the range to alternative content.
 				range = new Range(
-					altDocument.fromCellPosition(cellIndex, range.start),
-					altDocument.fromCellPosition(cellIndex, range.end),
+					altDocument.fromCellPosition(cell, range.start),
+					altDocument.fromCellPosition(cell, range.end),
 				);
 			} else {
 				range = undefined;
@@ -346,8 +345,8 @@ export class FileVariable extends PromptElement<FileVariableProps, unknown> {
 
 		if (range) {
 			const selectionDesc = this.props.description
-				? `${this.props.description}, this should be the main focus`
-				: `This should be the main focus`;
+				? this.props.description
+				: ``;
 			const summaryDesc = `User's active file for additional context`;
 			return (
 				<>
@@ -532,6 +531,7 @@ class CodeSummary extends PromptElement<CodeSummaryProps, unknown> {
 					uri={uri}
 					references={references}
 					code={code}
+					fence=""
 				/>
 			</Tag>
 		);

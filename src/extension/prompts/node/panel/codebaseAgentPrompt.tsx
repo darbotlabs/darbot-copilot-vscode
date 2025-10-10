@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -39,6 +39,7 @@ export class CodebaseAgentPrompt extends PromptElement<GenericBasePromptElementP
 		const isCodesearchFast = await this.workspaceChunkSearch.hasFastSearch({
 			endpoint: this.promptEndpoint,
 			tokenBudget: sizing.tokenBudget,
+			fullWorkspaceTokenBudget: sizing.tokenBudget,
 			maxResultCountHint: MAX_CHUNKS_RESULTS,
 		});
 		return (

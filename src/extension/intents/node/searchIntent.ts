@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -47,7 +47,7 @@ function createSearchFollowUps(args: any): vscode.Command[] {
 		isCaseSensitive: args.isRegex ?? false,
 	};
 	searchResponses.push({
-		command: 'darbot.executeSearch',
+		command: 'github.copilot.executeSearch',
 		arguments: [searchArg],
 		title: l10n.t("Search"),
 	});

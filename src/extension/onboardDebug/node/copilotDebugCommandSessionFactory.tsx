@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -24,7 +24,7 @@ import {
 } from './copilotDebugWorker/shared';
 import { IStartDebuggingParsedResponse } from './parseLaunchConfigFromResponse';
 
-const STORAGE_KEY = 'darbot-copilot.terminalToDebugging.configs';
+const STORAGE_KEY = 'copilot-chat.terminalToDebugging.configs';
 const LRU_SIZE = 30;
 
 interface IStoredData {

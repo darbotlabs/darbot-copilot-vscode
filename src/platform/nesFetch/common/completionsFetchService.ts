@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -10,7 +10,7 @@ import { createServiceIdentifier } from '../../../util/common/services';
 import { CancellationToken } from '../../../util/vs/base/common/cancellation';
 import { ResponseStream } from './responseStream';
 
-export interface ModelParams {
+interface BaseCompletionsParams {
 	prompt: string;
 	stop?: string[];
 	top_p?: number;
@@ -22,7 +22,17 @@ export interface ModelParams {
 	// required to access certain experimental models
 	model?: string;
 	logprobs?: number;
+	n?: number;
+	stream: true;
 }
+
+interface CodexV2Params {
+	suffix?: string;
+	extra?: { [key: string]: any };
+	code_annotations?: boolean;
+}
+
+export interface ModelParams extends BaseCompletionsParams, CodexV2Params { }
 
 export type FetchOptions = {
 	requestId: string;
@@ -93,7 +103,7 @@ export function getErrorDetailsFromFetchError(requestId: string, error: Completi
 			};
 		case 'quota-exceeded':
 			return {
-				message: l10n.t(`You've reached your monthly chat messages limit. [Upgrade to Copilot Pro]({0}) (30-day Free Trial) or wait for your limit to reset.`, 'https://aka.ms/github-copilot-upgrade-plan'),
+				message: l10n.t(`You've reached your monthly chat messages limit. [Upgrade to Copilot Pro]({0}) (30-day Free Trial) or wait for your limit to reset.`, 'https://aka.ms/darbot-copilot-upgrade-plan'),
 			};
 		case 'model_overloaded':
 		case 'model_error':

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -38,11 +38,6 @@ declare module 'vscode' {
 		 * A string that will be added before the listing of chat participants in `/help`.
 		 */
 		helpTextPrefix?: string | MarkdownString;
-
-		/**
-		 * A string that will be added before the listing of chat variables in `/help`.
-		 */
-		helpTextVariablesPrefix?: string | MarkdownString;
 
 		/**
 		 * A string that will be appended after the listing of chat participants in `/help`.

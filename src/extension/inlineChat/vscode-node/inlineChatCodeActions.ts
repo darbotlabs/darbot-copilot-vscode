@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -81,7 +81,7 @@ export class QuickFixesProvider implements vscode.CodeActionProvider {
 		if (altTextQuickFixes) {
 			altTextQuickFixes.command = {
 				title: altTextQuickFixes.title,
-				command: 'darbot.chat.generateAltText',
+				command: 'github.copilot.chat.generateAltText',
 				arguments: [
 					{
 						type: altTextQuickFixes.type,
@@ -97,7 +97,7 @@ export class QuickFixesProvider implements vscode.CodeActionProvider {
 			const reviewAction = new AICodeAction(vscode.l10n.t('Review'), QuickFixesProvider.reviewKind);
 			reviewAction.command = {
 				title: reviewAction.title,
-				command: 'darbot.chat.review',
+				command: 'github.copilot.chat.review',
 			};
 			codeActions.push(reviewAction);
 		}
@@ -132,7 +132,7 @@ export class QuickFixesProvider implements vscode.CodeActionProvider {
 		const query = `@${workspaceIntentId} /${Intent.Explain} ${diagnostics}`;
 		explainAction.command = {
 			title: explainAction.title,
-			command: 'darbot.chat.explain',
+			command: 'github.copilot.chat.explain',
 			arguments: [query],
 		};
 
@@ -308,7 +308,7 @@ export class RefactorsProvider implements vscode.CodeActionProvider {
 		try {
 			documentableNode = await treeSitterAST.getDocumentableNodeIfOnIdentifier(offsetRange);
 		} catch (e) {
-			this.logger.logger.error(e, 'RefactorsProvider: getDocumentableNodeIfOnIdentifier failed');
+			this.logger.error(e, 'RefactorsProvider: getDocumentableNodeIfOnIdentifier failed');
 			this.telemetryService.sendGHTelemetryException(e, 'RefactorsProvider: getDocumentableNodeIfOnIdentifier failed');
 		}
 
@@ -316,7 +316,7 @@ export class RefactorsProvider implements vscode.CodeActionProvider {
 			return undefined;
 		}
 
-		const title = vscode.l10n.t('Generate Documentation');
+		const title = vscode.l10n.t('Generate Docs');
 
 		const codeAction = new AICodeAction(title, RefactorsProvider.generateDocsKind);
 
@@ -364,7 +364,7 @@ export class RefactorsProvider implements vscode.CodeActionProvider {
 		try {
 			testableNode = await treeSitterAST.getTestableNode(offsetRange);
 		} catch (e) {
-			this.logger.logger.error(e, 'RefactorsProvider: getTestableNode failed');
+			this.logger.error(e, 'RefactorsProvider: getTestableNode failed');
 			this.telemetryService.sendGHTelemetryException(e, 'RefactorsProvider: getTestableNode failed');
 		}
 
@@ -385,7 +385,7 @@ export class RefactorsProvider implements vscode.CodeActionProvider {
 
 		codeAction.command = {
 			title,
-			command: 'darbot.chat.generateTests',
+			command: 'github.copilot.chat.generateTests',
 		};
 
 		return codeAction;

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -67,15 +67,15 @@ import {
 	AgentPrompt,
 	AgentPromptProps,
 	AgentUserMessage,
-	getKeepGoingReminder,
 	getUserMessagePropsFromAgentProps,
 	getUserMessagePropsFromTurn,
+	KeepGoingReminder,
 } from './agentPrompt';
 import { SimpleSummarizedHistory } from './simpleSummarizedHistoryPrompt';
 
 export interface ConversationHistorySummarizationPromptProps
 	extends SummarizedAgentHistoryProps {
-	simpleMode?: boolean;
+	readonly simpleMode?: boolean;
 }
 
 const SummaryPrompt = (
@@ -363,14 +363,18 @@ class WorkingNotebookSummary extends PromptElement<NotebookSummaryProps> {
 				This is the current state of the notebook that you have been
 				working on:
 				<br />
-				<NotebookSummary notebook={this.props.notebook} />
+				<NotebookSummary
+					notebook={this.props.notebook}
+					includeCellLines={false}
+					altDoc={undefined}
+				/>
 			</UserMessage>
 		);
 	}
 }
 
 export interface NotebookSummaryProps extends BasePromptElementProps {
-	notebook: NotebookDocument;
+	readonly notebook: NotebookDocument;
 }
 
 /**
@@ -575,6 +579,8 @@ export interface SummarizedAgentHistoryProps extends BasePromptElementProps {
 	readonly enableCacheBreakpoints?: boolean;
 	readonly workingNotebook?: NotebookDocument;
 	readonly maxToolResultLength: number;
+	/** Optional hard cap on summary tokens; effective budget = min(prompt sizing tokenBudget, this value) */
+	readonly maxSummaryTokens?: number;
 }
 
 /**
@@ -731,7 +737,7 @@ class ConversationHistorySummarizer {
 	}
 
 	private logInfo(message: string, mode: SummaryMode): void {
-		this.logService.logger.info(
+		this.logService.info(
 			`[ConversationHistorySummarizer] [${mode}] ${message}`,
 		);
 	}
@@ -745,9 +751,14 @@ class ConversationHistorySummarizer {
 			ConfigKey.Internal.AgentHistorySummarizationForceGpt41,
 			this.experimentationService,
 		);
-		const endpoint = forceGpt41
-			? await this.endpointProvider.getChatEndpoint('gpt-4.1')
-			: this.props.endpoint;
+		const gpt41Endpoint =
+			await this.endpointProvider.getChatEndpoint('gpt-4.1');
+		const endpoint =
+			forceGpt41 &&
+			gpt41Endpoint.modelMaxPromptTokens >=
+				this.props.endpoint.modelMaxPromptTokens
+				? gpt41Endpoint
+				: this.props.endpoint;
 
 		let summarizationPrompt: ChatMessage[];
 		const promptCacheMode =
@@ -832,7 +843,7 @@ class ConversationHistorySummarizer {
 									type: 'function',
 								})),
 								(tool, rule) => {
-									this.logService.logger.warn(
+									this.logService.warn(
 										`Tool ${tool} failed validation: ${rule}`,
 									);
 								},
@@ -846,18 +857,23 @@ class ConversationHistorySummarizer {
 				stripCacheBreakpoints(summarizationPrompt);
 			}
 
-			summaryResponse = await endpoint.makeChatRequest(
-				`summarizeConversationHistory-${mode}`,
-				ToolCallingLoop.stripInternalToolCallIds(summarizationPrompt),
-				undefined,
-				this.token ?? CancellationToken.None,
-				ChatLocation.Other,
-				undefined,
+			summaryResponse = await endpoint.makeChatRequest2(
 				{
-					temperature: 0,
-					stream: false,
-					...toolOpts,
+					debugName: `summarizeConversationHistory-${mode}`,
+					messages:
+						ToolCallingLoop.stripInternalToolCallIds(
+							summarizationPrompt,
+						),
+					finishedCb: undefined,
+					location: ChatLocation.Other,
+					requestOptions: {
+						temperature: 0,
+						stream: false,
+						...toolOpts,
+					},
+					enableRetryOnFilter: true,
 				},
+				this.token ?? CancellationToken.None,
 			);
 		} catch (e) {
 			this.logInfo(
@@ -910,7 +926,10 @@ class ConversationHistorySummarizer {
 		}
 
 		const summarySize = await this.sizing.countTokens(response.value);
-		if (summarySize > this.sizing.tokenBudget) {
+		const effectiveBudget = !!this.props.maxSummaryTokens
+			? Math.min(this.sizing.tokenBudget, this.props.maxSummaryTokens)
+			: this.sizing.tokenBudget;
+		if (summarySize > effectiveBudget) {
 			this.sendSummarizationTelemetry(
 				'too_large',
 				response.requestId,
@@ -919,7 +938,10 @@ class ConversationHistorySummarizer {
 				elapsedTime,
 				response.usage,
 			);
-			this.logInfo(`Summary too large: ${summarySize} tokens`, mode);
+			this.logInfo(
+				`Summary too large: ${summarySize} tokens (effective budget ${effectiveBudget})`,
+				mode,
+			);
 			throw new Error('Summary too large');
 		}
 
@@ -1047,14 +1069,14 @@ class ConversationHistorySummarizer {
 				duration: elapsedTime,
 				promptTokenCount: usage?.prompt_tokens,
 				promptCacheTokenCount:
-					usage?.prompt_tokens_details.cached_tokens,
+					usage?.prompt_tokens_details?.cached_tokens,
 				responseTokenCount: usage?.completion_tokens,
 			},
 		);
 	}
 }
 
-export class AgentPromptWithSummaryPrompt extends PromptElement<AgentPromptProps> {
+class AgentPromptWithSummaryPrompt extends PromptElement<AgentPromptProps> {
 	override async render(state: void, sizing: PromptSizing) {
 		return (
 			<>
@@ -1076,8 +1098,8 @@ function stripCacheBreakpoints(messages: ChatMessage[]): void {
 }
 
 export interface ISummarizedConversationHistoryInfo {
-	props: SummarizedAgentHistoryProps;
-	summarizedToolCallRoundId: string;
+	readonly props: SummarizedAgentHistoryProps;
+	readonly summarizedToolCallRoundId: string;
 }
 
 /**
@@ -1170,20 +1192,21 @@ export class SummarizedConversationHistoryPropsBuilder {
 }
 
 interface SummaryMessageProps extends BasePromptElementProps {
-	summaryText: string;
-	endpoint: IChatEndpoint;
+	readonly summaryText: string;
+	readonly endpoint: IChatEndpoint;
 }
 
 class SummaryMessageElement extends PromptElement<SummaryMessageProps> {
 	override async render(state: void, sizing: PromptSizing) {
-		const keepGoingReminder = getKeepGoingReminder(
-			this.props.endpoint.family,
-		);
 		return (
 			<UserMessage>
 				<Tag name="conversation-summary">{this.props.summaryText}</Tag>
-				{keepGoingReminder && (
-					<Tag name="reminderInstructions">{keepGoingReminder}</Tag>
+				{this.props.endpoint.family === 'gpt-4.1' && (
+					<Tag name="reminderInstructions">
+						<KeepGoingReminder
+							modelFamily={this.props.endpoint.family}
+						/>
+					</Tag>
 				)}
 			</UserMessage>
 		);

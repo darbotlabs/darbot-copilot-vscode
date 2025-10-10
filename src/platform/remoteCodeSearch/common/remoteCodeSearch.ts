@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { GlobIncludeOptions } from '../../../util/common/glob';
@@ -22,7 +22,12 @@ export enum RemoteCodeSearchIndexStatus {
 export type RemoteCodeSearchIndexState =
 	| { readonly status: RemoteCodeSearchIndexStatus.Ready; readonly indexedCommit: string | undefined }
 	| { readonly status: RemoteCodeSearchIndexStatus.BuildingIndex | RemoteCodeSearchIndexStatus.NotYetIndexed | RemoteCodeSearchIndexStatus.NotIndexable }
+	;
 
+export type RemoteCodeSearchError =
+	| { readonly type: 'not-authorized' }
+	| { readonly type: 'generic-error'; readonly error: Error }
+	;
 
 export interface CodeSearchResult {
 	readonly chunks: readonly FileChunkAndScore[];

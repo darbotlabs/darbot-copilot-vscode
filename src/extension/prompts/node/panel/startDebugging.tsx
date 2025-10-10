@@ -1,9 +1,8 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as l10n from '@vscode/l10n';
 import {
 	BasePromptElementProps,
 	PromptElement,
@@ -23,13 +22,8 @@ import { IEnvService } from '../../../../platform/env/common/envService';
 import { IExtensionsService } from '../../../../platform/extensions/common/extensionsService';
 import { IFileSystemService } from '../../../../platform/filesystem/common/fileSystemService';
 import { IIgnoreService } from '../../../../platform/ignore/common/ignoreService';
-import { ILogService } from '../../../../platform/log/common/logService';
-import {
-	ICodeOrDocsSearchItem,
-	IDocsSearchClient,
-} from '../../../../platform/remoteSearch/common/codeOrDocsSearchClient';
+import { ICodeOrDocsSearchItem } from '../../../../platform/remoteSearch/common/codeOrDocsSearchClient';
 import { IWorkspaceService } from '../../../../platform/workspace/common/workspaceService';
-import { reportProgressOnSlowPromise } from '../../../../util/common/progress';
 import { CancellationToken } from '../../../../util/vs/base/common/cancellation';
 import { ResourceSet } from '../../../../util/vs/base/common/map';
 import { basename, dirname } from '../../../../util/vs/base/common/path';
@@ -180,8 +174,6 @@ export class StartDebuggingPrompt extends PromptElement<
 		private readonly instantiationService: IInstantiationService,
 		@IExtensionsService
 		private readonly extensionsService: IExtensionsService,
-		@ILogService private readonly logService: ILogService,
-		@IDocsSearchClient private readonly docSearchClient: IDocsSearchClient,
 		@IFileSystemService
 		private readonly fileSystemService: IFileSystemService,
 		@IIgnoreService private readonly ignoreService: IIgnoreService,
@@ -199,27 +191,15 @@ export class StartDebuggingPrompt extends PromptElement<
 			return {};
 		}
 
-		const docSearchPromise = progress
-			? reportProgressOnSlowPromise(
-					progress,
-					new ChatResponseProgressPart(
-						l10n.t('Searching doc index...'),
-					),
-					this.searchDocsSearchForContext(10, token),
-					1000,
-				)
-			: this.searchDocsSearchForContext(10, token);
-
 		if (token.isCancellationRequested) {
 			return {};
 		}
 		const debuggerType = await this.getDebuggerType(progress, token);
-		const [docSearchResults, resources, schema] = await Promise.all([
-			docSearchPromise,
+		const [resources, schema] = await Promise.all([
 			this.getResources(debuggerType, progress, token),
 			this.getSchema(debuggerType, progress, token),
 		]);
-		return { docSearchResults, resources, schema };
+		return { resources, schema };
 	}
 
 	private async getFiles(
@@ -469,33 +449,6 @@ export class StartDebuggingPrompt extends PromptElement<
 				return result;
 			})
 			.flat();
-	}
-
-	private async searchDocsSearchForContext(
-		numResults: number,
-		token: vscode.CancellationToken,
-	) {
-		if (
-			this.props.input.type !== StartDebuggingType.UserQuery ||
-			!this.props.input.userQuery
-		) {
-			return [];
-		}
-
-		try {
-			return await this.docSearchClient.search(
-				this.props.input.userQuery,
-				{ repo: 'microsoft/vscode-docs' },
-				{ limit: numResults, similarity: 0.75 },
-				token,
-			);
-		} catch (e) {
-			this.logService.logger.error(
-				e,
-				`Failed to search docs search for query`,
-			);
-			return [];
-		}
 	}
 
 	override render(

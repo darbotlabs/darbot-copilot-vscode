@@ -1,10 +1,8 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Raw } from '@vscode/prompt-tsx';
-import { randomUUID } from 'crypto';
 import type {
 	CancellationToken,
 	ChatRequest,
@@ -18,10 +16,6 @@ import {
 } from '../../../platform/chat/common/commonTypes';
 import { IEndpointProvider } from '../../../platform/endpoint/common/endpointProvider';
 import { ILogService } from '../../../platform/log/common/logService';
-import {
-	FinishedCallback,
-	OptionalChatRequestParams,
-} from '../../../platform/networking/common/fetch';
 import { IRequestLogger } from '../../../platform/requestLogger/node/requestLogger';
 import { ITelemetryService } from '../../../platform/telemetry/common/telemetry';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
@@ -32,6 +26,7 @@ import {
 import {
 	IToolCallingLoopOptions,
 	ToolCallingLoop,
+	ToolCallingLoopFetchOptions,
 } from '../../intents/node/toolCallingLoop';
 import { IBuildPromptContext } from '../../prompt/common/intents';
 import { IBuildPromptResult } from '../../prompt/node/intents';
@@ -104,47 +99,44 @@ export class McpToolCallingLoop extends ToolCallingLoop<IMcpToolCallingLoopOptio
 	protected async getAvailableTools(): Promise<
 		LanguageModelToolInformation[]
 	> {
+		if (this.options.conversation.turns.length > 5) {
+			return []; // force a response
+		}
+
 		return [
 			{
 				description: QuickInputTool.description,
 				name: QuickInputTool.ID,
 				inputSchema: QuickInputTool.schema,
+				source: undefined,
 				tags: [],
 			},
 			{
 				description: QuickPickTool.description,
 				name: QuickPickTool.ID,
 				inputSchema: QuickPickTool.schema,
+				source: undefined,
 				tags: [],
 			},
 		];
 	}
 
 	protected async fetch(
-		messages: Raw.ChatMessage[],
-		finishedCb: FinishedCallback,
-		requestOptions: OptionalChatRequestParams,
-		firstFetchCall: boolean,
+		opts: ToolCallingLoopFetchOptions,
 		token: CancellationToken,
 	): Promise<ChatResponse> {
 		const endpoint = await this.getEndpoint(this.options.request);
-		return endpoint.makeChatRequest(
-			McpToolCallingLoop.ID,
-			messages,
-			finishedCb,
+		return endpoint.makeChatRequest2(
+			{
+				...opts,
+				debugName: McpToolCallingLoop.ID,
+				location: ChatLocation.Agent,
+				requestOptions: {
+					...opts.requestOptions,
+					temperature: 0,
+				},
+			},
 			token,
-			ChatLocation.Agent,
-			undefined,
-			{
-				...requestOptions,
-				temperature: 0,
-			},
-			firstFetchCall,
-			{
-				messageId: randomUUID(),
-				messageSource: McpToolCallingLoop.ID,
-			},
-			{ intent: true },
 		);
 	}
 }

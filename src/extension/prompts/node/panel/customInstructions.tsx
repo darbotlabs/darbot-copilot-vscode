@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -18,7 +18,9 @@ import {
 } from '../../../../platform/customInstructions/common/customInstructionsService';
 import { IPromptPathRepresentationService } from '../../../../platform/prompts/common/promptPathRepresentationService';
 import { isUri } from '../../../../util/common/types';
+import { ResourceSet } from '../../../../util/vs/base/common/map';
 import { isString } from '../../../../util/vs/base/common/types';
+import { URI } from '../../../../util/vs/base/common/uri';
 import {
 	ChatVariablesCollection,
 	isPromptInstruction,
@@ -50,6 +52,11 @@ export interface CustomInstructionsProps extends BasePromptElementProps {
 	 */
 	readonly includePullRequestDescriptionGenerationInstructions?: boolean;
 	readonly customIntroduction?: string;
+
+	/**
+	 * @default true
+	 */
+	readonly includeSystemMessageConflictWarning?: boolean;
 }
 
 export class CustomInstructions extends PromptElement<CustomInstructionsProps> {
@@ -71,53 +78,32 @@ export class CustomInstructions extends PromptElement<CustomInstructionsProps> {
 			includePullRequestDescriptionGenerationInstructions,
 			customIntroduction,
 		} = this.props;
+		const includeSystemMessageConflictWarning =
+			this.props.includeSystemMessageConflictWarning ?? true;
 
 		const chunks = [];
 
-		if (
-			includeCodeGenerationInstructions !== false &&
-			this.props.chatVariables
-		) {
-			for (const variable of this.props.chatVariables) {
-				if (isPromptInstruction(variable)) {
-					if (isString(variable.value)) {
-						chunks.unshift(<TextChunk>{variable.value}</TextChunk>);
-					} else if (isUri(variable.value)) {
-						const instructions =
-							await this.customInstructionsService.fetchInstructionsFromFile(
-								variable.value,
-							);
-						if (instructions) {
+		if (includeCodeGenerationInstructions !== false) {
+			const instructionFiles = new ResourceSet(
+				await this.customInstructionsService.getAgentInstructions(),
+			);
+			if (this.props.chatVariables) {
+				for (const variable of this.props.chatVariables) {
+					if (isPromptInstruction(variable)) {
+						if (isString(variable.value)) {
 							chunks.push(
-								<Tag
-									name="attachment"
-									attrs={{
-										filePath:
-											this.promptPathRepresentationService.getFilePath(
-												variable.value,
-											),
-									}}
-								>
-									<references
-										value={[
-											new CustomInstructionPromptReference(
-												instructions,
-												instructions.content.map(
-													(instruction) =>
-														instruction.instruction,
-												),
-											),
-										]}
-									/>
-									{instructions.content.map((instruction) => (
-										<TextChunk>
-											{instruction.instruction}
-										</TextChunk>
-									))}
-								</Tag>,
+								<TextChunk>{variable.value}</TextChunk>,
 							);
+						} else if (isUri(variable.value)) {
+							instructionFiles.add(variable.value);
 						}
 					}
+				}
+			}
+			for (const instructionFile of instructionFiles) {
+				const chunk = await this.createElementFromURI(instructionFile);
+				if (chunk) {
+					chunks.push(chunk);
 				}
 			}
 		}
@@ -170,15 +156,51 @@ export class CustomInstructions extends PromptElement<CustomInstructionsProps> {
 		const introduction =
 			customIntroduction ??
 			'When generating code, please follow these user provided coding instructions.';
+		const systemMessageConflictWarning =
+			includeSystemMessageConflictWarning &&
+			' You can ignore an instruction if it contradicts a system message.';
 
 		return (
 			<>
-				{introduction} You can ignore an instruction if it contradicts a
-				system message.
+				{introduction}
+				{systemMessageConflictWarning}
 				<br />
 				<Tag name="instructions">{...chunks}</Tag>
 			</>
 		);
+	}
+
+	private async createElementFromURI(uri: URI) {
+		const instructions =
+			await this.customInstructionsService.fetchInstructionsFromFile(uri);
+		if (instructions) {
+			return (
+				<Tag
+					name="attachment"
+					attrs={{
+						filePath:
+							this.promptPathRepresentationService.getFilePath(
+								uri,
+							),
+					}}
+				>
+					<references
+						value={[
+							new CustomInstructionPromptReference(
+								instructions,
+								instructions.content.map(
+									(instruction) => instruction.instruction,
+								),
+							),
+						]}
+					/>
+					{instructions.content.map((instruction) => (
+						<TextChunk>{instruction.instruction}</TextChunk>
+					))}
+				</Tag>
+			);
+		}
+		return undefined;
 	}
 
 	private createInstructionElement(instructions: ICustomInstructions) {

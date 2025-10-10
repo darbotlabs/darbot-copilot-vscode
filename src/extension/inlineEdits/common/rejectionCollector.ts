@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -13,7 +13,7 @@ import { StringEdit, StringReplacement } from '../../../util/vs/editor/common/co
 import { StringText } from '../../../util/vs/editor/common/core/text/abstractText';
 
 export class RejectionCollector extends Disposable {
-	private readonly _garbageCollector = new LRUGarbageCollector(20);
+	private readonly _garbageCollector = this._register(new LRUGarbageCollector(20));
 	private readonly _documentCaches = new Map<DocumentId, DocumentRejectionTracker>();
 	private readonly _tracer: ITracer;
 
@@ -66,6 +66,10 @@ export class RejectionCollector extends Disposable {
 		const isRejected = docCache.isRejected(e);
 		this._tracer.trace(`Checking rejection, ${isRejected ? 'rejected' : 'not rejected'}: ${e}`);
 		return isRejected;
+	}
+
+	public clear() {
+		this._garbageCollector.clear();
 	}
 }
 
@@ -147,10 +151,14 @@ class LRUGarbageCollector implements IDisposable {
 		}
 	}
 
-	dispose(): void {
+	public clear(): void {
 		for (const d of this._disposables) {
 			d.dispose();
 		}
 		this._disposables = [];
+	}
+
+	public dispose(): void {
+		this.clear();
 	}
 }

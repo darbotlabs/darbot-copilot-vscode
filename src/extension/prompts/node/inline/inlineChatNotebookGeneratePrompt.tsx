@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -92,7 +92,6 @@ export class InlineChatNotebookGeneratePrompt extends PromptElement<
 
 		const isTagBasedDocumentSummary =
 			this.experimentationService.getTreatmentVariable<boolean>(
-				'vscode',
 				'copilotchat.tagBasedDocumentSummary',
 			) ?? false;
 
@@ -296,7 +295,6 @@ class InlineChatNotebookGenerateSelection extends PromptElement<
 
 		const inSummaryExperiment =
 			this.experimentationService.getTreatmentVariable(
-				'vscode',
 				'copilotchat.notebookSummary',
 			) ||
 			this.configurationService.getConfig(

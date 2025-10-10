@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import {
@@ -78,7 +78,7 @@ class FetchWebPageTool implements ICopilotTool<IFetchWebPageParams> {
 		_token: CancellationToken,
 	): ProviderResult<PreparedToolInvocation> {
 		// The Core version of this tool handles the confirmation message & other messages
-		this._logService.logger.trace('FetchWebPageTool: prepareInvocation');
+		this._logService.trace('FetchWebPageTool: prepareInvocation');
 		return {
 			presentation: 'hidden',
 		};
@@ -88,7 +88,7 @@ class FetchWebPageTool implements ICopilotTool<IFetchWebPageParams> {
 		options: LanguageModelToolInvocationOptions<IFetchWebPageParams>,
 		token: CancellationToken,
 	): Promise<LanguageModelToolResult> {
-		this._logService.logger.trace('FetchWebPageTool: invoke');
+		this._logService.trace('FetchWebPageTool: invoke');
 		const tool = lm.tools.find((t) => t.name === internalToolName);
 		if (!tool) {
 			throw new Error('Tool not found');
@@ -100,7 +100,7 @@ class FetchWebPageTool implements ICopilotTool<IFetchWebPageParams> {
 			token,
 		);
 		if (urls.length !== content.length) {
-			this._logService.logger.error(
+			this._logService.error(
 				`Expected ${urls.length} responses but got ${content.length}`,
 			);
 			return new LanguageModelToolResult([
@@ -137,14 +137,14 @@ class FetchWebPageTool implements ICopilotTool<IFetchWebPageParams> {
 					if (typeof textValue === 'string') {
 						validTextContent.push({ uri, content: textValue });
 					} else {
-						this._logService.logger.warn(
+						this._logService.warn(
 							`Unsupported content type at index ${i}: ${urls[i]}`,
 						);
 						invalidUrls.push(urls[i]);
 					}
 				}
 			} catch (error) {
-				this._logService.logger.error(
+				this._logService.error(
 					`Invalid URL at index ${i}: ${urls[i]}`,
 					error,
 				);

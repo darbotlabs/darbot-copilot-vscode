@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -14,6 +14,7 @@ import {
 import type * as vscode from 'vscode';
 import { ChatFetchResponseType } from '../../../platform/chat/common/commonTypes';
 import { IEndpointProvider } from '../../../platform/endpoint/common/endpointProvider';
+import { ITelemetryService } from '../../../platform/telemetry/common/telemetry';
 import {
 	extractNotebookOutline,
 	INotebookOutline,
@@ -51,7 +52,6 @@ import {
 	ICopilotTool,
 	ToolRegistry,
 } from '../common/toolsRegistry';
-import { ITelemetryService } from '../../../platform/telemetry/common/telemetry';
 
 export class NewNotebookTool implements ICopilotTool<IBuildPromptContext> {
 	// Make sure this matches the name in the ToolName enum and package.json
@@ -112,12 +112,15 @@ export class NewNotebookTool implements ICopilotTool<IBuildPromptContext> {
 				},
 			);
 			outcome = 'failedToMakePlanningRequest';
-			const planningResponse = await planningEndpoint.makeChatRequest(
-				'notebookPlanning',
-				planningMessages,
-				undefined,
+			const planningResponse = await planningEndpoint.makeChatRequest2(
+				{
+					debugName: 'notebookPlanning',
+					messages: planningMessages,
+					finishedCb: undefined,
+					location: ChatLocation.Panel,
+					enableRetryOnFilter: true,
+				},
 				token,
-				ChatLocation.Panel,
 			);
 			if (planningResponse.type !== ChatFetchResponseType.Success) {
 				this.sendTelemetry('planningFailed', options);
@@ -259,13 +262,19 @@ export class NewNotebookToolPromptContent extends PromptElement<
 		state: NewNotebookCodeGenerationPromptState,
 		sizing: PromptSizing,
 	): PromptPiece<any, any> | undefined {
+		const hasEditNotebookTool = this.props.availableTools?.some(
+			(t) => t.name === ToolName.EditNotebook,
+		);
 		const hasEditTools =
 			this.props.availableTools?.some(
 				(t) => t.name === ToolName.EditFile,
-			) &&
+			) && hasEditNotebookTool;
+		const hasCreateTool =
+			!hasEditTools &&
 			this.props.availableTools?.some(
-				(t) => t.name === ToolName.EditNotebook,
-			);
+				(t) => t.name === ToolName.CreateFile,
+			) &&
+			hasEditNotebookTool;
 		return (
 			<>
 				<NotebookXmlFormatPrompt
@@ -293,6 +302,17 @@ export class NewNotebookToolPromptContent extends PromptElement<
 					<>
 						Use the `{`${ToolName.EditFile}`}` tool to first create
 						an empty notebook file with the file path,
+						<br />
+						And then use the `{`${ToolName.EditNotebook}`}` tool to
+						generate the notebook of the notebook by editing the
+						empty notebook.
+						<br />
+					</>
+				)}
+				{hasCreateTool && (
+					<>
+						Use the `{`${ToolName.CreateFile}`}` tool to first
+						create an empty notebook file with the file path,
 						<br />
 						And then use the `{`${ToolName.EditNotebook}`}` tool to
 						generate the notebook of the notebook by editing the

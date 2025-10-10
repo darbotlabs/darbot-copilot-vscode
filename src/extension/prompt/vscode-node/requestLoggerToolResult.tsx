@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -11,7 +11,11 @@ import {
 	renderPrompt,
 	UserMessage,
 } from '@vscode/prompt-tsx';
-import { LanguageModelPromptTsxPart } from '../../../vscodeTypes';
+import {
+	ChatImageMimeType,
+	LanguageModelDataPart,
+	LanguageModelPromptTsxPart,
+} from '../../../vscodeTypes';
 
 export async function renderToolResultToStringNoBudget(
 	part: LanguageModelPromptTsxPart,
@@ -51,4 +55,24 @@ export async function renderToolResultToStringNoBudget(
 							: undefined,
 				)
 				.join('');
+}
+
+export function renderDataPartToString(part: LanguageModelDataPart) {
+	const isImage = Object.values(ChatImageMimeType).includes(
+		part.mimeType as ChatImageMimeType,
+	);
+
+	if (isImage) {
+		// return a string of data uri schema
+		const base64 = btoa(String.fromCharCode(...part.data));
+		return `data:${part.mimeType};base64,${base64}`;
+	} else {
+		// return a string of the decoded data
+		try {
+			const nonImageStr = new TextDecoder().decode(part.data);
+			return nonImageStr;
+		} catch {
+			return `<decode error: ${part.data.length} bytes>`;
+		}
+	}
 }

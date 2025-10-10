@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { commands, env, Uri } from 'vscode';
@@ -16,7 +16,7 @@ export class ChatQuotaContribution extends Disposable implements IExtensionContr
 			// Clear quota before opening the page to ensure that if the user enabled overages,
 			// the next request they send won't try to downgrade them to the base model.
 			chatQuotaService.clearQuota();
-			env.openExternal(Uri.parse('https://aka.ms/github-copilot-manage-overage'));
+			env.openExternal(Uri.parse('https://aka.ms/darbot-copilot-manage-overage'));
 		}));
 	}
 }

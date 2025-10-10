@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -26,8 +26,14 @@ export type ObsDebuggerApi = {
 			getDerivedInfo(instanceId: ObsInstanceId): IDerivedObservableDetailedInfo;
 			getAutorunInfo(instanceId: ObsInstanceId): IAutorunDetailedInfo;
 			getObservableValueInfo(instanceId: ObsInstanceId): IObservableValueInfo;
+
 			setValue(instanceId: ObsInstanceId, jsonValue: unknown): void;
 			getValue(instanceId: ObsInstanceId): unknown;
+
+			// For autorun and deriveds
+			rerun(instanceId: ObsInstanceId): void;
+
+			logValue(instanceId: ObsInstanceId): void;
 
 			getTransactionState(): ITransactionState | undefined;
 		}

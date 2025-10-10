@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -10,6 +10,7 @@ import { DebugNameData } from '../debugName';
 import { assertFn, BugIndicatingError, DisposableStore, IDisposable, markAsDisposed, onBugIndicatingError, trackDisposable } from '../commonFacade/deps';
 import { getLogger } from '../logging/logging';
 import { IChangeTracker } from '../changeTracker';
+import { DebugLocation } from '../debugLocation';
 
 export const enum AutorunState {
 	/**
@@ -42,9 +43,10 @@ export class AutorunObserver<TChangeSummary = any> implements IObserver, IReader
 		public readonly _debugNameData: DebugNameData,
 		public readonly _runFn: (reader: IReaderWithStore, changeSummary: TChangeSummary) => void,
 		private readonly _changeTracker: IChangeTracker<TChangeSummary> | undefined,
+		debugLocation: DebugLocation
 	) {
 		this._changeSummary = this._changeTracker?.createChangeSummary(undefined);
-		getLogger()?.handleAutorunCreated(this);
+		getLogger()?.handleAutorunCreated(this, debugLocation);
 		this._run();
 
 		trackDisposable(this);

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -8,9 +8,11 @@ import { ILogTarget } from '../common/logService';
 
 export let outputChannel: OutputChannel;
 
+export const OutputChannelName = 'Darbot Copilot Chat';
+
 export class NewOutputChannelLogTarget implements ILogTarget {
 
-	private readonly _outputChannel = window.createOutputChannel('Darbot Copilot Chat', { log: true });
+	private readonly _outputChannel = window.createOutputChannel(OutputChannelName, { log: true });
 
 	constructor(extensionContext: ExtensionContext) {
 		outputChannel = this._outputChannel;

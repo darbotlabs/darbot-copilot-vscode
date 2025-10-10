@@ -1,146 +1,343 @@
-<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
+# GitHub Copilot Chat Extension - Copilot Instructions
 
-# Darbot Copilot VS Code Extension
+## Project Overview
 
-This is a VS Code extension project. Please use the VSCodeAPI tool with a query as input to fetch the latest VS Code API references when working with VS Code-specific functionality.
+This is the **GitHub Copilot Chat** extension for Visual Studio Code - a VS Code extension that provides conversational AI assistance, a coding agent with many tools, inline editing capabilities, and advanced AI-powered features for VS Code.
 
-Darbot Copilot is a comprehensive AI-powered coding assistant for Visual Studio Code. It's a TypeScript-based VS Code extension providing inline coding suggestions, conversational AI assistance, and autonomous agent mode for multi-step coding tasks.
+### Key Features
+- **Chat Interface**: Conversational AI assistance with chat participants, variables, and slash commands
+- **Inline Chat**: AI-powered editing directly in the editor with `Ctrl+I`
+- **Agent Mode**: Multi-step autonomous coding tasks
+- **Edit Mode**: Natural language to code
+- **Code Completions**: Next edit suggestions and inline completions
+- **Language Model Integration**: Support for multiple AI models (GPT-4, Claude, Gemini, etc.)
+- **Context-Aware**: Workspace understanding, semantic search, and code analysis
 
-Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
+### Tech Stack
+- **TypeScript**: Primary language (follows VS Code coding standards)
+- **TSX**: Prompts are built using the @vscode/prompt-tsx library
+- **Node.js**: Runtime for extension host and language server features
+- **WebAssembly**: For performance-critical parsing and tokenization
+- **VS Code Extension API**: Extensive use of proposed APIs for chat, language models, and editing
+- **ESBuild**: Bundling and compilation
+- **Vitest**: Unit testing framework
+- **Python**: For notebooks integration and ML evaluation scripts
 
-## Working Effectively
+## Validating changes
 
-### Initial Setup and Installation
-- Install Node.js 22.15.1 using nvm (as specified in .nvmrc): 
-  ```bash
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-  nvm install 22.15.1
-  nvm use 22.15.1
-  ```
-- Ensure Python 3.10-3.12 is installed: `python3 --version` (required for build tools)
-- Ensure Git LFS is installed: `git lfs version` (required for test artifacts)
-- On Windows: Run `Set-ExecutionPolicy Unrestricted` as admin in PowerShell
+You MUST check compilation output before running ANY script or declaring work complete!
 
-### Install Dependencies and Setup
-- `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install` -- installs dependencies in ~2 minutes. NEVER CANCEL. Set timeout to 5+ minutes.
-  - Note: Playwright browser download may fail in restricted environments. Use environment variable to skip.
-- `npm run get_token` -- sets up GitHub OAuth token interactively (required for API access)
-  - This opens a browser for GitHub authentication. Copy the provided code and follow instructions.
-  - Token is stored in .env file for development use.
+1. **ALWAYS** check the `start-watch-tasks` watch task output for compilation errors
+2. **NEVER** use the `compile` task as a way to check if everything is working properly
+3. **FIX** all compilation errors before moving forward
 
-### Build and Development
-- `npm run compile` -- development build using esbuild, takes ~4 seconds. NEVER CANCEL.
-- `npm run build` -- production build, takes ~4-5 seconds. NEVER CANCEL.  
-- `npm run watch` -- starts multiple watch processes for continuous development. NEVER CANCEL.
-  - Includes TypeScript watching and esbuild watching
-  - Use this for active development to see changes immediately
+### TypeScript compilation steps
+- Monitor the `start-watch-tasks` task outputs for real-time compilation errors as you make changes
+- This task runs `npm: watch:tsc-extension`,`npm: watch:tsc-extension-web`, `npm: watch:tsc-simulation-workbench`, and `npm: watch:esbuild` to incrementally compile the project
+- Start the task if it's not already running in the background
 
-### Code Quality and Validation
-- `npm run typecheck` -- TypeScript type checking across all projects, takes ~25 seconds. NEVER CANCEL. Set timeout to 60+ minutes.
-- `npm run lint` -- ESLint linting with strict rules including copyright headers, takes ~18 seconds. NEVER CANCEL. 
-  - Note: Fresh clones may have missing copyright headers - this is expected
-- `npm run prettier` -- code formatting with Prettier, takes ~8 seconds. NEVER CANCEL.
+## Project Architecture
+
+### Top-Level Directory Structure
+
+#### Core Source Code (`src/`)
+- **`src/extension/`**: Main extension implementation, organized by feature
+- **`src/platform/`**: Shared platform services and utilities
+- **`src/util/`**: Common utilities, VS Code API abstractions, and service infrastructure
+
+#### Build & Configuration
+- **`.esbuild.ts`**: Build configuration for bundling extension, web worker, and simulation workbench
+- **`tsconfig.json`**: TypeScript configuration extending base config with React JSX settings
+- **`vite.config.ts`**: Test configuration for Vitest unit tests
+- **`package.json`**: Extension manifest with VS Code contributions, dependencies, and scripts
+
+#### Testing & Simulation
+- **`test/`**: Comprehensive test suite including unit, integration, and simulation tests
+- **`script/simulate.sh`**: Test runner for scenario-based testing
+- **`notebooks/`**: Jupyter notebooks for performance analysis and ML experiments
+
+#### Assets & Documentation
+- **`assets/`**: Icons, fonts, and visual resources
+- **`CONTRIBUTING.md`**: Architecture documentation and development guide
+
+### Key Source Directories
+
+#### `src/extension/` - Feature Implementation
+
+**Core Chat & Conversation Features:**
+- **`conversation/`**: Chat participants, agents, and conversation flow orchestration
+- **`inlineChat/`**: Inline editing features (`Ctrl+I`) and hints system
+- **`inlineEdits/`**: Advanced inline editing capabilities with streaming edits
+
+**Context & Intelligence:**
+- **`context/`**: Context resolution for code understanding and workspace analysis
+- **`contextKeys/`**: VS Code context key management for UI state
+- **`intents/`**: Chat participant/slash command implementations
+- **`prompts/`**: Prompt engineering and template system
+- **`prompt/`**: Common prompt utilities
+- **`relatedFiles/`**: Related file discovery and context gathering
+- **`typescriptContext/`**: TypeScript-specific context and analysis
+
+**Search & Discovery:**
+- **`search/`**: General search functionality within the extension
+- **`workspaceChunkSearch/`**: Chunked workspace search for large codebases
+- **`workspaceSemanticSearch/`**: Semantic search across workspace content
+- **`workspaceRecorder/`**: Recording and tracking workspace interactions
+
+**Authentication & Configuration:**
+- **`authentication/`**: GitHub authentication and token management
+- **`configuration/`**: Settings and configuration management
+- **`byok/`**: Bring Your Own Key (BYOK) functionality for custom API keys
+
+**AI Integration & Endpoints:**
+- **`endpoint/`**: AI service endpoints and model selection
+- **`tools/`**: Language model tools and integrations
+- **`api/`**: Core API abstractions and interfaces
+- **`mcp/`**: Model Context Protocol integration
+
+**Development & Testing:**
+- **`testing/`**: Test generation and execution features
+- **`test/`**: Extension-specific test utilities and helpers
+
+**User Interface & Experience:**
+- **`commands/`**: Service for working with VS Code commands
+- **`codeBlocks/`**: Streaming code block processing
+- **`linkify/`**: URL and reference linkification
+- **`getting-started/`**: Onboarding and setup experience
+- **`onboardDebug/`**: Debug onboarding flows
+- **`survey/`**: User feedback and survey collection
+
+**Specialized Features:**
+- **`notebook/`**: Notebook integration and support
+- **`review/`**: Code review and PR integration features
+- **`renameSuggestions/`**: AI-powered rename suggestions
+- **`ignore/`**: File and pattern ignore functionality
+- **`xtab/`**: Cross-tab communication and state management
+
+**Infrastructure & Utilities:**
+- **`extension/`**: Core extension initialization and lifecycle
+- **`log/`**: Logging infrastructure and utilities
+- **`telemetry/`**: Analytics and usage tracking
+
+**VS Code API Type Definitions:**
+- Multiple `vscode.proposed.*.d.ts` files for proposed VS Code APIs including chat, language models, embeddings, and various editor integrations
+
+#### `src/platform/` - Platform Services
+- **`chat/`**: Core chat services and conversation options
+- **`openai/`**: OpenAI API protocol integration and request handling
+- **`embedding/`**: Vector embeddings for semantic search
+- **`parser/`**: Code parsing and AST analysis
+- **`search/`**: Workspace search and indexing
+- **`telemetry/`**: Analytics and usage tracking
+- **`workspace/`**: Workspace understanding and file management
+- **`notebook/`**: Notebook integration
+- **`git/`**: Git integration and repository analysis
+
+#### `src/util/` - Infrastructure
+- **`common/`**: Shared utilities, service infrastructure, and abstractions
+- **`vs/`**: Utilities borrowed from the microsoft/vscode repo (readonly)
+
+### Extension Activation Flow
+
+1. **Base Activation** (`src/extension/extension/vscode/extension.ts`):
+   - Checks VS Code version compatibility
+   - Creates service instantiation infrastructure
+   - Initializes contribution system
+
+2. **Service Registration**:
+   - Platform services (search, parsing, telemetry, etc.)
+   - Extension-specific services (chat, authentication, etc.)
+   - VS Code integrations (commands, providers, etc.)
+
+3. **Contribution Loading**:
+   - Chat participants
+   - Language model providers
+   - Command registrations
+   - UI contributions (views, menus, etc.)
+
+### Chat System Architecture
+
+#### Chat Participants
+- **Default Agent**: Main conversational AI assistant
+- **Setup Agent**: Handles initial Copilot setup and onboarding
+- **Workspace Agent**: Specialized for workspace-wide operations
+- **Agent Mode**: Autonomous multi-step task execution
+
+#### Request Processing
+1. **Input Parsing**: Parse user input for participants, variables, slash commands
+2. **Context Resolution**: Gather relevant code context, diagnostics, workspace info
+3. **Prompt Construction**: Build prompts with context and intent detection
+4. **Model Interaction**: Send requests to appropriate language models
+5. **Response Processing**: Parse and interpret AI responses
+6. **Action Execution**: Apply code edits, show results, handle follow-ups
+
+#### Language Model Integration
+- Support for multiple providers (OpenAI, Anthropic, etc.)
+- Model selection and switching capabilities
+- Quota management and fallback handling
+- Custom instruction integration
+
+### Inline Chat System
+- **Hint System**: Smart detection of natural language input for inline suggestions
+- **Intent Detection**: Automatic detection of user intent (explain, fix, refactor, etc.)
+- **Context Collection**: Gather relevant code context around cursor/selection
+- **Streaming Edits**: Real-time application of AI-suggested changes
+- **Version 2**: New implementation with improved UX and hide-on-request functionality
+
+## Coding Standards
+
+### TypeScript/JavaScript Guidelines
+- **Indentation**: Use **tabs**, not spaces
+- **Naming Conventions**:
+  - `PascalCase` for types and enum values
+  - `camelCase` for functions, methods, properties, and local variables
+  - Use descriptive, whole words in names
+- **Strings**:
+  - "double quotes" for user-visible strings that need localization
+  - 'single quotes' for internal strings
+- **Functions**: Use arrow functions `=>` over anonymous function expressions
+- **Conditionals**: Always use curly braces, opening brace on same line
+- **Comments**: Use JSDoc style for functions, interfaces, enums, and classes
+
+### React/JSX Conventions
+- Custom JSX factory: `vscpp` (instead of React.createElement)
+- Fragment factory: `vscppf`
+- Components follow VS Code theming and styling patterns
+
+### Architecture Patterns
+- **Service-oriented**: Heavy use of dependency injection via `IInstantiationService`
+- **Contribution-based**: Modular system where features register themselves
+- **Event-driven**: Extensive use of VS Code's event system and disposables
+- **Layered**: Clear separation between platform services and extension features
+
+### Testing Standards
+- **Unit Tests**: Vitest for isolated component testing
+- **Integration Tests**: VS Code extension host tests for API integration
+- **Simulation Tests**: End-to-end scenario testing with `.stest.ts` files
+- **Fixtures**: Comprehensive test fixtures for various scenarios
+
+### File Organization
+- **Logical Grouping**: Features grouped by functionality, not technical layer
+- **Platform Separation**: Different implementations for web vs. Node.js environments
+- **Test Proximity**: Tests close to implementation (`/test/` subdirectories)
+- **Clear Interfaces**: Strong interface definitions for service boundaries
+
+## Key Development Guidelines
+
+### Arrow Functions and Parameters
+- Use arrow functions `=>` over anonymous function expressions
+- Only surround arrow function parameters when necessary:
+
+```javascript
+x => x + x                    // ✓ Correct
+(x, y) => x + y              // ✓ Correct
+<T>(x: T, y: T) => x === y   // ✓ Correct
+(x) => x + x                 // ✗ Wrong
+```
+
+### Code Structure
+- Always surround loop and conditional bodies with curly braces
+- Open curly braces always go on the same line as whatever necessitates them
+   - An open curly brace MUST be followed by a newline, with the body indented on the next line
+- Parenthesized constructs should have no surrounding whitespace
+- Single space follows commas, colons, and semicolons
+
+```javascript
+for (let i = 0, n = str.length; i < 10; i++) {
+    if (x < 10) {
+        foo();
+    }
+}
+
+function f(x: number, y: string): void { }
+```
+
+### Type Management
+- Do not export `types` or `functions` unless you need to share it across multiple components
+- Do not introduce new `types` or `values` to the global namespace
+- Use proper types. Do not use `any` unless absolutely necessary.
+- Use `readonly` whenever possible.
+- Avoid casts in TypeScript unless absolutely necessary. If you get type errors after your changes, look up the types of the variables involved and set up a proper system of types and interfaces instead of adding type casts.
+- Do not use `any` or `unknown` as the type for variables, parameters, or return values unless absolutely necessary. If they need type annotations, they should have proper types or interfaces defined.
+
+## Key APIs and Integrations
+
+### VS Code Proposed APIs (Enabled)
+The extension uses numerous proposed VS Code APIs for advanced functionality:
+- `chatParticipantPrivate`: Private chat participant features
+- `languageModelSystem`: System messages for LM API
+- `chatProvider`: Custom chat provider implementation
+- `mappedEditsProvider`: Advanced editing capabilities
+- `inlineCompletionsAdditions`: Enhanced inline completions
+- `aiTextSearchProvider`: AI-powered search capabilities
+
+### External Integrations
+- **GitHub**: Authentication and API access
+- **Azure**: Cloud services and experimentation
+- **OpenAI**: Language model API
+- **Anthropic**: Claude model integration
+- **Telemetry**: Usage analytics and performance monitoring
+
+## Development Workflow
+
+### Setup and Build
+- `npm install`: Install dependencies
+- `npm run compile`: Development build
+- `npm run watch:*`: Various watch modes for development
 
 ### Testing
-- `npm run test:unit` -- runs vitest unit tests in Node.js, takes ~50 seconds. NEVER CANCEL. Set timeout to 90+ minutes.
-  - Some tests may fail due to missing tool configurations in fresh environments
-- `npm run test:extension` -- VS Code integration tests, requires VS Code download and GUI environment
-  - Will fail in headless environments or with network restrictions - this is expected
-- `npm run simulate` -- expensive LLM-based simulation tests, takes 30+ minutes. NEVER CANCEL. Set timeout to 90+ minutes.
-  - Requires GitHub API access and populated cache
-  - Use `npm run simulate-require-cache` to ensure cache is available
-  - Use `npm run simulate-update-baseline` to update test baselines
+- `npm run test:unit`: Unit tests
+- `npm run test:extension`: VS Code integration tests
+- `npm run simulate`: Scenario-based simulation tests
 
-## Running the Extension
-- Open VS Code with `cmd+shift+B` (or Ctrl+Shift+B) and select build task
-- Or use "Launch Copilot Extension - Watch Mode" debug configuration
-- Or use "Launch Copilot Extension" debug configuration for non-watch mode
-- Extension runs in both Node.js and web worker environments
+### Key Entry Points for Edits
 
-## Validation Scenarios
-When making changes to the extension, always validate:
+**Chat & Conversation Features:**
+- **Adding new chat features**: Start in `src/extension/conversation/`
+- **Chat participants and agents**: Look in `src/extension/conversation/` for participant implementations
+- **Conversation storage**: Modify `src/extension/conversationStore/` for persistence features
+- **Inline chat improvements**: Look in `src/extension/inlineChat/` and `src/extension/inlineEdits/`
 
-### Basic Development Workflow
-1. **Code builds successfully**: Run `npm run compile` and verify no errors
-2. **Type checking passes**: Run `npm run typecheck` and verify no type errors  
-3. **Code formatting is correct**: Run `npm run prettier` to auto-format code
-4. **Unit tests pass**: Run `npm run test:unit` for core functionality validation
+**Context & Intelligence:**
+- **Context resolution changes**: Check `src/extension/context/` and `src/extension/typescriptContext/`
+- **Prompt engineering**: Update `src/extension/prompts/` and `src/extension/prompt/`
+- **Intent detection**: Modify `src/extension/intents/` for user intent classification
+- **Related files discovery**: Edit `src/extension/relatedFiles/` for context gathering
 
-### Full Validation (CI-equivalent)
-1. Install fresh dependencies: `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install`
-2. Type check: `npm run typecheck` (~25 seconds)
-3. Lint code: `npm run lint` (~18 seconds)
-4. Build extension: `npm run compile` (~4 seconds)
-5. Run unit tests: `npm run test:unit` (~50 seconds)
-6. Optional: Run simulation tests with cache: `npm run simulate-require-cache` (if API access available)
+**Search & Discovery:**
+- **Search functionality**: Update `src/extension/search/` for general search
+- **Workspace search**: Modify `src/extension/workspaceChunkSearch/` for large codebase search
+- **Semantic search**: Edit `src/extension/workspaceSemanticSearch/` for AI-powered search
+- **Workspace tracking**: Update `src/extension/workspaceRecorder/` for interaction recording
 
-### Extension Functionality Testing
-- Load the extension in VS Code using debug configurations
-- Test basic chat functionality with AI assistant
-- Test inline coding suggestions and completions
-- Test agent mode for multi-step tasks
-- Verify tool integration (code search, file operations, terminal access)
+**Authentication & Configuration:**
+- **Authentication flows**: Modify `src/extension/authentication/` for GitHub integration
+- **Settings and config**: Update `src/extension/configuration/` and `src/extension/settingsSchema/`
+- **BYOK features**: Edit `src/extension/byok/` for custom API key functionality
 
-## Project Architecture Overview
+**AI Integration:**
+- **AI endpoints**: Update `src/extension/endpoint/` for model selection and routing
+- **Language model tools**: Modify `src/extension/tools/` for AI tool integrations
+- **API abstractions**: Edit `src/extension/api/` for core interfaces
+- **MCP integration**: Update `src/extension/mcp/` for Model Context Protocol features
 
-### Technology Stack
-- **Core**: TypeScript/JavaScript VS Code extension
-- **Build**: esbuild for fast compilation and bundling
-- **Runtime**: Node.js >=22.14.0 (development), supports web workers
-- **Testing**: vitest (unit), VS Code test framework (integration), custom simulation tests
-- **AI Integration**: Multiple LLM providers, GitHub Copilot API integration
-- **Tools**: ESLint, Prettier, TypeScript, Git LFS
+**User Interface:**
+- **VS Code commands**: Update `src/extension/commands/` for command implementations
+- **Code block rendering**: Modify `src/extension/codeBlocks/` for code display
+- **Onboarding flows**: Edit `src/extension/getting-started/` and `src/extension/onboardDebug/`
+- **Cross-tab features**: Update `src/extension/xtab/` for multi-tab coordination
 
-### Key Directories
-- `src/extension/` -- main extension code organized by feature
-- `src/platform/` -- shared services (telemetry, configuration, search)
-- `src/util/` -- utility code reusable across extension
-- `test/` -- all test code including unit, integration, and simulation tests
-- `dist/` -- compiled output (extension.js, web.js, workers, etc.)
-- `.vscode/` -- VS Code workspace configuration with launch/debug settings
+**Testing & Development:**
+- **Test generation**: Modify `src/extension/testing/` for AI-powered test creation
+- **Extension tests**: Update `src/extension/test/` for extension-specific test utilities
 
-### Entry Points
-- `src/extension/extension/vscode-node/extension.ts` -- Node.js extension host entry
-- `src/extension/extension/vscode-worker/extension.ts` -- web worker extension host entry
-- Main extension bundle: `dist/extension.js` (~10MB with source maps)
+**Platform Services:**
+- **Core platform services**: Extend `src/platform/` services for cross-cutting functionality
+- **VS Code integration**: Update contribution files and extension activation code
+- **Configuration**: Modify `package.json` contributions for VS Code integration
 
-### Important Build Artifacts
-- Extension works in both desktop VS Code and web environments
-- Multiple workers: parser, tokenizer, diff, tfidf workers
-- Tree-sitter WASM files for language parsing
-- Simulation and test bundles for development/testing
+This extension is a complex, multi-layered system that provides comprehensive AI assistance within VS Code. Understanding the service architecture, contribution system, and separation between platform and extension layers is crucial for making effective changes.
 
-## Common Development Issues
-
-### Environment Issues
-- **Node.js version**: Must use 22.15.1+, check with `node --version`
-- **Python version**: Must be 3.10-3.12 for build tools
-- **Git LFS**: Required for test artifacts, run `git lfs pull` to validate
-- **Playwright**: May fail in restricted environments, skip browser downloads
-
-### Build Issues  
-- **Watch mode not updating**: Restart watch tasks if file changes aren't detected
-- **Large bundle sizes**: Extension bundles are intentionally large (~10MB) for rich functionality
-- **Missing dependencies**: Run `npm install` again if esbuild fails
-
-### Test Issues
-- **Unit test failures**: Tool configuration mismatches are common in fresh environments
-- **Extension test failures**: Require VS Code GUI environment and network access
-- **Simulation test failures**: Need GitHub API access and populated cache layers
-
-### Performance Notes
-- **Build time**: Very fast (~4 seconds) thanks to esbuild
-- **Test time**: Unit tests ~50 seconds, simulation tests 30+ minutes
-- **Development workflow**: Use watch mode for immediate feedback during development
-
-## CI/CD Integration
-The project uses GitHub Actions with:
-- Linux and Windows testing environments
-- Build caching for improved performance
-- Telemetry validation
-- Comprehensive test suites including simulation tests
-- Strict linting and formatting requirements
-
-Always run the full validation workflow before submitting changes to match CI requirements.
+## Best Practices
+- Use services and dependency injection whenever possible instead of using node or vscode APIs directly. For example, use `IFileService` instead of node's `fs`.
+- Always use the URI type instead of using string file paths. There are many helpers available for working with URIs.

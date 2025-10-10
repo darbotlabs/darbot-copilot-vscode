@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as l10n from '@vscode/l10n';
@@ -23,6 +23,7 @@ import {
 	ConfigKey,
 	IConfigurationService,
 } from '../../../../platform/configuration/common/configurationService';
+import { IFileSystemService } from '../../../../platform/filesystem/common/fileSystemService';
 import { IIgnoreService } from '../../../../platform/ignore/common/ignoreService';
 import { ILanguageDiagnosticsService } from '../../../../platform/languages/common/languageDiagnosticsService';
 import { KnownSources } from '../../../../platform/languageServer/common/languageContextService';
@@ -91,6 +92,8 @@ export class InlineFix3Prompt extends PromptElement<InlineFixProps> {
 	constructor(
 		props: InlineFixProps,
 		@IIgnoreService private readonly ignoreService: IIgnoreService,
+		@IFileSystemService
+		private readonly fileSystemService: IFileSystemService,
 		@IParserService private readonly parserService: IParserService,
 		@ILanguageDiagnosticsService
 		private readonly languageDiagnosticsService: ILanguageDiagnosticsService,
@@ -187,7 +190,10 @@ export class InlineFix3Prompt extends PromptElement<InlineFixProps> {
 			? CodeMapperInputCodeBlock
 			: PatchEditInputCodeBlock;
 
-		const renderedChatVariables = await renderChatVariables(chatVariables);
+		const renderedChatVariables = await renderChatVariables(
+			chatVariables,
+			this.fileSystemService,
+		);
 
 		return (
 			<>
@@ -523,7 +529,7 @@ export class PatchEditFixReplyInterpreter implements ReplyInterpreter {
 			);
 		}
 		if (res.annotations.length) {
-			this.logService.logger.info(
+			this.logService.info(
 				`[inline fix] Problems generating edits: ${res.annotations.map((a) => `${a.message} [${a.label}]`).join(', ')}, invalid patches: ${res.invalidPatches.length}`,
 			);
 		}

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -11,6 +11,7 @@ import {
 	TextChunk,
 } from '@vscode/prompt-tsx';
 import type * as vscode from 'vscode';
+import { isScenarioAutomation } from '../../../../platform/env/common/envService';
 import { IVSCodeExtensionContext } from '../../../../platform/extContext/common/extensionContext';
 import { IIgnoreService } from '../../../../platform/ignore/common/ignoreService';
 import { ILogService } from '../../../../platform/log/common/logService';
@@ -40,9 +41,12 @@ export abstract class SafePromptElement<
 		// REPORT error telemetry
 		// FAIL when running tests
 		const err = new Error('BAD PROMPT');
-		this._logService.logger.error(err);
+		this._logService.error(err);
 
-		if (this._contextService.extensionMode !== ExtensionMode.Production) {
+		if (
+			this._contextService.extensionMode !== ExtensionMode.Production &&
+			!isScenarioAutomation
+		) {
 			throw err;
 		}
 
@@ -80,6 +84,11 @@ export type CodeBlockProps = PromptElementProps<{
 	 * @default true
 	 */
 	readonly shouldTrim?: boolean;
+
+	/**
+	 * Fence style, defaults to '```'. An empty string omits the fence.
+	 */
+	readonly fence?: string;
 }>;
 
 export class CodeBlock extends SafePromptElement<CodeBlockProps> {
@@ -116,6 +125,7 @@ export class CodeBlock extends SafePromptElement<CodeBlockProps> {
 			this.props.code,
 			this.props.shouldTrim ?? true,
 			filePath,
+			this.props.fence,
 		);
 		const reference = this.props.references && (
 			<references value={this.props.references} />

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -31,7 +31,7 @@ import { handleDebugSession } from './copilotDebugCommandSession';
 import powershellScript from '../node/copilotDebugWorker/copilotDebugWorker.ps1';
 
 // When enabled, holds the storage location of binaries for the PATH:
-const WAS_REGISTERED_STORAGE_KEY = 'darbot-copilot.terminalToDebugging.registered';
+const WAS_REGISTERED_STORAGE_KEY = 'copilot-chat.terminalToDebugging.registered';
 const PATH_VARIABLE = 'PATH';
 export const COPILOT_DEBUG_COMMAND = `copilot-debug`;
 const DEBUG_COMMAND_JS = 'copilotDebugCommand.js';
@@ -57,7 +57,7 @@ export class CopilotDebugCommandContribution extends Disposable implements vscod
 				this.registerSerializer = this.registerSerializer.then(() => this.registerEnvironment());
 			}
 		}));
-		this._register(vscode.commands.registerCommand('darbot.chat.startCopilotDebugCommand', async () => {
+		this._register(vscode.commands.registerCommand('github.copilot.chat.startCopilotDebugCommand', async () => {
 			const term = vscode.window.createTerminal();
 			term.show(false);
 			term.sendText('copilot-debug <your command here>', false);
@@ -109,7 +109,7 @@ export class CopilotDebugCommandContribution extends Disposable implements vscod
 		});
 
 		const socket = connect(pipePath, () => {
-			this.logService.logger.info(`Got a debug connection on ${pipePath}`);
+			this.logService.info(`Got a debug connection on ${pipePath}`);
 
 			const rpc = new SimpleRPC(socket);
 			const handle = new CopilotDebugCommandHandle(rpc);
@@ -176,7 +176,7 @@ export class CopilotDebugCommandContribution extends Disposable implements vscod
 		});
 
 		socket.on('error', e => {
-			this.logService.logger.error(`Error connecting to debug client on ${pipePath}: ${e}`);
+			this.logService.error(`Error connecting to debug client on ${pipePath}: ${e}`);
 			cts.dispose(true);
 		});
 

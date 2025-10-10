@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -7,7 +7,7 @@ import { afterAll, beforeAll, expect, suite, test } from 'vitest';
 import { ITestingServicesAccessor } from '../../../../platform/test/node/services';
 import { TestWorkspaceService } from '../../../../platform/test/node/testWorkspaceService';
 import { IWorkspaceService } from '../../../../platform/workspace/common/workspaceService';
-import { ExtHostDocumentData } from '../../../../util/common/test/shims/textDocument';
+import { createTextDocumentData } from '../../../../util/common/test/shims/textDocument';
 import { CancellationToken } from '../../../../util/vs/base/common/cancellation';
 import { URI } from '../../../../util/vs/base/common/uri';
 import { SyncDescriptor } from '../../../../util/vs/platform/instantiation/common/descriptors';
@@ -21,17 +21,17 @@ suite('ReadFile', () => {
 	let accessor: ITestingServicesAccessor;
 
 	beforeAll(() => {
-		const testDoc = ExtHostDocumentData.create(
+		const testDoc = createTextDocumentData(
 			URI.file('/workspace/file.ts'),
 			'line 1\nline 2\n\nline 4\nline 5',
 			'ts',
 		).document;
-		const emptyDoc = ExtHostDocumentData.create(
+		const emptyDoc = createTextDocumentData(
 			URI.file('/workspace/empty.ts'),
 			'',
 			'ts',
 		).document;
-		const whitespaceDoc = ExtHostDocumentData.create(
+		const whitespaceDoc = createTextDocumentData(
 			URI.file('/workspace/whitespace.ts'),
 			' \t\n',
 			'ts',
@@ -41,7 +41,7 @@ suite('ReadFile', () => {
 			{ length: 3000 },
 			(_, i) => `line ${i + 1}`,
 		).join('\n');
-		const largeDoc = ExtHostDocumentData.create(
+		const largeDoc = createTextDocumentData(
 			URI.file('/workspace/large.ts'),
 			largeContent,
 			'ts',

@@ -91,10 +91,6 @@ async function fetchSecrets(): Promise<{ [key: string]: string | undefined }> {
 		developmentSecretClient,
 		'hmac-secret',
 	);
-	secrets['XTAB_KEY'] = await fetchSecret(
-		developmentSecretClient,
-		'xtab-mass-swc',
-	);
 
 	if (!process.stdin.isTTY) {
 		// only in automation

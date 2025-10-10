@@ -1,11 +1,12 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from '@vscode/l10n';
 import type * as vscode from 'vscode';
 import { IRunCommandExecutionService } from '../../../platform/commands/common/runCommandExecutionService';
+import { ILogService } from '../../../platform/log/common/logService';
 import { IWorkbenchService } from '../../../platform/workbench/common/workbenchService';
 import { CancellationToken } from '../../../util/vs/base/common/cancellation';
 import {
@@ -32,6 +33,7 @@ class VSCodeCmdTool
 		private readonly _commandService: IRunCommandExecutionService,
 		@IWorkbenchService
 		private readonly _workbenchService: IWorkbenchService,
+		@ILogService private readonly _logService: ILogService,
 	) {}
 
 	async invoke(
@@ -39,7 +41,7 @@ class VSCodeCmdTool
 		token: CancellationToken,
 	): Promise<vscode.LanguageModelToolResult> {
 		const command = options.input.commandId;
-		const args = options.input.args;
+		const args = options.input.args ?? [];
 
 		const allcommands = await this._workbenchService.getAllCommands(
 			/* filterByPreCondition */ true,
@@ -63,6 +65,7 @@ class VSCodeCmdTool
 				),
 			]);
 		} catch (error) {
+			this._logService.error(`[VSCodeCmdTool] ${error}`);
 			return new LanguageModelToolResult([
 				new LanguageModelTextPart(
 					`Failed to run ${options.input.name} command.`,

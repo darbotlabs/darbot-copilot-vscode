@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -83,19 +83,19 @@ export class StartDebuggingIntent implements IIntent {
 					progress.markdown('\n' + l10n.t('Generate a new launch configuration by providing more specifics in your query.') + '\n');
 					progress.button({
 						title: l10n.t('Start Debugging Existing'),
-						command: 'darbot.startDebugging',
+						command: 'github.copilot.startDebugging',
 						arguments: [config, progress]
 					});
 				} else if (generatedConfig) {
 					const hasTask = config.tasks?.length;
 					progress.button({
 						title: hasTask ? l10n.t('Run Task and Start Debugging') : l10n.t('Start Debugging'),
-						command: 'darbot.startDebugging',
+						command: 'github.copilot.startDebugging',
 						arguments: [config, progress]
 					});
 					progress.button({
 						title: hasTask ? l10n.t('Save Task and Configuration') : l10n.t('Save Configuration'),
-						command: 'darbot.createLaunchJsonFileWithContents',
+						command: 'github.copilot.createLaunchJsonFileWithContents',
 						arguments: [config]
 					});
 				}

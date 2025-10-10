@@ -1,11 +1,13 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from '@vscode/l10n';
 import type * as vscode from 'vscode';
+import { NotebookDocumentSnapshot } from '../../../platform/editing/common/notebookDocumentSnapshot';
 import { TextDocumentSnapshot } from '../../../platform/editing/common/textDocumentSnapshot';
+import { IEndpointProvider } from '../../../platform/endpoint/common/endpointProvider';
 import { IFileSystemService } from '../../../platform/filesystem/common/fileSystemService';
 import { IAlternativeNotebookContentService } from '../../../platform/notebook/common/alternativeContent';
 import {
@@ -16,6 +18,7 @@ import { INotebookService } from '../../../platform/notebook/common/notebookServ
 import { IPromptPathRepresentationService } from '../../../platform/prompts/common/promptPathRepresentationService';
 import { ITelemetryService } from '../../../platform/telemetry/common/telemetry';
 import { IWorkspaceService } from '../../../platform/workspace/common/workspaceService';
+import { getLanguageForResource } from '../../../util/common/languages';
 import { removeLeadingFilepathComment } from '../../../util/common/markdown';
 import { URI } from '../../../util/vs/base/common/uri';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
@@ -37,13 +40,13 @@ import { ICopilotTool, ToolRegistry } from '../common/toolsRegistry';
 import { IToolsService } from '../common/toolsService';
 import { ActionType } from './applyPatch/parser';
 import { EditFileResult } from './editFileToolResult';
+import { createEditConfirmation } from './editFileToolUtils';
 import { sendEditNotebookTelemetry } from './editNotebookTool';
 import {
-	assertFileOkForTool,
+	assertFileNotContentExcluded,
 	formatUriForFileWidget,
 	resolveToolInputPath,
 } from './toolUtils';
-import { IEndpointProvider } from '../../../platform/endpoint/common/endpointProvider';
 
 export interface ICreateFileParams {
 	filePath: string;
@@ -88,7 +91,7 @@ export class CreateFileTool implements ICopilotTool<ICreateFileParams> {
 		}
 
 		await this.instantiationService.invokeFunction((accessor) =>
-			assertFileOkForTool(accessor, uri),
+			assertFileNotContentExcluded(accessor, uri),
 		);
 
 		if (!this._promptContext?.stream) {
@@ -103,7 +106,8 @@ export class CreateFileTool implements ICopilotTool<ICreateFileParams> {
 		const fileExists = await this.fileExists(uri);
 		const hasSupportedNotebooks =
 			this.notebookService.hasSupportedNotebooks(uri);
-		let doc = undefined;
+		let doc: undefined | NotebookDocumentSnapshot | TextDocumentSnapshot =
+			undefined;
 		if (fileExists && hasSupportedNotebooks) {
 			doc = await this.workspaceService.openNotebookDocumentAndSnapshot(
 				uri,
@@ -125,18 +129,10 @@ export class CreateFileTool implements ICopilotTool<ICreateFileParams> {
 					`File already exists. You must use an edit tool to modify it.`,
 				);
 			}
-		} else if (!fileExists) {
-			await this.fileSystemService.writeFile(uri, Buffer.from(''));
-			doc = hasSupportedNotebooks
-				? await this.workspaceService.openNotebookDocumentAndSnapshot(
-						uri,
-						this.alternativeNotebookContent.getFormat(
-							this._promptContext?.request?.model,
-						),
-					)
-				: await this.workspaceService.openTextDocumentAndSnapshot(uri);
 		}
 
+		const languageId =
+			doc?.languageId ?? getLanguageForResource(uri).languageId;
 		if (hasSupportedNotebooks) {
 			// Its possible we have a code block with a language id
 			// Also possible we have file paths in the content.
@@ -150,7 +146,7 @@ export class CreateFileTool implements ICopilotTool<ICreateFileParams> {
 			processor.flush();
 			content = removeLeadingFilepathComment(
 				options.input.content,
-				doc!.languageId,
+				languageId,
 				options.input.filePath,
 			);
 			await processFullRewriteNewNotebook(
@@ -181,12 +177,12 @@ export class CreateFileTool implements ICopilotTool<ICreateFileParams> {
 		} else {
 			const content = removeLeadingFilepathComment(
 				options.input.content,
-				doc!.languageId,
+				languageId,
 				options.input.filePath,
 			);
 			await processFullRewrite(
 				uri,
-				doc as TextDocumentSnapshot,
+				doc as TextDocumentSnapshot | undefined,
 				content,
 				this._promptContext.stream,
 				token,
@@ -249,15 +245,24 @@ export class CreateFileTool implements ICopilotTool<ICreateFileParams> {
 		return input;
 	}
 
-	prepareInvocation(
+	async prepareInvocation(
 		options: vscode.LanguageModelToolInvocationPrepareOptions<ICreateFileParams>,
 		token: vscode.CancellationToken,
-	): vscode.ProviderResult<vscode.PreparedToolInvocation> {
+	): Promise<vscode.PreparedToolInvocation> {
 		const uri = resolveToolInputPath(
 			options.input.filePath,
 			this.promptPathRepresentationService,
 		);
+
 		return {
+			...(await this.instantiationService.invokeFunction(
+				createEditConfirmation,
+				[uri],
+				() =>
+					'Contents:\n\n```\n' + options.input.content ||
+					'<empty>' + '\n```',
+			)),
+			presentation: undefined,
 			invocationMessage: new MarkdownString(
 				l10n.t`Creating ${formatUriForFileWidget(uri)}`,
 			),

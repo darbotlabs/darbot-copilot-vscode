@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -306,6 +306,24 @@ const FALSE = function () {
 const NULL = function (): string | null {
 	return null;
 };
+
+/**
+ * Check if a provided parsed pattern or expression
+ * is empty - hence it won't ever match anything.
+ *
+ * See {@link FALSE} and {@link NULL}.
+ */
+export function isEmptyPattern(pattern: ParsedPattern | ParsedExpression): pattern is (typeof FALSE | typeof NULL) {
+	if (pattern === FALSE) {
+		return true;
+	}
+
+	if (pattern === NULL) {
+		return true;
+	}
+
+	return false;
+}
 
 function parsePattern(arg1: string | IRelativePattern, options: IGlobOptions): ParsedStringPattern {
 	if (!arg1) {

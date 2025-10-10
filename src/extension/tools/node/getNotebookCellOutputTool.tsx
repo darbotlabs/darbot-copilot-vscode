@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -25,6 +25,9 @@ import { ToolName } from '../common/toolNames';
 import { ICopilotTool, ToolRegistry } from '../common/toolsRegistry';
 import { RunNotebookCellOutput } from './runNotebookCellTool';
 import { ITelemetryService } from '../../../platform/telemetry/common/telemetry';
+import { getCellIdMap } from '../../../platform/notebook/common/helpers';
+import { INotebookService } from '../../../platform/notebook/common/notebookService';
+import { ILogService } from '../../../platform/log/common/logService';
 
 export class GetNotebookCellOutputTool
 	implements ICopilotTool<IGetNotebookCellOutputToolParams>
@@ -42,6 +45,8 @@ export class GetNotebookCellOutputTool
 		protected readonly alternativeNotebookContent: IAlternativeNotebookContentService,
 		@IEndpointProvider private readonly endpointProvider: IEndpointProvider,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
+		@INotebookService private readonly notebookService: INotebookService,
+		@ILogService private readonly logger: ILogService,
 	) {}
 
 	async invoke(
@@ -63,13 +68,27 @@ export class GetNotebookCellOutputTool
 		}
 		// Sometimes we get the notebook cell Uri in the resource.
 		// Resolve this to notebook.
-		uri =
-			findNotebook(uri, this.workspaceService.notebookDocuments)?.uri ||
-			uri;
-
-		let notebook: vscode.NotebookDocument;
+		let notebook = findNotebook(
+			uri,
+			this.workspaceService.notebookDocuments,
+		);
+		if (notebook) {
+			uri = notebook.uri;
+		} else if (!this.notebookService.hasSupportedNotebooks(uri)) {
+			sendOutcomeTelemetry(
+				this.telemetryService,
+				this.endpointProvider,
+				options,
+				'notNotebookUri',
+			);
+			throw new Error(
+				`Use this tool only with Notebook files, the file ${uri.toString()} is not a notebook.`,
+			);
+		}
 		try {
-			notebook = await this.workspaceService.openNotebookDocument(uri);
+			notebook =
+				notebook ||
+				(await this.workspaceService.openNotebookDocument(uri));
 		} catch (ex) {
 			sendOutcomeTelemetry(
 				this.telemetryService,
@@ -77,16 +96,13 @@ export class GetNotebookCellOutputTool
 				options,
 				'failedToOpenNotebook',
 			);
-			throw ex;
+			this.logger.error(`Failed to open notebook: ${uri.toString()}`, ex);
+			throw new Error(
+				`Failed to open the notebook ${uri.toString()}, ${ex.message || ''}. Verify the file exists.`,
+			);
 		}
 
-		const altDocProvider = this.alternativeNotebookContent.create(
-			this.alternativeNotebookContent.getFormat(
-				this._promptContext?.request?.model,
-			),
-		);
-
-		const cell = altDocProvider.getCell(notebook, cellId);
+		const cell = getCellIdMap(notebook).get(cellId);
 		if (!cell) {
 			sendOutcomeTelemetry(
 				this.telemetryService,

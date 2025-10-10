@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -37,6 +37,7 @@ import {
 	IResponseProcessorContext,
 	LeadingMarkdownStreaming,
 } from '../../../prompt/node/intents';
+import { PseudoStopStartResponseProcessor } from '../../../prompt/node/pseudoStartStopConversationCallback';
 import {
 	InsertionStreamingEdits,
 	TextPieceClassifiers,
@@ -213,6 +214,21 @@ export class TestFromSourceInvocation implements IIntentInvocation {
 		outputStream: vscode.ChatResponseStream,
 		token: CancellationToken,
 	): Promise<void> {
+		if (this.location === ChatLocation.Panel) {
+			const responseProcessor = this.instantiationService.createInstance(
+				PseudoStopStartResponseProcessor,
+				[],
+				undefined,
+			);
+			await responseProcessor.processResponse(
+				context,
+				inputStream,
+				outputStream,
+				token,
+			);
+			return;
+		}
+
 		const doc = this.documentContext.document;
 
 		const additionalParts = this._additionalResponseParts;

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -295,7 +295,7 @@ export class TestsIntent implements IIntent {
 				typeof arg === 'object' ? JSON.stringify(arg, null, '\t') : arg,
 			)
 			.join('\n');
-		this.logService.logger.debug(`[TestsIntent] ${message}`);
+		this.logService.debug(`[TestsIntent] ${message}`);
 	}
 }
 

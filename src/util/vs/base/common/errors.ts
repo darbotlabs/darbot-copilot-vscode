@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -194,7 +194,7 @@ export interface V8CallSite {
 	toString(): string;
 }
 
-const canceledName = 'Canceled';
+export const canceledName = 'Canceled';
 
 /**
  * Checks if the given error is a promise in canceled state
@@ -212,6 +212,20 @@ export class CancellationError extends Error {
 	constructor() {
 		super(canceledName);
 		this.name = this.message;
+	}
+}
+
+export class PendingMigrationError extends Error {
+
+	private static readonly _name = 'PendingMigrationError';
+
+	static is(error: unknown): error is PendingMigrationError {
+		return error instanceof PendingMigrationError || (error instanceof Error && error.name === PendingMigrationError._name);
+	}
+
+	constructor(message: string) {
+		super(message);
+		this.name = PendingMigrationError._name;
 	}
 }
 

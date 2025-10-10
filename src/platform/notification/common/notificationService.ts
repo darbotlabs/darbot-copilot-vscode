@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -35,7 +35,7 @@ export interface INotificationService {
 	showInformationMessage(message: string, ...items: string[]): Promise<string | undefined>;
 	showInformationMessage<T extends string>(message: string, options: MessageOptions, ...items: T[]): Promise<T | undefined>;
 	showWarningMessage(message: string, ...items: string[]): Promise<string | undefined>;
-	showQuotaExceededDialog(): Promise<unknown>;
+	showQuotaExceededDialog(options: { isNoAuthUser: boolean }): Promise<unknown>;
 	withProgress<R>(options: ProgressOptions, task: (progress: Progress<{
 		message?: string;
 		increment?: number;
@@ -56,7 +56,7 @@ export class NullNotificationService implements INotificationService {
 		return Promise.resolve(undefined);
 	}
 
-	showQuotaExceededDialog(): Promise<unknown> {
+	showQuotaExceededDialog(options: { isNoAuthUser: boolean }): Promise<unknown> {
 		return Promise.resolve();
 	}
 

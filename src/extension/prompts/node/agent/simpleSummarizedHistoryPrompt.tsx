@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -15,7 +15,7 @@ import { truncate } from '../../../../util/vs/base/common/strings';
 import { IToolCall, IToolCallRound } from '../../../prompt/common/intents';
 import { Tag } from '../base/tag';
 import { ToolResult } from '../panel/toolCalling';
-import { getKeepGoingReminder } from './agentPrompt';
+import { KeepGoingReminder } from './agentPrompt';
 import { SummarizedAgentHistoryProps } from './summarizedConversationHistory';
 
 /**
@@ -105,18 +105,17 @@ export class SimpleSummarizedHistory extends PromptElement<SummarizedAgentHistor
 		}
 
 		if (entry.round.summary) {
-			const keepGoingReminder = getKeepGoingReminder(
-				this.props.endpoint.family,
-			);
 			return (
 				<ChunkTag
 					name="conversation-summary"
 					priority={priorityOverride}
 				>
 					{entry.round.summary}
-					{keepGoingReminder && (
+					{this.props.endpoint.family === 'gpt-4.1' && (
 						<Tag name="reminderInstructions">
-							{keepGoingReminder}
+							<KeepGoingReminder
+								modelFamily={this.props.endpoint.family}
+							/>
 						</Tag>
 					)}
 				</ChunkTag>
@@ -166,8 +165,8 @@ export class SimpleSummarizedHistory extends PromptElement<SummarizedAgentHistor
 }
 
 type ChunkTagProps = PromptElementProps<{
-	name: string;
-	attrs?: Record<string, string | undefined | boolean | number>;
+	readonly name: string;
+	readonly attrs?: Record<string, string | undefined | boolean | number>;
 }>;
 
 class ChunkTag extends PromptElement<ChunkTagProps> {
@@ -185,6 +184,6 @@ class ChunkTag extends PromptElement<ChunkTagProps> {
 }
 
 interface IRoundHistoryEntry {
-	round: IToolCallRound;
-	results?: Record<string, LanguageModelToolResult>;
+	readonly round: IToolCallRound;
+	readonly results?: Record<string, LanguageModelToolResult>;
 }

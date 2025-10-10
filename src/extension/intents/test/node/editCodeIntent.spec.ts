@@ -1,33 +1,15 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 
 import { describe, expect, it } from 'vitest';
 import { PromptPathRepresentationService } from '../../../../platform/prompts/common/promptPathRepresentationService';
-import { ChatResponseStreamImpl } from '../../../../util/common/chatResponseStreamImpl';
 import { URI } from '../../../../util/vs/base/common/uri';
-import { getCodeBlocksFromResponse } from '../../node/editCodeIntent';
-import type { MarkdownString } from 'vscode';
 import { CodeBlock } from '../../../prompt/common/conversation';
-
-
-class MockChatResponseStream extends ChatResponseStreamImpl {
-
-	public output: string[] = [];
-	public uris: string[] = [];
-
-	constructor() {
-		super(() => { });
-	}
-	override markdown(content: string | MarkdownString): void {
-		this.output.push(typeof content === 'string' ? content : content.value);
-	}
-	override codeblockUri(uri: URI): void {
-		this.uris.push(uri.toString());
-	}
-}
+import { MockChatResponseStream } from '../../../test/node/testHelpers';
+import { getCodeBlocksFromResponse } from '../../node/editCodeIntent';
 
 async function getCodeblocks(input: string[], outputStream: MockChatResponseStream, remoteName?: string) {
 	const textStream = async function* () {

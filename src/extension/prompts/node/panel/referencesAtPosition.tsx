@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -12,6 +12,7 @@ import {
 } from '@vscode/prompt-tsx';
 import type * as vscode from 'vscode';
 import { TextDocumentSnapshot } from '../../../../platform/editing/common/textDocumentSnapshot';
+import { isScenarioAutomation } from '../../../../platform/env/common/envService';
 import { IVSCodeExtensionContext } from '../../../../platform/extContext/common/extensionContext';
 import { IIgnoreService } from '../../../../platform/ignore/common/ignoreService';
 import { ILanguageFeaturesService } from '../../../../platform/languages/common/languageFeaturesService';
@@ -84,7 +85,8 @@ export class ReferencesAtPosition extends PromptElement<Props> {
 		}
 
 		const timeout =
-			this.extensionContext.extensionMode === ExtensionMode.Test
+			this.extensionContext.extensionMode === ExtensionMode.Test &&
+			!isScenarioAutomation
 				? 0
 				: this.props.timeoutMs === undefined
 					? ReferencesAtPosition.DEFAULT_TIMEOUT_MS
@@ -92,17 +94,17 @@ export class ReferencesAtPosition extends PromptElement<Props> {
 
 		const [definitions, usages] = await this.findReferences(timeout);
 
-		this.logService.logger.debug(
+		this.logService.debug(
 			`Found ${definitions.length} implementation(s)/definition(s), ${usages.length} usages`,
 		);
 		if (definitions.length > 0) {
-			this.logService.logger.debug(
+			this.logService.debug(
 				`Implementation(s)/definition(s) found:` +
 					JSON.stringify(definitions, null, '\t'),
 			);
 		}
 		if (usages.length > 0) {
-			this.logService.logger.debug(
+			this.logService.debug(
 				`Usages found:` + JSON.stringify(usages, null, '\t'),
 			);
 		}
@@ -168,7 +170,7 @@ export class ReferencesAtPosition extends PromptElement<Props> {
 					document.uri,
 					position,
 				);
-				this.logService.logger.debug(
+				this.logService.debug(
 					`Found ${refs.length} references: ` +
 						JSON.stringify(refs, null, '\t'),
 				);

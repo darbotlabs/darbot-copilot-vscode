@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -10,6 +10,7 @@ import {
 	ConfigKey,
 	IConfigurationService,
 } from '../../../platform/configuration/common/configurationService';
+import { IAuthenticationService } from '../../../platform/authentication/common/authentication';
 import { TelemetryCorrelationId } from '../../../util/common/telemetryCorrelationId';
 import { isLocation, isUri } from '../../../util/common/types';
 import { CancellationToken } from '../../../util/vs/base/common/cancellation';
@@ -54,6 +55,8 @@ export class CodebaseTool
 		private readonly instantiationService: IInstantiationService,
 		@IConfigurationService
 		private readonly configurationService: IConfigurationService,
+		@IAuthenticationService
+		private readonly authenticationService: IAuthenticationService,
 	) {}
 
 	async invoke(
@@ -210,7 +213,9 @@ export class CodebaseTool
 			input.scopedDirectories === undefined ||
 			input.scopedDirectories.length === 0;
 
-		return agentEnabled && noScopedDirectories;
+		// When anonymous (no GitHub session), always force agent path so we avoid relying on semantic index features.
+		const isAnonymous = !this.authenticationService.anyGitHubSession;
+		return (isAnonymous || agentEnabled) && noScopedDirectories;
 	}
 }
 

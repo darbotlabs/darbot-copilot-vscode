@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -23,12 +23,16 @@ import {
 	ChatLocation,
 } from '../../../../platform/chat/common/commonTypes';
 import { IEndpointProvider } from '../../../../platform/endpoint/common/endpointProvider';
+import { IFileSystemService } from '../../../../platform/filesystem/common/fileSystemService';
+import { FileType } from '../../../../platform/filesystem/common/fileTypes';
 import { ILogService } from '../../../../platform/log/common/logService';
 import { ICopilotToolCall } from '../../../../platform/networking/common/fetch';
 import { IChatEndpoint } from '../../../../platform/networking/common/networking';
 import { IAlternativeNotebookContentService } from '../../../../platform/notebook/common/alternativeContent';
 import { IPromptPathRepresentationService } from '../../../../platform/prompts/common/promptPathRepresentationService';
+import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry';
 import { IWorkspaceService } from '../../../../platform/workspace/common/workspaceService';
+import { createFencedCodeBlock } from '../../../../util/common/markdown';
 import { getNotebookAndCellFromUri } from '../../../../util/common/notebooks';
 import { isLocation } from '../../../../util/common/types';
 import { CancellationToken } from '../../../../util/vs/base/common/cancellation';
@@ -45,6 +49,7 @@ import {
 import { GenericBasePromptElementProps } from '../../../context/node/resolvers/genericPanelIntentInvocation';
 import {
 	ChatVariablesCollection,
+	isPromptFile,
 	isPromptInstruction,
 } from '../../../prompt/common/chatVariablesCollection';
 import { InternalToolReference } from '../../../prompt/common/intents';
@@ -57,17 +62,22 @@ import {
 } from '../base/promptElement';
 import { IPromptEndpoint, PromptRenderer } from '../base/promptRenderer';
 import { Tag } from '../base/tag';
+import { SummarizedDocumentLineNumberStyle } from '../inline/summarizedDocument/implementation';
 import { FilePathMode, FileVariable } from './fileVariable';
 import { Image } from './image';
 import { NotebookCellOutputVariable } from './notebookVariables';
 import { PanelChatBasePrompt } from './panelChatBasePrompt';
+import { PromptFile } from './promptFile';
 import {
 	sendInvokedToolTelemetry,
 	toolCallErrorToResult,
 	ToolResult,
 	ToolResultMetadata,
 } from './toolCalling';
-import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry';
+import {
+	IFileTreeData,
+	workspaceVisualFileTree,
+} from './workspace/visualFileTree';
 
 export interface ChatVariablesProps
 	extends BasePromptElementProps,
@@ -79,12 +89,21 @@ export interface ChatVariablesProps
 }
 
 export class ChatVariables extends PromptElement<ChatVariablesProps, void> {
+	constructor(
+		props: ChatVariablesProps,
+		@IFileSystemService
+		private readonly fileSystemService: IFileSystemService,
+	) {
+		super(props);
+	}
+
 	override async render(
 		state: void,
 		sizing: PromptSizing,
 	): Promise<PromptPiece<any, any> | undefined> {
 		const elements = await renderChatVariables(
 			this.props.chatVariables,
+			this.fileSystemService,
 			this.props.includeFilepath,
 			this.props.omitReferences,
 			this.props.isAgent,
@@ -152,6 +171,14 @@ export class ChatVariablesAndQuery extends PromptElement<
 	ChatVariablesAndQueryProps,
 	void
 > {
+	constructor(
+		props: ChatVariablesAndQueryProps,
+		@IFileSystemService
+		private readonly fileSystemService: IFileSystemService,
+	) {
+		super(props);
+	}
+
 	override async render(
 		state: void,
 		sizing: PromptSizing,
@@ -161,8 +188,10 @@ export class ChatVariablesAndQuery extends PromptElement<
 			: this.props.chatVariables.reverse();
 		const elements = await renderChatVariables(
 			chatVariables,
+			this.fileSystemService,
 			this.props.includeFilepath,
 			this.props.omitReferences,
+			undefined,
 		);
 
 		if (
@@ -231,11 +260,18 @@ function asUserMessage(
 
 export async function renderChatVariables(
 	chatVariables: ChatVariablesCollection,
+	fileSystemService: IFileSystemService,
 	includeFilepathInCodeBlocks = true,
 	omitReferences?: boolean,
 	isAgent?: boolean,
 ): Promise<PromptElement[]> {
 	const elements = [];
+	const filePathMode =
+		isAgent && includeFilepathInCodeBlocks
+			? FilePathMode.AsAttribute
+			: includeFilepathInCodeBlocks
+				? FilePathMode.AsComment
+				: FilePathMode.None;
 	for (const variable of chatVariables) {
 		const {
 			uniqueName: variableName,
@@ -246,41 +282,73 @@ export async function renderChatVariables(
 			// prompt instructions are handled in the `CustomInstructions` element
 			continue;
 		}
+		if (isPromptFile(variable)) {
+			elements.push(
+				<PromptFile
+					variable={variable}
+					omitReferences={omitReferences}
+					filePathMode={filePathMode}
+				/>,
+			);
+			continue;
+		}
 
 		if (URI.isUri(variableValue) || isLocation(variableValue)) {
-			const filePathMode =
-				isAgent && includeFilepathInCodeBlocks
-					? FilePathMode.AsAttribute
-					: includeFilepathInCodeBlocks
-						? FilePathMode.AsComment
-						: FilePathMode.None;
-			const file = (
-				<FileVariable
-					alwaysIncludeSummary={true}
-					filePathMode={filePathMode}
-					variableName={variableName}
-					variableValue={variableValue}
-					omitReferences={omitReferences}
-					description={reference.modelDescription}
-				/>
-			);
+			const uri =
+				'uri' in variableValue ? variableValue.uri : variableValue;
 
-			if (
-				!isAgent ||
-				!URI.isUri(variableValue) ||
-				variableValue.scheme !== Schemas.vscodeNotebookCellOutput
-			) {
-				// When attaching outupts, there's no need to add the entire notebook file again, as model can request the notebook file.
-				// In non agent mode, we need to add the file for context.
-				elements.push(file);
-			}
-			if (
-				URI.isUri(variableValue) &&
-				variableValue.scheme === Schemas.vscodeNotebookCellOutput
-			) {
+			// Check if the variable is a directory
+			let isDirectory = false;
+			try {
+				const stat = await fileSystemService.stat(uri);
+				isDirectory = stat.type === FileType.Directory;
+			} catch {}
+
+			if (isDirectory) {
 				elements.push(
-					<NotebookCellOutputVariable outputUri={variableValue} />,
+					<FolderVariable
+						variableName={variableName}
+						folderUri={uri}
+						omitReferences={omitReferences}
+						description={reference.modelDescription}
+					/>,
 				);
+			} else {
+				const file = (
+					<FileVariable
+						alwaysIncludeSummary={true}
+						filePathMode={filePathMode}
+						variableName={variableName}
+						variableValue={variableValue}
+						omitReferences={omitReferences}
+						description={reference.modelDescription}
+						lineNumberStyle={
+							isAgent
+								? SummarizedDocumentLineNumberStyle.OmittedRanges
+								: undefined
+						}
+					/>
+				);
+
+				if (
+					!isAgent ||
+					!URI.isUri(variableValue) ||
+					variableValue.scheme !== Schemas.vscodeNotebookCellOutput
+				) {
+					// When attaching outupts, there's no need to add the entire notebook file again, as model can request the notebook file.
+					// In non agent mode, we need to add the file for context.
+					elements.push(file);
+				}
+				if (
+					URI.isUri(variableValue) &&
+					variableValue.scheme === Schemas.vscodeNotebookCellOutput
+				) {
+					elements.push(
+						<NotebookCellOutputVariable
+							outputUri={variableValue}
+						/>,
+					);
+				}
 			}
 		} else if (typeof variableValue === 'string') {
 			elements.push(
@@ -395,8 +463,8 @@ class DiagnosticVariable extends PromptElement<IDiagnosticVariableProps> {
 		const altDocument = this.alternativeNotebookContent
 			.create(this.alternativeNotebookContent.getFormat(this.endpoint))
 			.getAlternativeDocument(notebook);
-		const start = altDocument.fromCellPosition(cell.index, range.start);
-		const end = altDocument.fromCellPosition(cell.index, range.end);
+		const start = altDocument.fromCellPosition(cell, range.start);
+		const end = altDocument.fromCellPosition(cell, range.end);
 		const newRange = new Range(start, end);
 		return [notebook.uri, newRange];
 	}
@@ -408,6 +476,82 @@ function getDiagnosticCode(diagnostic: Diagnostic): string {
 			? diagnostic.code.value
 			: diagnostic.code;
 	return String(code);
+}
+
+interface IFolderVariableProps extends BasePromptElementProps {
+	variableName: string;
+	folderUri: Uri;
+	omitReferences?: boolean;
+	description?: string;
+}
+
+class FolderVariable extends PromptElement<
+	IFolderVariableProps,
+	IFileTreeData | undefined
+> {
+	constructor(
+		props: PromptElementProps<IFolderVariableProps>,
+		@IInstantiationService
+		private readonly instantiationService: IInstantiationService,
+		@IPromptPathRepresentationService
+		private readonly promptPathRepresentationService: IPromptPathRepresentationService,
+	) {
+		super(props);
+	}
+
+	override async prepare(
+		sizing: PromptSizing,
+	): Promise<IFileTreeData | undefined> {
+		try {
+			return this.instantiationService.invokeFunction((accessor) =>
+				workspaceVisualFileTree(
+					accessor,
+					this.props.folderUri,
+					{ maxLength: 2000, excludeDotFiles: false },
+					CancellationToken.None,
+				),
+			);
+		} catch {
+			// Directory doesn't exist or is not accessible
+			return undefined;
+		}
+	}
+
+	render(state: IFileTreeData | undefined) {
+		const folderPath = this.promptPathRepresentationService.getFilePath(
+			this.props.folderUri,
+		);
+		return (
+			<Tag
+				name="attachment"
+				attrs={
+					this.props.variableName
+						? { id: this.props.variableName, folderPath }
+						: undefined
+				}
+			>
+				<TextChunk>
+					{!this.props.omitReferences && (
+						<references
+							value={[
+								new PromptReference({
+									variableName: this.props.variableName,
+								}),
+							]}
+						/>
+					)}
+					{this.props.description
+						? this.props.description + ':\n'
+						: ''}
+					The user attached the folder `{folderPath}`
+					{state
+						? ' which has the following structure: ' +
+							createFencedCodeBlock('', state.tree)
+						: ''}
+				</TextChunk>
+			</Tag>
+		);
+	}
 }
 
 export interface ChatToolCallProps
@@ -615,7 +759,7 @@ export class ChatToolReferences extends PromptElement<ChatToolCallProps, void> {
 						},
 					],
 					(tool, rule) =>
-						this.logService.logger.warn(
+						this.logService.warn(
 							`Tool ${tool} failed validation: ${rule}`,
 						),
 				),

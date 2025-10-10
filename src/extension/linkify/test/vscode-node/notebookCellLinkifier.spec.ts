@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -74,7 +74,12 @@ suite('Notebook Cell Linkifier', () => {
 		_serviceBrand: undefined;
 		internal = logger;
 		logger = logger;
-		showPublicLog(preserveFocus?: boolean): void {
+		trace = logger.trace;
+		debug = logger.debug;
+		info = logger.info;
+		warn = logger.warn;
+		error = logger.error;
+		show(preserveFocus?: boolean): void {
 			//
 		}
 	}();

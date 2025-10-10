@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -140,7 +140,7 @@ export class PromptRenderer<P extends BasePromptElementProps> extends BasePrompt
 		const validateLocation = (value: Uri | Location) => {
 			const uri = isLocation(value) ? value.uri : value;
 			if (!URI.isUri(uri)) {
-				this._logService.logger.warn(`Invalid PromptReference, uri not an instance of URI: ${uri}. Try to find the code that is creating this reference and fix it.`);
+				this._logService.warn(`Invalid PromptReference, uri not an instance of URI: ${uri}. Try to find the code that is creating this reference and fix it.`);
 				return false;
 			}
 			return true;
@@ -172,11 +172,6 @@ export async function renderPromptElement<P extends BasePromptElementProps>(
 }
 
 // The below all exists to wrap `renderElementJSON` to call our instantiation service
-
-export interface IPromptTsxBudgetInformation {
-	tokenBudget: number;
-	countTokens(text: string, token?: CancellationToken): Thenable<number>;
-}
 
 class PromptRendererForJSON<P extends BasePromptElementProps> extends BasePromptRenderer<P, OutputMode.Raw> {
 	constructor(

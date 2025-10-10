@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -7,8 +7,6 @@ import { RequestType } from '@vscode/copilot-api';
 import assert from 'assert';
 import { suite, test } from 'vitest';
 import { ICAPIClientService } from '../../../endpoint/common/capiClient';
-import { IDomainService } from '../../../endpoint/common/domainService';
-import { IEnvService } from '../../../env/common/envService';
 import { ITelemetryService } from '../../../telemetry/common/telemetry';
 import { createFakeResponse } from '../../../test/node/fetcher';
 import { createPlatformServices } from '../../../test/node/services';
@@ -56,9 +54,7 @@ suite('Networking test Suite', function () {
 		const accessor = testingServiceCollection.createTestingAccessor();
 		await postRequest(
 			accessor.get(IFetcherService),
-			accessor.get(IEnvService),
 			accessor.get(ITelemetryService),
-			accessor.get(IDomainService),
 			accessor.get(ICAPIClientService),
 			{ type: RequestType.Models },
 			'',

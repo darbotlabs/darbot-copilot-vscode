@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -58,7 +58,8 @@ export class DomainService extends Disposable implements IDomainService {
 				proxy: proxyConfigUrl || token?.endpoints?.proxy,
 				telemetry: token?.endpoints?.telemetry,
 				'origin-tracker': token?.endpoints?.['origin-tracker']
-			}
+			},
+			sku: token?.sku || 'unknown',
 		};
 		const domainsChanged = this._capiClientService.updateDomains(moduleToken, enterpriseValue);
 		if (domainsChanged.capiUrlChanged || domainsChanged.proxyUrlChanged || domainsChanged.telemetryUrlChanged || domainsChanged.dotcomUrlChanged) {

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -8,6 +8,7 @@ import {
 	Chunk,
 	Image,
 	PromptElement,
+	PromptPiece,
 	PromptPieceChild,
 	PromptSizing,
 	Raw,
@@ -15,7 +16,6 @@ import {
 	TokenLimit,
 	UserMessage,
 } from '@vscode/prompt-tsx';
-import { isDefined } from '@vscode/test-electron/out/util';
 import type {
 	ChatRequestEditedFileEvent,
 	LanguageModelToolInformation,
@@ -28,6 +28,7 @@ import {
 	ConfigKey,
 	IConfigurationService,
 } from '../../../../platform/configuration/common/configurationService';
+import { modelNeedsStrongReplaceStringHint } from '../../../../platform/endpoint/common/chatModelCapabilities';
 import { CacheType } from '../../../../platform/endpoint/common/endpointTypes';
 import {
 	IEnvService,
@@ -43,9 +44,10 @@ import { IAlternativeNotebookContentService } from '../../../../platform/noteboo
 import { IPromptPathRepresentationService } from '../../../../platform/prompts/common/promptPathRepresentationService';
 import { ITabsAndEditorsService } from '../../../../platform/tabs/common/tabsAndEditorsService';
 import { ITasksService } from '../../../../platform/tasks/common/tasksService';
+import { IExperimentationService } from '../../../../platform/telemetry/common/nullExperimentationService';
 import { IWorkspaceService } from '../../../../platform/workspace/common/workspaceService';
-import { coalesce } from '../../../../util/vs/base/common/arrays';
 import { basename } from '../../../../util/vs/base/common/path';
+import { isDefined } from '../../../../util/vs/base/common/types';
 import { IInstantiationService } from '../../../../util/vs/platform/instantiation/common/instantiation';
 import {
 	ChatRequestEditedFileEventKind,
@@ -56,6 +58,7 @@ import { GenericBasePromptElementProps } from '../../../context/node/resolvers/g
 import { GitHubPullRequestProviders } from '../../../conversation/node/githubPullRequestProviders';
 import { ChatVariablesCollection } from '../../../prompt/common/chatVariablesCollection';
 import {
+	getGlobalContextCacheKey,
 	GlobalContextMessageMetadata,
 	RenderedUserMessageMetadata,
 	Turn,
@@ -63,11 +66,15 @@ import {
 import { InternalToolReference } from '../../../prompt/common/intents';
 import { IPromptVariablesService } from '../../../prompt/node/promptVariablesService';
 import { ToolName } from '../../../tools/common/toolNames';
-import { CopilotIdentityRules } from '../base/copilotIdentity';
+import { TodoListContextPrompt } from '../../../tools/node/todoListContextPrompt';
+import {
+	CopilotIdentityRules,
+	GPT5CopilotIdentityRule,
+} from '../base/copilotIdentity';
 import { IPromptEndpoint, renderPromptElement } from '../base/promptRenderer';
-import { SafetyRules } from '../base/safetyRules';
+import { Gpt5SafetyRule, SafetyRules } from '../base/safetyRules';
 import { Tag } from '../base/tag';
-import { TerminalAndTaskStatePromptElement } from '../base/terminalAndTaskState';
+import { TerminalStatePromptElement } from '../base/terminalState';
 import { ChatVariables } from '../panel/chatVariables';
 import { EXISTING_CODE_MARKER } from '../panel/codeBlockFormattingRules';
 import { CustomInstructions } from '../panel/customInstructions';
@@ -77,11 +84,18 @@ import {
 } from '../panel/notebookEditCodePrompt';
 import { NotebookSummaryChange } from '../panel/notebookSummaryChangePrompt';
 import { UserPreferences } from '../panel/preferences';
-import { TerminalCwdPrompt } from '../panel/terminalPrompt';
 import { ChatToolCalls } from '../panel/toolCalling';
 import { MultirootWorkspaceStructure } from '../panel/workspace/workspaceStructure';
 import { AgentConversationHistory } from './agentConversationHistory';
-import { DefaultAgentPrompt, SweBenchAgentPrompt } from './agentInstructions';
+import {
+	AlternateGPTPrompt,
+	ClaudeSonnet45PromptV2,
+	CodexStyleGPT5CodexPrompt,
+	CodexStyleGPTPrompt,
+	DefaultAgentPrompt,
+	DefaultAgentPromptV2,
+	SweBenchAgentPrompt,
+} from './agentInstructions';
 import { SummarizedConversationHistory } from './summarizedConversationHistory';
 
 export interface AgentPromptProps extends GenericBasePromptElementProps {
@@ -114,53 +128,46 @@ export class AgentPrompt extends PromptElement<AgentPromptProps> {
 		private readonly configurationService: IConfigurationService,
 		@IInstantiationService
 		private readonly instantiationService: IInstantiationService,
+		@IExperimentationService
+		private readonly experimentationService: IExperimentationService,
+		@IPromptVariablesService
+		private readonly promptVariablesService: IPromptVariablesService,
 		@IPromptEndpoint private readonly promptEndpoint: IPromptEndpoint,
 	) {
 		super(props);
 	}
 
 	async render(state: void, sizing: PromptSizing) {
-		const instructions = this.configurationService.getConfig(
-			ConfigKey.Internal.SweBenchAgentPrompt,
-		) ? (
-			<SweBenchAgentPrompt
-				availableTools={this.props.promptContext.tools?.availableTools}
-				modelFamily={this.props.endpoint.family}
-				codesearchMode={undefined}
-			/>
-		) : (
-			<DefaultAgentPrompt
-				availableTools={this.props.promptContext.tools?.availableTools}
-				modelFamily={this.props.endpoint.family}
-				codesearchMode={this.props.codesearchMode}
-			/>
-		);
+		const instructions = this.getInstructions();
 
-		const baseInstructions = (
+		const omitBaseAgentInstructions = this.configurationService.getConfig(
+			ConfigKey.Internal.OmitBaseAgentInstructions,
+		);
+		const baseAgentInstructions = (
 			<>
 				<SystemMessage>
 					You are an expert AI programming assistant, working with a
 					user in the VS Code editor.
 					<br />
-					<CopilotIdentityRules />
-					<SafetyRules />
+					{this.props.endpoint.family.startsWith('gpt-5') ? (
+						<>
+							<GPT5CopilotIdentityRule />
+							<Gpt5SafetyRule />
+						</>
+					) : (
+						<>
+							<CopilotIdentityRules />
+							<SafetyRules />
+						</>
+					)}
 				</SystemMessage>
 				{instructions}
-				<UserMessage>
-					<CustomInstructions
-						languageId={undefined}
-						chatVariables={this.props.promptContext.chatVariables}
-					/>
-					{this.props.promptContext.modeInstructions && (
-						<Tag name="customInstructions">
-							Below are some additional instructions from the
-							user.
-							<br />
-							<br />
-							{this.props.promptContext.modeInstructions}
-						</Tag>
-					)}
-				</UserMessage>
+			</>
+		);
+		const baseInstructions = (
+			<>
+				{!omitBaseAgentInstructions && baseAgentInstructions}
+				{await this.getAgentCustomInstructions()}
 				<UserMessage>
 					{await this.getOrCreateGlobalAgentContext(
 						this.props.endpoint,
@@ -222,6 +229,225 @@ export class AgentPrompt extends PromptElement<AgentPromptProps> {
 		}
 	}
 
+	private getInstructions() {
+		if (
+			this.configurationService.getConfig(
+				ConfigKey.Internal.SweBenchAgentPrompt,
+			)
+		) {
+			return (
+				<SweBenchAgentPrompt
+					availableTools={
+						this.props.promptContext.tools?.availableTools
+					}
+					modelFamily={this.props.endpoint.family}
+					codesearchMode={undefined}
+				/>
+			);
+		}
+
+		if (this.props.endpoint.family === 'gpt-5-codex') {
+			const promptType =
+				this.configurationService.getExperimentBasedConfig(
+					ConfigKey.Gpt5CodexAlternatePrompt,
+					this.experimentationService,
+				);
+			switch (promptType) {
+				case 'codex':
+					return (
+						<CodexStyleGPT5CodexPrompt
+							availableTools={
+								this.props.promptContext.tools?.availableTools
+							}
+							modelFamily={this.props.endpoint.family}
+							codesearchMode={this.props.codesearchMode}
+						/>
+					);
+				default:
+					return (
+						<DefaultAgentPrompt
+							availableTools={
+								this.props.promptContext.tools?.availableTools
+							}
+							modelFamily={this.props.endpoint.family}
+							codesearchMode={this.props.codesearchMode}
+						/>
+					);
+			}
+		}
+
+		if (this.props.endpoint.family.startsWith('gpt-5')) {
+			const promptType =
+				this.configurationService.getExperimentBasedConfig(
+					ConfigKey.Gpt5AlternatePrompt,
+					this.experimentationService,
+				);
+			switch (promptType) {
+				case 'codex':
+					return (
+						<CodexStyleGPTPrompt
+							availableTools={
+								this.props.promptContext.tools?.availableTools
+							}
+							modelFamily={this.props.endpoint.family}
+							codesearchMode={this.props.codesearchMode}
+						/>
+					);
+				case 'v2':
+					return (
+						<DefaultAgentPromptV2
+							availableTools={
+								this.props.promptContext.tools?.availableTools
+							}
+							modelFamily={this.props.endpoint.family}
+							codesearchMode={this.props.codesearchMode}
+						/>
+					);
+				default:
+					return (
+						<DefaultAgentPrompt
+							availableTools={
+								this.props.promptContext.tools?.availableTools
+							}
+							modelFamily={this.props.endpoint.family}
+							codesearchMode={this.props.codesearchMode}
+						/>
+					);
+			}
+		}
+
+		if (this.props.endpoint.family.startsWith('grok-code')) {
+			const promptType =
+				this.configurationService.getExperimentBasedConfig(
+					ConfigKey.GrokCodeAlternatePrompt,
+					this.experimentationService,
+				);
+			switch (promptType) {
+				case 'v2':
+					return (
+						<DefaultAgentPromptV2
+							availableTools={
+								this.props.promptContext.tools?.availableTools
+							}
+							modelFamily={this.props.endpoint.family}
+							codesearchMode={this.props.codesearchMode}
+						/>
+					);
+				default:
+					return (
+						<DefaultAgentPrompt
+							availableTools={
+								this.props.promptContext.tools?.availableTools
+							}
+							modelFamily={this.props.endpoint.family}
+							codesearchMode={this.props.codesearchMode}
+						/>
+					);
+			}
+		}
+
+		if (this.props.endpoint.family.startsWith('claude-sonnet-4.5')) {
+			const promptType =
+				this.configurationService.getExperimentBasedConfig(
+					ConfigKey.ClaudeSonnet45AlternatePrompt,
+					this.experimentationService,
+				);
+			switch (promptType) {
+				case 'v2':
+					return (
+						<ClaudeSonnet45PromptV2
+							availableTools={
+								this.props.promptContext.tools?.availableTools
+							}
+							modelFamily={this.props.endpoint.family}
+							codesearchMode={this.props.codesearchMode}
+						/>
+					);
+				default:
+					return (
+						<DefaultAgentPrompt
+							availableTools={
+								this.props.promptContext.tools?.availableTools
+							}
+							modelFamily={this.props.endpoint.family}
+							codesearchMode={this.props.codesearchMode}
+						/>
+					);
+			}
+		}
+
+		if (
+			this.props.endpoint.family.startsWith('gpt-') &&
+			this.configurationService.getExperimentBasedConfig(
+				ConfigKey.EnableAlternateGptPrompt,
+				this.experimentationService,
+			)
+		) {
+			return (
+				<AlternateGPTPrompt
+					availableTools={
+						this.props.promptContext.tools?.availableTools
+					}
+					modelFamily={this.props.endpoint.family}
+					codesearchMode={this.props.codesearchMode}
+				/>
+			);
+		}
+
+		return (
+			<DefaultAgentPrompt
+				availableTools={this.props.promptContext.tools?.availableTools}
+				modelFamily={this.props.endpoint.family}
+				codesearchMode={this.props.codesearchMode}
+			/>
+		);
+	}
+
+	private async getAgentCustomInstructions() {
+		const putCustomInstructionsInSystemMessage =
+			this.configurationService.getConfig(
+				ConfigKey.CustomInstructionsInSystemMessage,
+			);
+		const customInstructionsBodyParts: PromptPiece[] = [];
+		customInstructionsBodyParts.push(
+			<CustomInstructions
+				languageId={undefined}
+				chatVariables={this.props.promptContext.chatVariables}
+				includeSystemMessageConflictWarning={
+					!putCustomInstructionsInSystemMessage
+				}
+				customIntroduction={
+					putCustomInstructionsInSystemMessage ? '' : undefined
+				} // If in system message, skip the "follow these user-provided coding instructions" intro
+			/>,
+		);
+		if (this.props.promptContext.modeInstructions) {
+			const { content, toolReferences } =
+				this.props.promptContext.modeInstructions;
+			const resolvedContent =
+				toolReferences && toolReferences.length > 0
+					? await this.promptVariablesService.resolveToolReferencesInPrompt(
+							content,
+							toolReferences,
+						)
+					: content;
+
+			customInstructionsBodyParts.push(
+				<Tag name="customInstructions">
+					Below are some additional instructions from the user.
+					<br />
+					<br />
+					{resolvedContent}
+				</Tag>,
+			);
+		}
+		return putCustomInstructionsInSystemMessage ? (
+			<SystemMessage>{customInstructionsBodyParts}</SystemMessage>
+		) : (
+			<UserMessage>{customInstructionsBodyParts}</UserMessage>
+		);
+	}
+
 	private async getOrCreateGlobalAgentContext(
 		endpoint: IChatEndpoint,
 	): Promise<PromptPieceChild[]> {
@@ -235,6 +461,7 @@ export class AgentPrompt extends PromptElement<AgentPromptProps> {
 		) : (
 			<GlobalAgentContext
 				enableCacheBreakpoints={!!this.props.enableCacheBreakpoints}
+				availableTools={this.props.promptContext.tools?.availableTools}
 			/>
 		);
 	}
@@ -248,7 +475,13 @@ export class AgentPrompt extends PromptElement<AgentPromptProps> {
 				GlobalContextMessageMetadata,
 			);
 			if (metadata) {
-				return metadata.renderedGlobalContext;
+				const currentCacheKey =
+					this.instantiationService.invokeFunction(
+						getGlobalContextCacheKey,
+					);
+				if (metadata.cacheKey === currentCacheKey) {
+					return metadata.renderedGlobalContext;
+				}
 			}
 		}
 
@@ -256,13 +489,23 @@ export class AgentPrompt extends PromptElement<AgentPromptProps> {
 			this.instantiationService,
 			endpoint,
 			GlobalAgentContext,
-			{ enableCacheBreakpoints: this.props.enableCacheBreakpoints },
+			{
+				enableCacheBreakpoints: this.props.enableCacheBreakpoints,
+				availableTools: this.props.promptContext.tools?.availableTools,
+			},
 			undefined,
 			undefined,
 		);
 		const msg = rendered.messages.at(0)?.content;
 		if (msg) {
-			firstTurn?.setMetadata(new GlobalContextMessageMetadata(msg));
+			firstTurn?.setMetadata(
+				new GlobalContextMessageMetadata(
+					msg,
+					this.instantiationService.invokeFunction(
+						getGlobalContextCacheKey,
+					),
+				),
+			);
 			return msg;
 		}
 	}
@@ -270,6 +513,7 @@ export class AgentPrompt extends PromptElement<AgentPromptProps> {
 
 interface GlobalAgentContextProps extends BasePromptElementProps {
 	readonly enableCacheBreakpoints?: boolean;
+	readonly availableTools?: readonly LanguageModelToolInformation[];
 }
 
 /**
@@ -285,7 +529,9 @@ class GlobalAgentContext extends PromptElement<GlobalAgentContextProps> {
 					<UserShellPrompt />
 				</Tag>
 				<Tag name="workspace_info">
-					<AgentTasksInstructions />
+					<AgentTasksInstructions
+						availableTools={this.props.availableTools}
+					/>
 					<WorkspaceFoldersHint />
 					<MultirootWorkspaceStructure
 						maxSize={2000}
@@ -382,9 +628,7 @@ export class AgentUserMessage extends PromptElement<AgentUserMessageProps> {
 		}
 
 		if (this.props.isHistorical) {
-			this.logService.logger.trace(
-				'Re-rendering historical user message',
-			);
+			this.logService.trace('Re-rendering historical user message');
 		}
 
 		const query =
@@ -394,6 +638,9 @@ export class AgentUserMessage extends PromptElement<AgentUserMessageProps> {
 			);
 		const hasReplaceStringTool = !!this.props.availableTools?.find(
 			(tool) => tool.name === ToolName.ReplaceString,
+		);
+		const hasMultiReplaceStringTool = !!this.props.availableTools?.find(
+			(tool) => tool.name === ToolName.MultiReplaceString,
 		);
 		const hasApplyPatchTool = !!this.props.availableTools?.find(
 			(tool) => tool.name === ToolName.ApplyPatch,
@@ -408,10 +655,13 @@ export class AgentUserMessage extends PromptElement<AgentUserMessageProps> {
 			(tool) => tool.name === ToolName.EditNotebook,
 		);
 		const hasTerminalTool = !!this.props.availableTools?.find(
-			(tool) => tool.name === ToolName.RunInTerminal,
+			(tool) => tool.name === ToolName.CoreRunInTerminal,
 		);
+		const isGpt5 =
+			this.props.endpoint.family.startsWith('gpt-5') &&
+			this.props.endpoint.family !== 'gpt-5-codex';
 		const attachmentHint =
-			this.props.endpoint.family === 'gpt-4.1' &&
+			(this.props.endpoint.family === 'gpt-4.1' || isGpt5) &&
 			this.props.chatVariables.hasVariables()
 				? ' (See <attachments> above for file contents. You may not need to search or read the file again.)'
 				: '';
@@ -421,6 +671,11 @@ export class AgentUserMessage extends PromptElement<AgentUserMessageProps> {
 			hasReplaceStringTool ||
 			hasApplyPatchTool ||
 			hasEditFileTool;
+		const hasTodoTool = !!this.props.availableTools?.find(
+			(tool) => tool.name === ToolName.CoreManageTodoList,
+		);
+		const shouldUseUserQuery =
+			this.props.endpoint.family.startsWith('grok-code');
 		return (
 			<>
 				<UserMessage>
@@ -445,6 +700,7 @@ export class AgentUserMessage extends PromptElement<AgentUserMessageProps> {
 					</TokenLimit>
 					<ToolReferencesHint
 						toolReferences={this.props.toolReferences}
+						modelFamily={this.props.endpoint.family}
 					/>
 					<Tag name="context">
 						<CurrentDatePrompt />
@@ -453,12 +709,12 @@ export class AgentUserMessage extends PromptElement<AgentUserMessageProps> {
 						/>
 						<NotebookSummaryChange />
 						{hasTerminalTool && (
-							<TerminalCwdPrompt
+							<TerminalStatePromptElement
 								sessionId={this.props.sessionId}
 							/>
 						)}
-						{hasTerminalTool && (
-							<TerminalAndTaskStatePromptElement
+						{hasTodoTool && (
+							<TodoListContextPrompt
 								sessionId={this.props.sessionId}
 							/>
 						)}
@@ -467,18 +723,36 @@ export class AgentUserMessage extends PromptElement<AgentUserMessageProps> {
 					<RepoContext />
 					<Tag name="reminderInstructions">
 						{/* Critical reminders that are effective when repeated right next to the user message */}
-						{getKeepGoingReminder(this.props.endpoint.family)}
+						<KeepGoingReminder
+							modelFamily={this.props.endpoint.family}
+						/>
 						{getEditingReminder(
 							hasEditFileTool,
 							hasReplaceStringTool,
+							modelNeedsStrongReplaceStringHint(
+								this.props.endpoint,
+							),
+							hasMultiReplaceStringTool,
 						)}
 						<NotebookReminderInstructions
 							chatVariables={this.props.chatVariables}
 							query={this.props.request}
 						/>
+						{getExplanationReminder(
+							this.props.endpoint.family,
+							hasTodoTool,
+						)}
 					</Tag>
 					{query && (
-						<Tag name="userRequest" priority={900} flexGrow={7}>
+						<Tag
+							name={
+								shouldUseUserQuery
+									? 'user_query'
+									: 'userRequest'
+							}
+							priority={900}
+							flexGrow={7}
+						>
 							{query + attachmentHint}
 						</Tag>
 					)}
@@ -491,12 +765,12 @@ export class AgentUserMessage extends PromptElement<AgentUserMessageProps> {
 	}
 }
 
-export interface FrozenMessageContentProps extends BasePromptElementProps {
-	readonly frozenContent: Raw.ChatCompletionContentPart[];
+interface FrozenMessageContentProps extends BasePromptElementProps {
+	readonly frozenContent: readonly Raw.ChatCompletionContentPart[];
 	readonly enableCacheBreakpoints?: boolean;
 }
 
-export class FrozenContentUserMessage extends PromptElement<FrozenMessageContentProps> {
+class FrozenContentUserMessage extends PromptElement<FrozenMessageContentProps> {
 	async render(state: void, sizing: PromptSizing) {
 		return (
 			<UserMessage priority={this.props.priority}>
@@ -517,6 +791,7 @@ export class FrozenContentUserMessage extends PromptElement<FrozenMessageContent
 
 interface ToolReferencesHintProps extends BasePromptElementProps {
 	readonly toolReferences: readonly InternalToolReference[];
+	readonly modelFamily?: string;
 }
 
 /**
@@ -537,7 +812,16 @@ class ToolReferencesHint extends PromptElement<ToolReferencesHintProps> {
 					<br />
 					{this.props.toolReferences
 						.map((tool) => `- ${tool.name}`)
-						.join('\n')}
+						.join('\n')}{' '}
+					<br />
+					{this.props.modelFamily?.startsWith('gpt-5') === true && (
+						<>
+							Start by using the most relevant tool attached to
+							this message—the user expects you to act with it
+							first.
+							<br />
+						</>
+					)}
 				</Tag>
 			</>
 		);
@@ -545,7 +829,7 @@ class ToolReferencesHint extends PromptElement<ToolReferencesHintProps> {
 }
 
 export function renderedMessageToTsxChildren(
-	message: string | Raw.ChatCompletionContentPart[],
+	message: string | readonly Raw.ChatCompletionContentPart[],
 	enableCacheBreakpoints: boolean,
 ): PromptPieceChild[] {
 	if (typeof message === 'string') {
@@ -601,13 +885,21 @@ class UserShellPrompt extends PromptElement<BasePromptElementProps> {
 	}
 
 	async render(state: void, sizing: PromptSizing) {
-		const shellName = basename(this.envService.shell);
+		const shellName: string = basename(this.envService.shell);
 		const shellNameHint =
 			shellName === 'powershell.exe' ? ' (Windows PowerShell v5.1)' : '';
 		let additionalHint = '';
-		if (shellName === 'powershell.exe') {
-			additionalHint =
-				' Use the `;` character if joining commands on a single line is needed.';
+		switch (shellName) {
+			case 'powershell.exe': {
+				additionalHint =
+					' Use the `;` character if joining commands on a single line is needed.';
+				break;
+			}
+			case 'fish': {
+				additionalHint =
+					' Note that fish shell does not support heredocs - prefer printf or echo instead.';
+				break;
+			}
 		}
 		return (
 			<>
@@ -643,7 +935,7 @@ class CurrentDatePrompt extends PromptElement<BasePromptElementProps> {
 }
 
 interface CurrentEditorContextProps extends BasePromptElementProps {
-	endpoint: IChatEndpoint;
+	readonly endpoint: IChatEndpoint;
 }
 
 /**
@@ -742,11 +1034,11 @@ class CurrentEditorContext extends PromptElement<CurrentEditorContextProps> {
 				endCell.document.lineCount - 1,
 			);
 			const startPosition = altDocument.fromCellPosition(
-				startCell.index,
+				startCell,
 				new Position(0, 0),
 			);
 			const endPosition = altDocument.fromCellPosition(
-				endCell.index,
+				endCell,
 				new Position(
 					endCell.document.lineCount - 1,
 					lastLine.text.length,
@@ -815,8 +1107,9 @@ class RepoContext extends PromptElement<{}> {
 				)}
 				{repoDescription?.pullRequest ? (
 					<>
-						Active pull request: {repoDescription.pullRequest.title}{' '}
-						({repoDescription.pullRequest.url})<br />
+						Active pull request (may not be the same as open pull
+						request): {repoDescription.pullRequest.title} (
+						{repoDescription.pullRequest.url})<br />
 					</>
 				) : (
 					''
@@ -857,30 +1150,41 @@ class WorkspaceFoldersHint extends PromptElement<BasePromptElementProps> {
 	}
 }
 
-class AgentTasksInstructions extends PromptElement {
+interface AgentTasksInstructionsProps extends BasePromptElementProps {
+	readonly availableTools?: readonly LanguageModelToolInformation[];
+}
+
+export class AgentTasksInstructions extends PromptElement<AgentTasksInstructionsProps> {
 	constructor(
-		props: BasePromptElementProps,
+		props: AgentTasksInstructionsProps,
 		@ITasksService private readonly _tasksService: ITasksService,
 		@IPromptPathRepresentationService
 		private readonly _promptPathRepresentationService: IPromptPathRepresentationService,
-		@IConfigurationService
-		private readonly _configurationService: IConfigurationService,
 	) {
 		super(props);
 	}
 
 	render() {
-		const taskGroupsRaw = this._tasksService.getTasks();
-		if (!this._configurationService.getConfig(ConfigKey.AgentCanRunTasks)) {
-			return null;
+		const foundEnabledTaskTool = this.props.availableTools?.find(
+			(t) =>
+				t.name === ToolName.CoreRunTask ||
+				t.name === ToolName.CoreCreateAndRunTask ||
+				t.name === ToolName.CoreGetTaskOutput,
+		);
+		if (!foundEnabledTaskTool) {
+			return 0;
 		}
 
+		const taskGroupsRaw = this._tasksService.getTasks();
 		const taskGroups = taskGroupsRaw
 			.map(
 				([wf, tasks]) =>
 					[
 						wf,
-						tasks.filter((task) => !!task.type && !task.hide),
+						tasks.filter(
+							(task) =>
+								(!!task.type || task.dependsOn) && !task.hide,
+						),
 					] as const,
 			)
 			.filter(([, tasks]) => tasks.length > 0);
@@ -890,8 +1194,8 @@ class AgentTasksInstructions extends PromptElement {
 
 		return (
 			<>
-				The following tasks can be executed using the {ToolName.RunTask}{' '}
-				tool if they are not already running:
+				The following tasks can be executed using the{' '}
+				{ToolName.CoreRunTask} tool if they are not already running:
 				<br />
 				{taskGroups.map(([folder, tasks]) => (
 					<Tag
@@ -907,26 +1211,20 @@ class AgentTasksInstructions extends PromptElement {
 							return (
 								<Tag
 									name="task"
-									attrs={{ id: `${t.type}: ${t.label || i}` }}
+									attrs={{
+										id: t.type
+											? `${t.type}: ${t.label || i}`
+											: `${t.label || i}`,
+									}}
 								>
 									{this.makeTaskPresentation(t)}
 									{isActive && (
 										<>
 											{' '}
 											(This task is currently running. You
-											can use the {
-												ToolName.GetTaskOutput
-											}{' '}
-											tool to view its output.)
-										</>
-									)}
-									{!isActive && (
-										<>
-											{' '}
-											(This task is not running. Use the{' '}
-											{ToolName.GetTaskOutput} tool to
-											view its output and check its
-											status.)
+											can use the{' '}
+											{ToolName.CoreGetTaskOutput} tool to
+											view its output.)
 										</>
 									)}
 								</Tag>
@@ -978,6 +1276,8 @@ class AgentTasksInstructions extends PromptElement {
 export function getEditingReminder(
 	hasEditFileTool: boolean,
 	hasReplaceStringTool: boolean,
+	useStrongReplaceStringHint: boolean,
+	hasMultiStringReplace: boolean,
 ) {
 	const lines = [];
 	if (hasEditFileTool) {
@@ -998,28 +1298,255 @@ export function getEditingReminder(
 				replace, to make it unambiguous which part of the file should be
 				edited.
 				<br />
+				{hasMultiStringReplace && (
+					<>
+						For maximum efficiency, whenever you plan to perform
+						multiple independent edit operations, invoke them
+						simultaneously using {ToolName.MultiReplaceString} tool
+						rather than sequentially. This will greatly improve
+						user's cost and time efficiency leading to a better user
+						experience. Do not announce which tool you're using (for
+						example, avoid saying "I'll implement all the changes
+						using multi_replace_string_in_file").
+						<br />
+					</>
+				)}
 			</>,
 		);
+	}
+	if (hasEditFileTool && hasReplaceStringTool) {
+		const eitherOr = hasMultiStringReplace
+			? `${ToolName.ReplaceString} or ${ToolName.MultiReplaceString} tools`
+			: `${ToolName.ReplaceString} tool`;
+		if (useStrongReplaceStringHint) {
+			lines.push(
+				<>
+					You must always try making file edits using the {eitherOr}.
+					NEVER use {ToolName.EditFile} unless told to by the user or
+					by a tool.
+				</>,
+			);
+		} else {
+			lines.push(
+				<>
+					It is much faster to edit using the {eitherOr}. Prefer the{' '}
+					{eitherOr} for making edits and only fall back to{' '}
+					{ToolName.EditFile} if it fails.
+				</>,
+			);
+		}
 	}
 
 	return lines;
 }
 
-/**
- * Remind gpt-4.1 to keep going and not stop to ask questions...
- */
-export function getKeepGoingReminder(modelFamily: string | undefined) {
-	return modelFamily === 'gpt-4.1' ? (
+export interface IKeepGoingReminderProps extends BasePromptElementProps {
+	readonly modelFamily: string | undefined;
+}
+
+export class KeepGoingReminder extends PromptElement<IKeepGoingReminderProps> {
+	constructor(
+		props: IKeepGoingReminderProps,
+		@IConfigurationService
+		private readonly configurationService: IConfigurationService,
+		@IExperimentationService
+		private readonly experimentationService: IExperimentationService,
+	) {
+		super(props);
+	}
+
+	async render(state: void, sizing: PromptSizing) {
+		if (
+			this.props.modelFamily === 'gpt-4.1' ||
+			this.props.modelFamily?.startsWith('gpt-5') === true
+		) {
+			if (
+				this.configurationService.getExperimentBasedConfig(
+					ConfigKey.EnableAlternateGptPrompt,
+					this.experimentationService,
+				)
+			) {
+				// Extended reminder
+				return (
+					<>
+						You are an agent - you must keep going until the user's
+						query is completely resolved, before ending your turn
+						and yielding back to the user.
+						<br />
+						Your thinking should be thorough and so it's fine if
+						it's very long. However, avoid unnecessary repetition
+						and verbosity. You should be concise, but thorough.
+						<br />
+						You MUST iterate and keep going until the problem is
+						solved.
+						<br />
+						You have everything you need to resolve this problem. I
+						want you to fully solve this autonomously before coming
+						back to me. <br />
+						Only terminate your turn when you are sure that the
+						problem is solved and all items have been checked off.
+						Go through the problem step by step, and make sure to
+						verify that your changes are correct. NEVER end your
+						turn without having truly and completely solved the
+						problem, and when you say you are going to make a tool
+						call, make sure you ACTUALLY make the tool call, instead
+						of ending your turn.
+						<br />
+						Take your time and think through every step - remember
+						to check your solution rigorously and watch out for
+						boundary cases, especially with the changes you made.
+						Your solution must be perfect. If not, continue working
+						on it. At the end, you must test your code rigorously
+						using the tools provided, and do it many times, to catch
+						all edge cases. If it is not robust, iterate more and
+						make it perfect. Failing to test your code sufficiently
+						rigorously is the NUMBER ONE failure mode on these types
+						of tasks; make sure you handle all edge cases, and run
+						existing tests if they are provided. <br />
+						You MUST plan extensively before each function call, and
+						reflect extensively on the outcomes of the previous
+						function calls. DO NOT do this entire process by making
+						function calls only, as this can impair your ability to
+						solve the problem and think insightfully.
+						<br />
+						You are a highly capable and autonomous agent, and you
+						can definitely solve this problem without needing to ask
+						the user for further input.
+						<br />
+					</>
+				);
+			} else if (this.props.modelFamily === 'gpt-5-codex') {
+				return undefined;
+			} else if (this.props.modelFamily?.startsWith('gpt-5') === true) {
+				return (
+					<>
+						You are an agent—keep going until the user's query is
+						completely resolved before ending your turn. ONLY stop
+						if solved or genuinely blocked.
+						<br />
+						Take action when possible; the user expects you to do
+						useful work without unnecessary questions.
+						<br />
+						After any parallel, read-only context gathering, give a
+						concise progress update and what's next.
+						<br />
+						Avoid repetition across turns: don't restate unchanged
+						plans or sections (like the todo list) verbatim; provide
+						delta updates or only the parts that changed.
+						<br />
+						Tool batches: You MUST preface each batch with a
+						one-sentence why/what/outcome preamble.
+						<br />
+						Progress cadence: After 3 to 5 tool calls, or when you
+						create/edit &gt; ~3 files in a burst, report progress.
+						<br />
+						Requirements coverage: Read the user's ask in full and
+						think carefully. Do not omit a requirement. If something
+						cannot be done with available tools, note why briefly
+						and propose a viable alternative.
+						<br />
+					</>
+				);
+			} else {
+				// Original reminder
+				return (
+					<>
+						You are an agent - you must keep going until the user's
+						query is completely resolved, before ending your turn
+						and yielding back to the user. ONLY terminate your turn
+						when you are sure that the problem is solved, or you
+						absolutely cannot continue.
+						<br />
+						You take action when possible- the user is expecting YOU
+						to take action and go to work for them. Don't ask
+						unnecessary questions about the details if you can
+						simply DO something useful instead.
+						<br />
+					</>
+				);
+			}
+		}
+	}
+}
+
+function getExplanationReminder(
+	modelFamily: string | undefined,
+	hasTodoTool?: boolean,
+) {
+	if (modelFamily === 'gpt-5-codex') {
+		return;
+	}
+
+	const isGpt5Mini = modelFamily === 'gpt-5-mini';
+	return modelFamily?.startsWith('gpt-5') === true ? (
 		<>
-			You are an agent - you must keep going until the user's query is
-			completely resolved, before ending your turn and yielding back to
-			the user. ONLY terminate your turn when you are sure that the
-			problem is solved, or you absolutely cannot continue.
+			Skip filler acknowledgements like "Sounds good" or "Okay, I will…".
+			Open with a purposeful one-liner about what you're doing next.
 			<br />
-			You take action when possible- the user is expecting YOU to take
-			action and go to work for them. Don't ask unnecessary questions
-			about the details if you can simply DO something useful instead.
+			When sharing setup or run steps, present terminal commands in fenced
+			code blocks with the correct language tag. Keep commands copyable
+			and on separate lines.
 			<br />
+			Avoid definitive claims about the build or runtime setup unless
+			verified from the provided context (or quick tool checks). If
+			uncertain, state what's known from attachments and proceed with
+			minimal steps you can adapt later.
+			<br />
+			When you create or edit runnable code, run a test yourself to
+			confirm it works; then share optional fenced commands for more
+			advanced runs.
+			<br />
+			For non-trivial code generation, produce a complete, runnable
+			solution: necessary source files, a tiny runner or test/benchmark
+			harness, a minimal `README.md`, and updated dependency manifests
+			(e.g., `package.json`, `requirements.txt`, `pyproject.toml`). Offer
+			quick "try it" commands and optional platform-specific speed-ups
+			when relevant.
+			<br />
+			Your goal is to act like a pair programmer: be friendly and helpful.
+			If you can do more, do more. Be proactive with your solutions, think
+			about what the user needs and what they want, and implement it
+			proactively.
+			<br />
+			<Tag name="importantReminders">
+				Before starting a task, review and follow the guidance in
+				&lt;responseModeHints&gt;, &lt;engineeringMindsetHints&gt;, and
+				&lt;requirementsUnderstanding&gt;.
+				<br />
+				{!isGpt5Mini && (
+					<>
+						Start your response with a brief acknowledgement,
+						followed by a concise high-level plan outlining your
+						approach.
+						<br />
+					</>
+				)}
+				DO NOT state your identity or model name unless the user
+				explicitly asks you to. <br />
+				{hasTodoTool && (
+					<>
+						You MUST use the todo list tool to plan and track your
+						progress. NEVER skip this step, and START with this step
+						whenever the task is multi-step. This is essential for
+						maintaining visibility and proper execution of large
+						tasks.
+						<br />
+					</>
+				)}
+				{!hasTodoTool && (
+					<>
+						Break down the request into clear, actionable steps and
+						present them at the beginning of your response before
+						proceeding with implementation. This helps maintain
+						visibility and ensures all requirements are addressed
+						systematically.
+						<br />
+					</>
+				)}
+				When referring to a filename or symbol in the user's workspace,
+				wrap it in backticks.
+				<br />
+			</Tag>
 		</>
 	) : undefined;
 }
@@ -1045,38 +1572,70 @@ export class EditedFileEvents extends PromptElement<EditedFileEventsProps> {
 	async render(state: void, sizing: PromptSizing) {
 		const events = this.props.editedFileEvents;
 
-		const eventStrs =
-			events &&
-			coalesce(
-				events.map((event) => this.editedFileEventToString(event)),
-			);
-		if (eventStrs && eventStrs.length > 0) {
-			return (
-				<>
-					The user has taken some actions between the last request and
-					now:
-					<br />
-					{eventStrs.map((str) => `- ${str}`).join('\n')}
-					<br />
-					So be sure to check the current file contents before making
-					any new edits.
-				</>
-			);
-		} else {
+		if (!events || events.length === 0) {
 			return undefined;
 		}
-	}
 
-	private editedFileEventToString(
-		event: ChatRequestEditedFileEvent,
-	): string | undefined {
-		switch (event.eventKind) {
-			case ChatRequestEditedFileEventKind.Keep:
-				return undefined;
-			case ChatRequestEditedFileEventKind.Undo:
-				return `Undone your edits to ${this.promptPathRepresentationService.getFilePath(event.uri)}`;
-			case ChatRequestEditedFileEventKind.UserModification:
-				return `Made manual edits to ${this.promptPathRepresentationService.getFilePath(event.uri)}`;
+		// Group by event kind and collect file paths
+		const undoFiles: string[] = [];
+		const modFiles: string[] = [];
+		const seenUndo = new Set<string>();
+		const seenMod = new Set<string>();
+
+		for (const event of events) {
+			if (event.eventKind === ChatRequestEditedFileEventKind.Undo) {
+				const fp = this.promptPathRepresentationService.getFilePath(
+					event.uri,
+				);
+				if (!seenUndo.has(fp)) {
+					seenUndo.add(fp);
+					undoFiles.push(fp);
+				}
+			} else if (
+				event.eventKind ===
+				ChatRequestEditedFileEventKind.UserModification
+			) {
+				const fp = this.promptPathRepresentationService.getFilePath(
+					event.uri,
+				);
+				if (!seenMod.has(fp)) {
+					seenMod.add(fp);
+					modFiles.push(fp);
+				}
+			}
 		}
+
+		if (undoFiles.length === 0 && modFiles.length === 0) {
+			return undefined;
+		}
+
+		const sections: string[] = [];
+		if (undoFiles.length > 0) {
+			sections.push(
+				[
+					'The user undid your edits to:',
+					...undoFiles.map((f) => `- ${f}`),
+				].join('\n'),
+			);
+		}
+		if (modFiles.length > 0) {
+			sections.push(
+				[
+					'Some edits were made, by the user or possibly by a formatter or another automated tool, to:',
+					...modFiles.map((f) => `- ${f}`),
+				].join('\n'),
+			);
+		}
+
+		return (
+			<>
+				There have been some changes between the last request and now.
+				<br />
+				{sections.join('\n')}
+				<br />
+				So be sure to check the current file contents before making any
+				new edits.
+			</>
+		);
 	}
 }

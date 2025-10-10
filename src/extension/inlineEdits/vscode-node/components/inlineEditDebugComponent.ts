@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -17,8 +17,8 @@ import { XtabProvider } from '../../../xtab/node/xtabProvider';
 import { defaultNextEditProviderId } from '../../node/createNextEditProvider';
 import { DebugRecorder } from '../../node/debugRecorder';
 
-const reportFeedbackCommandId = 'darbot.debug.inlineEdit.reportFeedback';
-const pickProviderId = 'darbot.debug.inlineEdit.pickProvider';
+export const reportFeedbackCommandId = 'github.copilot.debug.inlineEdit.reportFeedback';
+const pickProviderId = 'github.copilot.debug.inlineEdit.pickProvider';
 
 export type InlineCompletionCommand = { command: Command; icon: ThemeIcon };
 
@@ -33,7 +33,9 @@ export class InlineEditDebugComponent extends Disposable {
 		super();
 
 		this._register(commands.registerCommand(reportFeedbackCommandId, async (args: { logContext: InlineEditRequestLogContext }) => {
-			if (!this._inlineEditsEnabled.get()) { return; }
+			if (!this._inlineEditsEnabled.get()) {
+				return;
+			}
 			const isInternalUser = this._internalActionsEnabled.get();
 
 			const data = new SimpleMarkdownBuilder();
@@ -47,6 +49,7 @@ export class InlineEditDebugComponent extends Disposable {
 				// Internal users
 				data.appendLine(args.logContext.toLogDocument());
 
+				let logFilteredForSensitiveFiles: LogEntry[] | undefined;
 				{
 					const bookmark = args.logContext.recordingBookmark;
 					const log = this._debugRecorder.getRecentLog(bookmark);
@@ -56,7 +59,7 @@ export class InlineEditDebugComponent extends Disposable {
 					if (log === undefined) {
 						sectionContent = ['Could not get recording to generate stest (likely because there was no corresponding workspaceRoot for this file)'];
 					} else {
-						const logFilteredForSensitiveFiles = filterLogForSensitiveFiles(log);
+						logFilteredForSensitiveFiles = filterLogForSensitiveFiles(log);
 						hasRemovedSensitiveFilesFromHistory = log.length !== logFilteredForSensitiveFiles.length;
 						const stest = generateSTest(logFilteredForSensitiveFiles);
 
@@ -72,8 +75,16 @@ export class InlineEditDebugComponent extends Disposable {
 				}
 
 				{
+					if (logFilteredForSensitiveFiles !== undefined) {
+						data.appendSection('Recording', ['```json', JSON.stringify(logFilteredForSensitiveFiles, undefined, 2), '```']);
+					}
+				}
+
+				{
 					const uiRepro = await extractInlineEditRepro();
-					data.appendSection('UI Repro', ['```', uiRepro, '```']);
+					if (uiRepro) {
+						data.appendSection('UI Repro', ['```', uiRepro, '```']);
+					}
 				}
 			}
 
@@ -94,10 +105,10 @@ export class InlineEditDebugComponent extends Disposable {
 
 			this._inlineEditsProviderId.set(selectedProvider, undefined);
 
-			const pick = await window.showWarningMessage(`Inline edits provider set to ${selectedProvider}. Reloading will undo this change. Set "darbot.${ConfigKey.Internal.InlineEditsProviderId.id}": "${selectedProvider}" in your settings file to make the change persistent.`, 'Open settings (JSON)');
+			const pick = await window.showWarningMessage(`Inline edits provider set to ${selectedProvider}. Reloading will undo this change. Set "github.copilot.${ConfigKey.Internal.InlineEditsProviderId.id}": "${selectedProvider}" in your settings file to make the change persistent.`, 'Open settings (JSON)');
 			if (!pick) { return; }
 
-			await commands.executeCommand('workbench.action.openSettingsJson', { revealSetting: { key: `darbot.${ConfigKey.Internal.InlineEditsProviderId.id}`, edit: true } });
+			await commands.executeCommand('workbench.action.openSettingsJson', { revealSetting: { key: `github.copilot.${ConfigKey.Internal.InlineEditsProviderId.id}`, edit: true } });
 		}));
 	}
 
@@ -208,8 +219,8 @@ export function filterLogForSensitiveFiles(log: LogEntry[]): LogEntry[] {
 
 async function extractInlineEditRepro() {
 	const commandId = 'editor.action.inlineSuggest.dev.extractRepro';
-	const result: { reproCase: string } = await commands.executeCommand(commandId);
-	return result.reproCase;
+	const result: { reproCase: string } | undefined = await commands.executeCommand(commandId);
+	return result?.reproCase;
 }
 
 class SimpleMarkdownBuilder {

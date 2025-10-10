@@ -1,0 +1,15 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"jsx": "react",
+		"jsxFactory": "vscpp",
+		"jsxFragmentFactory": "vscppf",
+		"rootDir": ".",
+		"outDir": "dist",
+		"declaration": true,
+		"declarationMap": true,
+		"types": ["node"]
+	},
+	"include": ["src", "test"],
+	"exclude": []
+}

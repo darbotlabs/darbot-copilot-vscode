@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -116,7 +116,10 @@ export class ConversationHistory extends PromptElement<ConversationHistoryProps>
 		_state: void,
 		_sizing: PromptSizing,
 	): PromptPiece<any, any> | undefined {
-		let turnHistory = this.props.history;
+		// exclude turns from the history that errored due to prompt filtration
+		let turnHistory = this.props.history.filter(
+			(turn) => turn.responseStatus !== TurnStatus.PromptFiltered,
+		);
 
 		if (this.props.inline && turnHistory.length > 0) {
 			const historyMessage = `The current code is a result of a previous interaction with you. Here are my previous messages: \n- ${turnHistory.map((r) => r.request.message).join('\n- ')}`;

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import {
@@ -159,7 +159,7 @@ export class CurrentChange extends PromptElement<
 
 		let currentTokens = texts.reduce((acc, { tokens }) => acc + tokens, 0);
 
-		this.props.logService.logger.info(
+		this.props.logService.info(
 			`[CurrentChange] Full documents: ${currentTokens} tokens, ${sizing.tokenBudget} budget`,
 		);
 		if (currentTokens <= sizing.tokenBudget) {
@@ -316,7 +316,7 @@ export class CurrentChange extends PromptElement<
 				currentTokens += text.tokens - tokens;
 			}
 
-			this.props.logService.logger.info(
+			this.props.logService.info(
 				`[CurrentChange] Reduced ${input.relativeDocumentPath} to defintions: ${currentTokens} tokens, ${sizing.tokenBudget} budget`,
 			);
 			if (currentTokens <= sizing.tokenBudget) {
@@ -329,7 +329,7 @@ export class CurrentChange extends PromptElement<
 			}
 		}
 
-		this.props.logService.logger.info(
+		this.props.logService.info(
 			`[CurrentChange] Still too large: ${currentTokens} tokens, ${sizing.tokenBudget} budget, ${texts.length} inputs`,
 		);
 		if (texts.length > 1) {

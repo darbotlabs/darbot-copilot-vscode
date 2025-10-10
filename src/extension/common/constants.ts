@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -12,6 +12,7 @@ export const enum Intent {
 	Fix = 'fix',
 	New = 'new',
 	NewNotebook = 'newNotebook',
+	notebookEditor = 'notebookEditor',
 	Search = 'search',
 	SemanticSearch = 'semanticSearch',
 	Terminal = 'terminal',
@@ -30,6 +31,7 @@ export const enum Intent {
 	SearchPanel = 'searchPanel',
 	SearchKeywords = 'searchKeywords',
 	AskAgent = 'askAgent',
+	ChatReplay = 'chatReplay'
 }
 
 export const GITHUB_PLATFORM_AGENT = 'github.copilot-dynamic.platform';
@@ -62,6 +64,9 @@ export const agentsToCommands: Partial<Record<Intent, Record<string, Intent>>> =
 		'tests': Intent.Tests,
 		'edit': Intent.Edit,
 		'generate': Intent.Generate
+	},
+	[Intent.ChatReplay]: {
+		'chatReplay': Intent.ChatReplay
 	}
 };
 
@@ -82,4 +87,4 @@ export function getAgentForIntent(intentId: Intent, location: ChatLocation): { a
 	}
 }
 
-export const EXTENSION_ID = 'darbotlabs.darbot-copilot';
+export const EXTENSION_ID = 'GitHub.copilot-chat';

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -94,7 +94,7 @@ export class CurrentSelection extends PromptElement<
 			return <ignoredFiles value={urisUsed} />;
 		}
 		if (state.exceedsTokenBudget) {
-			this.logger.logger.info(
+			this.logger.info(
 				`Dropped current selection (${sizing.tokenBudget} / ${sizing.endpoint.modelMaxPromptTokens} tokens)`,
 			);
 			return (

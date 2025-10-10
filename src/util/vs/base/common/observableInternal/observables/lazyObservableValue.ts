@@ -1,7 +1,7 @@
 //!!! DO NOT modify, this file was COPIED from 'microsoft/vscode'
 
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -11,6 +11,7 @@ import { TransactionImpl } from '../transaction';
 import { DebugNameData } from '../debugName';
 import { getLogger } from '../logging/logging';
 import { BaseObservable } from './baseObservable';
+import { DebugLocation } from '../debugLocation';
 
 /**
  * Holds off updating observers until the value is actually read.
@@ -30,8 +31,9 @@ export class LazyObservableValue<T, TChange = void>
 		private readonly _debugNameData: DebugNameData,
 		initialValue: T,
 		private readonly _equalityComparator: EqualityComparer<T>,
+		debugLocation: DebugLocation
 	) {
-		super();
+		super(debugLocation);
 		this._value = initialValue;
 	}
 

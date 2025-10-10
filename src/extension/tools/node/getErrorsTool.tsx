@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -11,6 +11,7 @@ import {
 } from '@vscode/prompt-tsx';
 import type * as vscode from 'vscode';
 import { ILanguageDiagnosticsService } from '../../../platform/languages/common/languageDiagnosticsService';
+import { ILogService } from '../../../platform/log/common/logService';
 import { IPromptPathRepresentationService } from '../../../platform/prompts/common/promptPathRepresentationService';
 import { IWorkspaceService } from '../../../platform/workspace/common/workspaceService';
 import { getLanguage } from '../../../util/common/languages';
@@ -41,10 +42,14 @@ import {
 	formatUriForFileWidget,
 	resolveToolInputPath,
 } from './toolUtils';
+import { coalesce } from '../../../util/vs/base/common/arrays';
 
 interface IGetErrorsParams {
-	filePaths: string[];
+	// Note that empty array is not the same as absence; empty array
+	// will not return any errors. Absence returns all errors.
+	filePaths?: string[];
 	// sparse array of ranges, as numbers because it goes through JSON
+	// ignored if filePaths is missing / null.
 	ranges?: ([a: number, b: number, c: number, d: number] | undefined)[];
 }
 
@@ -62,6 +67,7 @@ class GetErrorsTool
 		@IWorkspaceService private readonly workspaceService: IWorkspaceService,
 		@IPromptPathRepresentationService
 		private readonly promptPathRepresentationService: IPromptPathRepresentationService,
+		@ILogService private readonly logService: ILogService,
 	) {
 		super();
 	}
@@ -70,53 +76,79 @@ class GetErrorsTool
 		options: vscode.LanguageModelToolInvocationOptions<IGetErrorsParams>,
 		token: CancellationToken,
 	) {
-		const diagnostics = await Promise.all(
-			options.input.filePaths.map(
-				async (
+		const getAll = () =>
+			this.languageDiagnosticsService
+				.getAllDiagnostics()
+				.map((d) => ({
+					uri: d[0],
+					diagnostics: d[1].filter(
+						(e) => e.severity <= DiagnosticSeverity.Warning,
+					),
+				}))
+				// filter any documents w/o warnings or errors
+				.filter((d) => d.diagnostics.length > 0);
+
+		const getSome = (filePaths: string[]) =>
+			filePaths.map((filePath, i) => {
+				const uri = resolveToolInputPath(
 					filePath,
-					i,
-				): Promise<{
-					context: DiagnosticContext;
-					uri: URI;
-					diagnostics: vscode.Diagnostic[];
-				}> => {
-					const uri = resolveToolInputPath(
-						filePath,
-						this.promptPathRepresentationService,
-					);
-					const range = options.input.ranges?.[i];
-					if (!uri) {
-						throw new Error(`Invalid input path ${filePath}`);
-					}
+					this.promptPathRepresentationService,
+				);
+				const range = options.input.ranges?.[i];
+				if (!uri) {
+					throw new Error(`Invalid input path ${filePath}`);
+				}
 
-					let diagnostics = range
-						? findDiagnosticForSelectionAndPrompt(
-								this.languageDiagnosticsService,
-								uri,
-								new Range(...range),
-								undefined,
-							)
-						: this.languageDiagnosticsService.getDiagnostics(uri);
-
-					diagnostics = diagnostics.filter(
-						(d) => d.severity <= DiagnosticSeverity.Warning,
-					);
-
-					const document =
-						await this.workspaceService.openTextDocumentAndSnapshot(
+				let diagnostics = range
+					? findDiagnosticForSelectionAndPrompt(
+							this.languageDiagnosticsService,
 							uri,
-						);
-					checkCancellation(token);
+							new Range(...range),
+							undefined,
+						)
+					: this.languageDiagnosticsService.getDiagnostics(uri);
 
-					return {
-						context: { document, language: getLanguage(document) },
-						diagnostics,
-						uri,
-					};
-				},
+				diagnostics = diagnostics.filter(
+					(d) => d.severity <= DiagnosticSeverity.Warning,
+				);
+
+				return {
+					diagnostics,
+					uri,
+				};
+			});
+
+		const ds = options.input.filePaths?.length
+			? getSome(options.input.filePaths)
+			: getAll();
+
+		const diagnostics = coalesce(
+			await Promise.all(
+				ds.map(async ({ uri, diagnostics }) => {
+					try {
+						const document =
+							await this.workspaceService.openTextDocumentAndSnapshot(
+								uri,
+							);
+						checkCancellation(token);
+						return {
+							uri,
+							diagnostics,
+							context: {
+								document,
+								language: getLanguage(document),
+							},
+						};
+					} catch (e) {
+						this.logService.error(
+							e,
+							'get_errors failed to open doc with diagnostics',
+						);
+						return undefined;
+					}
+				}),
 			),
 		);
-
 		checkCancellation(token);
 
 		const result = new ExtendedLanguageModelToolResult([
@@ -135,18 +167,35 @@ class GetErrorsTool
 			(acc, { diagnostics }) => acc + diagnostics.length,
 			0,
 		);
-		result.toolResultMessage =
-			numDiagnostics === 0
-				? new MarkdownString(
-						l10n.t`Checked ${this.formatURIs(diagnostics.map((d) => d.uri))}, no problems found`,
-					)
-				: numDiagnostics === 1
+		const formattedURIs = this.formatURIs(diagnostics.map((d) => d.uri));
+		if (options.input.filePaths?.length) {
+			result.toolResultMessage =
+				numDiagnostics === 0
 					? new MarkdownString(
-							l10n.t`Checked ${this.formatURIs(diagnostics.map((d) => d.uri))}, 1 problem found`,
+							l10n.t`Checked ${formattedURIs}, no problems found`,
 						)
-					: new MarkdownString(
-							l10n.t`Checked ${this.formatURIs(diagnostics.map((d) => d.uri))}, ${numDiagnostics} problems found`,
-						);
+					: numDiagnostics === 1
+						? new MarkdownString(
+								l10n.t`Checked ${formattedURIs}, 1 problem found`,
+							)
+						: new MarkdownString(
+								l10n.t`Checked ${formattedURIs}, ${numDiagnostics} problems found`,
+							);
+		} else {
+			result.toolResultMessage =
+				numDiagnostics === 0
+					? new MarkdownString(
+							l10n.t`Checked workspace, no problems found`,
+						)
+					: numDiagnostics === 1
+						? new MarkdownString(
+								l10n.t`Checked workspace, 1 problem found in ${formattedURIs}`,
+							)
+						: new MarkdownString(
+								l10n.t`Checked workspace, ${numDiagnostics} problems found in ${formattedURIs}`,
+							);
+		}
+
 		return result;
 	}
 
@@ -155,24 +204,29 @@ class GetErrorsTool
 		token: vscode.CancellationToken,
 	): vscode.ProviderResult<vscode.PreparedToolInvocation> {
 		if (!options.input.filePaths?.length) {
-			throw new Error('No file paths provided');
-		}
+			// When no file paths provided, check all files with diagnostics
+			return {
+				invocationMessage: new MarkdownString(
+					l10n.t`Checking workspace for problems`,
+				),
+			};
+		} else {
+			const uris = options.input.filePaths.map((filePath) =>
+				resolveToolInputPath(
+					filePath,
+					this.promptPathRepresentationService,
+				),
+			);
+			if (uris.some((uri) => uri === undefined)) {
+				throw new Error('Invalid file path provided');
+			}
 
-		const uris = options.input.filePaths.map((filePath) =>
-			resolveToolInputPath(
-				filePath,
-				this.promptPathRepresentationService,
-			),
-		);
-		if (uris.some((uri) => uri === undefined)) {
-			throw new Error('Invalid file path provided');
+			return {
+				invocationMessage: new MarkdownString(
+					l10n.t`Checking ${this.formatURIs(uris)}`,
+				),
+			};
 		}
-
-		return {
-			invocationMessage: new MarkdownString(
-				l10n.t`Checking ${this.formatURIs(uris)}`,
-			),
-		};
 	}
 
 	private formatURIs(uris: URI[]): string {

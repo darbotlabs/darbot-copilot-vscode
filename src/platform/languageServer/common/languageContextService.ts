@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -78,11 +78,22 @@ export enum KnownSources {
 	fix = 'fix'
 }
 
+export enum TriggerKind {
+	unknown = 'unknown',
+	selection = 'selection',
+	completion = 'completion',
+}
+
 export type RequestContext = {
 	/**
 	 * A unique request id.
 	 */
 	requestId: string;
+
+	/**
+	 * The opportunity ID provided by VS Code core.
+	 */
+	opportunityId?: string;
 
 	/**
 	 * The time budget in milliseconds to compute the context.
@@ -98,6 +109,11 @@ export type RequestContext = {
 	 * The source of the request.
 	 */
 	source?: KnownSources | string;
+
+	/**
+	 * The
+	 */
+	trigger?: TriggerKind | undefined;
 
 	/**
 	 * A list of proposed edits that should be applied before computing the context.

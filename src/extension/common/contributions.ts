@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -60,11 +60,11 @@ export class ContributionCollection extends Disposable {
 					const sw = StopWatch.create();
 					const id = instance.id || 'UNKNOWN';
 					this.allActivationBlockers.push(instance.activationBlocker.finally(() => {
-						logService.logger.info(`activationBlocker from '${id}' took for ${Math.round(sw.elapsed())}ms`);
+						logService.info(`activationBlocker from '${id}' took for ${Math.round(sw.elapsed())}ms`);
 					}));
 				}
 			} catch (error) {
-				logService.logger.error(error, `Error while loading contribution`);
+				logService.error(error, `Error while loading contribution`);
 			}
 		}
 	}

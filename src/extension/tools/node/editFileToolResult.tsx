@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -14,6 +14,7 @@ import {
 	ConfigKey,
 	IConfigurationService,
 } from '../../../platform/configuration/common/configurationService';
+import { modelNeedsStrongReplaceStringHint } from '../../../platform/endpoint/common/chatModelCapabilities';
 import { IEndpointProvider } from '../../../platform/endpoint/common/endpointProvider';
 import { ILanguageDiagnosticsService } from '../../../platform/languages/common/languageDiagnosticsService';
 import { IPromptPathRepresentationService } from '../../../platform/prompts/common/promptPathRepresentationService';
@@ -72,10 +73,13 @@ export class EditFileResult extends PromptElement<IEditFileResultProps> {
 		}[] = [];
 		let totalNewDiagnostics = 0;
 		let filesWithNewDiagnostics = 0;
-
+		let notebookEditFailures = 0;
 		for (const file of this.props.files) {
 			if (file.error) {
 				editingErrors.push(file.error);
+				if (file.isNotebook) {
+					notebookEditFailures++;
+				}
 				continue;
 			}
 
@@ -130,6 +134,33 @@ export class EditFileResult extends PromptElement<IEditFileResultProps> {
 			);
 		}
 
+		let retryMessage = (
+			<>You may use the {ToolName.EditFile} tool to retry these edits.</>
+		);
+		if (!notebookEditFailures) {
+			// No notebook files failed to edit
+		} else if (notebookEditFailures === editingErrors.length) {
+			// All notebook files failed to edit
+			retryMessage = (
+				<>
+					You may use the {ToolName.EditNotebook} tool to retry
+					editing the Notebook files.
+				</>
+			);
+		} else if (
+			notebookEditFailures &&
+			notebookEditFailures !== editingErrors.length
+		) {
+			retryMessage = (
+				<>
+					You may use the {ToolName.EditFile} tool to retry these
+					edits except for Notebooks.
+					<br />
+					You may use the {ToolName.EditNotebook} tool to retry
+					editing the Notebook files.
+				</>
+			);
+		}
 		return (
 			<>
 				{this.props.healed && (
@@ -149,7 +180,21 @@ export class EditFileResult extends PromptElement<IEditFileResultProps> {
 						<br />
 					</>
 				)}
-				{editingErrors.length > 0 && <>{editingErrors.join('\n')}</>}
+				{editingErrors.length > 0 && (
+					<>
+						{editingErrors.join('\n')}
+						{this.props.model &&
+							modelNeedsStrongReplaceStringHint(
+								this.props.model,
+							) && (
+								<>
+									<br />
+									<br />
+									{retryMessage}
+								</>
+							)}
+					</>
+				)}
 				{editsWithDiagnostics.length > 0 &&
 					editsWithDiagnostics.map((edit) => {
 						return (

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -14,6 +14,7 @@ import {
 import type * as vscode from 'vscode';
 import { ILanguageFeaturesService } from '../../../platform/languages/common/languageFeaturesService';
 import { IPromptPathRepresentationService } from '../../../platform/prompts/common/promptPathRepresentationService';
+import { ResourceSet } from '../../../util/vs/base/common/map';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
 import {
 	ExtendedLanguageModelToolResult,
@@ -46,34 +47,51 @@ class GetUsagesTool implements ICopilotTool<IUsagesToolParams> {
 		private readonly _promptPathService: IPromptPathRepresentationService,
 	) {}
 
+	private async _getDefinitionLocation(
+		symbolName: string,
+		filePaths: string[],
+	) {
+		const seen = new ResourceSet();
+		for (const filePath of filePaths) {
+			const uri = resolveToolInputPath(filePath, this._promptPathService);
+			if (seen.has(uri)) {
+				continue;
+			}
+
+			seen.add(uri);
+			const symbols =
+				await this.languageFeaturesService.getDocumentSymbols(uri);
+			const symbol = symbols.find((value) => value.name === symbolName);
+			if (symbol) {
+				return new Location(uri, symbol.selectionRange);
+			}
+		}
+	}
+
 	async invoke(
 		options: vscode.LanguageModelToolInvocationOptions<IUsagesToolParams>,
 		token: vscode.CancellationToken,
 	): Promise<LanguageModelToolResult> {
-		let filePaths = options.input.filePaths;
-		if (!filePaths) {
-			// use symbol search when filePaths are missing
+		let def: vscode.Location | undefined;
+		if (options.input.filePaths?.length) {
+			def = await this._getDefinitionLocation(
+				options.input.symbolName,
+				options.input.filePaths,
+			);
+		}
+
+		if (!def) {
 			const symbols =
 				await this.languageFeaturesService.getWorkspaceSymbols(
 					options.input.symbolName,
 				);
-			filePaths = symbols.map((s) =>
+			const filePaths = symbols.map((s) =>
 				this._promptPathService.getFilePath(s.location.uri),
 			);
-		}
-
-		let def: vscode.Location | undefined;
-		for (const filePath of filePaths) {
-			const uri = resolveToolInputPath(filePath, this._promptPathService);
-			const symbols =
-				await this.languageFeaturesService.getDocumentSymbols(uri);
-			const symbol = symbols.find(
-				(value) => value.name === options.input.symbolName,
+			def = await this._getDefinitionLocation(
+				options.input.symbolName,
+				filePaths,
 			);
-			if (symbol) {
-				def = new Location(uri, symbol.selectionRange);
-				break;
-			}
 		}
 
 		if (!def) {

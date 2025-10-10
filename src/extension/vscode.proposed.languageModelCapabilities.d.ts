@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -20,6 +20,11 @@ declare module 'vscode' {
 			 * Whether the language model supports image to text. This means it can take an image as input and produce a text response.
 			 */
 			readonly supportsImageToText: boolean;
+
+			/**
+			 * The tools the model prefers for making file edits. See {@link LanguageModelChatCapabilities.editTools}.
+			 */
+			readonly editToolsHint?: readonly string[];
 		};
 	}
 }

@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -33,12 +33,8 @@ import { IEnvService } from '../../../../platform/env/common/envService';
 import { ILogService } from '../../../../platform/log/common/logService';
 import { IChatEndpoint } from '../../../../platform/networking/common/networking';
 import { IReleaseNotesService } from '../../../../platform/releaseNotes/common/releaseNotesService';
-import {
-	ICodeOrDocsSearchItem,
-	IDocsSearchClient,
-} from '../../../../platform/remoteSearch/common/codeOrDocsSearchClient';
 import { reportProgressOnSlowPromise } from '../../../../util/common/progress';
-import { CancellationToken } from '../../../../util/vs/base/common/cancellation';
+import { sanitizeVSCodeVersion } from '../../../../util/common/vscodeVersion';
 import { IInstantiationService } from '../../../../util/vs/platform/instantiation/common/instantiation';
 import { ChatResponseProgressPart } from '../../../../vscodeTypes';
 import { Turn } from '../../../prompt/common/conversation';
@@ -64,11 +60,11 @@ export interface VscodePromptProps extends BasePromptElementProps {
 }
 
 export interface VscodePromptState {
-	docSearchResults: ICodeOrDocsSearchItem[];
 	settings: SettingListItem[];
 	commands: CommandListItem[];
 	query: string;
-	releaseNotes?: string;
+	releaseNotes?: { version: string; notes: string }[];
+	currentVersion?: string;
 }
 
 export class VscodePrompt extends PromptElement<
@@ -83,7 +79,6 @@ export class VscodePrompt extends PromptElement<
 		@IEndpointProvider private readonly endPointProvider: IEndpointProvider,
 		@ICombinedEmbeddingIndex
 		private readonly combinedEmbeddingIndex: ICombinedEmbeddingIndex,
-		@IDocsSearchClient private readonly docSearchClient: IDocsSearchClient,
 		@IEnvService private readonly envService: IEnvService,
 		@IInstantiationService
 		private readonly instantiationService: IInstantiationService,
@@ -99,12 +94,7 @@ export class VscodePrompt extends PromptElement<
 		token: vscode.CancellationToken,
 	): Promise<VscodePromptState> {
 		if (!this.props.promptContext.query) {
-			return {
-				docSearchResults: [],
-				settings: [],
-				commands: [],
-				query: '',
-			};
+			return { settings: [], commands: [], query: '' };
 		}
 
 		progress?.report(
@@ -124,15 +114,10 @@ export class VscodePrompt extends PromptElement<
 		);
 		const { messages } = await renderer.render();
 		if (token.isCancellationRequested) {
-			return {
-				docSearchResults: [],
-				settings: [],
-				commands: [],
-				query: userQuery,
-			};
+			return { settings: [], commands: [], query: userQuery };
 		}
 
-		this.logService.logger.debug(
+		this.logService.debug(
 			'[VSCode Prompt] Asking the model to update the user question.',
 		);
 
@@ -149,12 +134,7 @@ export class VscodePrompt extends PromptElement<
 		);
 
 		if (token.isCancellationRequested) {
-			return {
-				docSearchResults: [],
-				settings: [],
-				commands: [],
-				query: userQuery,
-			};
+			return { settings: [], commands: [], query: userQuery };
 		}
 
 		let fetchReleaseNotes = false;
@@ -172,62 +152,63 @@ export class VscodePrompt extends PromptElement<
 			extensionSearch = fetchResult.value.includes('vscode_extensions');
 			vscodeApiSearch = fetchResult.value.includes('vscode_api');
 		} else {
-			this.logService.logger.error(
+			this.logService.error(
 				`[VSCode Prompt] Failed to refine the question: ${fetchResult.requestId}`,
 			);
 		}
 
+		const currentSanitized = sanitizeVSCodeVersion(
+			this.envService.getEditorInfo().version,
+		); // major.minor
 		if (fetchReleaseNotes) {
-			const releaseNotes =
-				await this.releaseNotesService.fetchLatestReleaseNotes();
+			// Determine which versions to fetch based on meta response
+			const rnMatch =
+				fetchResult.type === ChatFetchResponseType.Success
+					? fetchResult.value.match(
+							/release_notes(?:@(?<spec>[A-Za-z0-9._-]+))?/i,
+						)
+					: undefined;
+			const spec = rnMatch?.groups?.['spec']?.toLowerCase();
+
+			let versionsToFetch: string[];
+			if (spec === 'last3') {
+				versionsToFetch = getLastNMinorVersions(currentSanitized, 3);
+			} else {
+				versionsToFetch = [currentSanitized];
+			}
+
+			const notes = await Promise.all(
+				versionsToFetch.map(async (ver) => {
+					const text =
+						await this.releaseNotesService.fetchReleaseNotesForVersion(
+							ver,
+						);
+					return text ? { version: ver, notes: text } : undefined;
+				}),
+			);
+
+			const filtered = notes.filter(
+				(n): n is { version: string; notes: string } => !!n,
+			);
 			return {
-				docSearchResults: [],
 				settings: [],
 				commands: [],
-				releaseNotes: releaseNotes,
+				releaseNotes: filtered,
 				query: this.props.promptContext.query,
+				currentVersion: currentSanitized,
 			};
 		}
 
 		if (extensionSearch || vscodeApiSearch) {
 			return {
-				docSearchResults: [],
 				settings: [],
 				commands: [],
 				query: this.props.promptContext.query,
 			};
 		}
 
-		const docSearchPromise = shouldIncludeDocsSearch
-			? progress
-				? reportProgressOnSlowPromise(
-						progress,
-						new ChatResponseProgressPart(
-							l10n.t('Searching doc index...'),
-						),
-						this.searchDocsSearchForContext(
-							userQuery,
-							10,
-							token,
-							this.logService,
-						),
-						1000,
-					)
-				: this.searchDocsSearchForContext(
-						userQuery,
-						10,
-						token,
-						this.logService,
-					)
-			: undefined;
-
 		if (token.isCancellationRequested) {
-			return {
-				docSearchResults: [],
-				settings: [],
-				commands: [],
-				query: userQuery,
-			};
+			return { settings: [], commands: [], query: userQuery };
 		}
 
 		const embeddingResult = await this.embeddingsComputer.computeEmbeddings(
@@ -237,24 +218,7 @@ export class VscodePrompt extends PromptElement<
 			undefined,
 		);
 		if (token.isCancellationRequested) {
-			return {
-				docSearchResults: [],
-				settings: [],
-				commands: [],
-				releaseNotes: '',
-				query: userQuery,
-			};
-		}
-
-		if (!embeddingResult) {
-			return {
-				docSearchResults: docSearchPromise
-					? await docSearchPromise
-					: [],
-				settings: [],
-				commands: [],
-				query: userQuery,
-			};
+			return { settings: [], commands: [], query: userQuery };
 		}
 
 		const nClosestValuesPromise = progress
@@ -274,47 +238,19 @@ export class VscodePrompt extends PromptElement<
 					shouldIncludeDocsSearch ? 5 : 25,
 				);
 
-		const results = await Promise.allSettled([
-			nClosestValuesPromise,
-			docSearchPromise,
-		]);
+		const results = await Promise.allSettled([nClosestValuesPromise]);
 
 		const embeddingResults =
 			results[0].status === 'fulfilled'
 				? results[0].value
 				: { commands: [], settings: [] };
-		const docSearchResults =
-			(results[1].status === 'fulfilled' ? results[1].value : []) || [];
 
 		return {
-			docSearchResults,
 			settings: embeddingResults.settings,
 			commands: embeddingResults.commands,
 			query: userQuery,
+			currentVersion: currentSanitized,
 		};
-	}
-
-	private async searchDocsSearchForContext(
-		message: string,
-		numResults: number,
-		token: CancellationToken,
-		logService: ILogService,
-	) {
-		try {
-			return await this.docSearchClient.search(
-				message,
-				{ repo: 'microsoft/vscode-docs' },
-				{ limit: numResults, similarity: 0.75 },
-				token,
-			);
-		} catch (e) {
-			this.logService.logger.error(
-				e,
-				`Failed to search docs search for query`,
-			);
-			// fallback to using commands and settings embeddings if search fails
-			return [];
-		}
 	}
 
 	override render(state: VscodePromptState) {
@@ -380,11 +316,10 @@ export class VscodePrompt extends PromptElement<
 						still relates to Visual Studio Code, please still
 						respond.
 						<br />
-						If the question is about release notes, you must respond
-						with the release notes of the latest Visual Studio Code
-						release. You must also include the command **Show
-						release notes** (`update.showCurrentReleaseNotes`) in
-						the commands section at the end of your response.
+						If the question is about release notes, you must also
+						include the command **Show release notes**
+						(`update.showCurrentReleaseNotes`) in the commands
+						section at the end of your response.
 						<br />
 						If the response includes a command, only reference the
 						command description in the description. Do not include
@@ -712,30 +647,29 @@ ms-python.python,ms-python.vscode-pylance
 							</Tag>
 						</>
 					)}
-					{state.docSearchResults.length > 0 && (
+					{state.currentVersion && (
 						<>
-							<Tag name="documentSnippets">
-								Here are some documentation snippets from the
-								Visual Studio Code website.
-								<br />
-								{state.docSearchResults.map((result) => (
-									<TextChunk>
-										##{result?.title?.trim()} -{' '}
-										{result.path}
-										<br />
-										{result.contents}
-									</TextChunk>
-								))}
+							<Tag name="currentVSCodeVersion">
+								Current VS Code version (major.minor):{' '}
+								{state.currentVersion}
 							</Tag>
+							<br />
 						</>
 					)}
-					{state.releaseNotes && (
+					{state.releaseNotes && state.releaseNotes.length > 0 && (
 						<>
 							<Tag name="releaseNotes">
-								Below is release notes of the latest Visual
-								Studio Code which might be relevant to the
-								question. <br />
-								<TextChunk>{state.releaseNotes}</TextChunk>
+								Below are release notes which might be relevant
+								to the question. <br />
+								{state.releaseNotes.map((rn) => (
+									<>
+										<TextChunk>
+											Version {rn.version}:
+										</TextChunk>
+										<br />
+										<TextChunk>{rn.notes}</TextChunk>
+									</>
+								))}
 							</Tag>
 						</>
 					)}
@@ -843,8 +777,23 @@ class VscodeMetaPrompt extends PromptElement<VscodeMetaPromptProps> {
 						pertains to a command or setting, categorize it as an
 						‘Other Question’ <br />
 						If the user is asking about Visual Studio Code Release
-						Notes, simply respond with "release_notes" in your
-						response and do not try to rephrase the question <br />
+						Notes, respond using this exact protocol and do not
+						rephrase the question: <br />
+						- Respond with only one of the following:
+						`release_notes@latest` or `release_notes@last3`.
+						<br />
+						- If the user does not specify a timeframe, respond
+						with: `release_notes@latest`.
+						<br />
+						- If the request is vague about a timeframe (e.g.,
+						"recent changes"), respond with: `release_notes@last3`
+						to consider the last three versions (major.minor).
+						<br />
+						- If the user asks to find or locate a specific
+						change/feature in the release notes, respond with:
+						`release_notes@last3` to search across the last three
+						versions (major.minor).
+						<br />
 						If the user is asking about Extensions available in
 						Visual Studio Code, simply respond with
 						"vscode_extensions"
@@ -927,7 +876,15 @@ class VscodeMetaPrompt extends PromptElement<VscodeMetaPromptProps> {
 						<br />
 						Assistant:
 						<br />
-						release_notes
+						release_notes@latest
+						<br />
+						<br />
+						User: What are the recent changes?
+						<br />
+						<br />
+						Assistant:
+						<br />
+						release_notes@last3
 						<br />
 						<br />
 						User: set up python
@@ -976,4 +933,18 @@ function parseMetaPromptResponse(
 		return originalQuestion.trim();
 	}
 	return match.groups['question'].trim();
+}
+
+function getLastNMinorVersions(current: string, n: number): string[] {
+	const m = /^(\d+)\.(\d+)$/.exec(current);
+	if (!m) {
+		return [current];
+	}
+	const major = parseInt(m[1], 10);
+	let minor = parseInt(m[2], 10);
+	const out: string[] = [];
+	for (let i = 0; i < n && minor >= 0; i++, minor--) {
+		out.push(`${major}.${minor}`);
+	}
+	return out;
 }

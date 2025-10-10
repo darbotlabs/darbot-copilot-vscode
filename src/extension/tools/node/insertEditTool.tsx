@@ -1,10 +1,11 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 import type * as vscode from 'vscode';
 import { NotebookDocumentSnapshot } from '../../../platform/editing/common/notebookDocumentSnapshot';
+import { IEndpointProvider } from '../../../platform/endpoint/common/endpointProvider';
 import { ILanguageDiagnosticsService } from '../../../platform/languages/common/languageDiagnosticsService';
 import { IAlternativeNotebookContentService } from '../../../platform/notebook/common/alternativeContent';
 import { INotebookService } from '../../../platform/notebook/common/notebookService';
@@ -18,14 +19,15 @@ import {
 } from '../../../vscodeTypes';
 import { IBuildPromptContext } from '../../prompt/common/intents';
 import { renderPromptElementJSON } from '../../prompts/node/base/promptRenderer';
+import { IEditToolLearningService } from '../common/editToolLearningService';
 import { ToolName } from '../common/toolNames';
 import { ICopilotTool, ToolRegistry } from '../common/toolsRegistry';
 import { IToolsService } from '../common/toolsService';
 import { ActionType } from './applyPatch/parser';
 import { EditFileResult } from './editFileToolResult';
+import { createEditConfirmation } from './editFileToolUtils';
 import { sendEditNotebookTelemetry } from './editNotebookTool';
-import { assertFileOkForTool } from './toolUtils';
-import { IEndpointProvider } from '../../../platform/endpoint/common/endpointProvider';
+import { assertFileNotContentExcluded } from './toolUtils';
 
 export interface IEditFileParams {
 	explanation: string;
@@ -53,6 +55,8 @@ export class EditFileTool implements ICopilotTool<IEditFileParams> {
 		private readonly alternativeNotebookContentService: IAlternativeNotebookContentService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@IEndpointProvider private readonly endpointProvider: IEndpointProvider,
+		@IEditToolLearningService
+		private readonly editToolLearningService: IEditToolLearningService,
 	) {}
 
 	async invoke(
@@ -67,7 +71,7 @@ export class EditFileTool implements ICopilotTool<IEditFileParams> {
 		}
 
 		await this.instantiationService.invokeFunction((accessor) =>
-			assertFileOkForTool(accessor, uri),
+			assertFileNotContentExcluded(accessor, uri),
 		);
 
 		const existingDiagnostics =
@@ -81,11 +85,17 @@ export class EditFileTool implements ICopilotTool<IEditFileParams> {
 				uri,
 			},
 		};
-		await this.toolsService.invokeTool(
-			InternalEditToolId,
-			internalOptions,
-			token,
-		);
+		try {
+			await this.toolsService.invokeTool(
+				InternalEditToolId,
+				internalOptions,
+				token,
+			);
+			void this.recordEditSuccess(options, true);
+		} catch (error) {
+			void this.recordEditSuccess(options, false);
+			throw error;
+		}
 
 		const isNotebook = this.notebookService.hasSupportedNotebooks(uri);
 		const document = isNotebook
@@ -142,9 +152,14 @@ export class EditFileTool implements ICopilotTool<IEditFileParams> {
 		options: vscode.LanguageModelToolInvocationPrepareOptions<IEditFileParams>,
 		token: vscode.CancellationToken,
 	): vscode.ProviderResult<vscode.PreparedToolInvocation> {
-		return {
-			presentation: 'hidden',
-		};
+		const uri = this.promptPathRepresentationService.resolveFilePath(
+			options.input.filePath,
+		);
+		return this.instantiationService.invokeFunction(
+			createEditConfirmation,
+			uri ? [uri] : [],
+			() => '```\n' + options.input.code + '\n```',
+		);
 	}
 
 	async resolveInput(
@@ -153,6 +168,19 @@ export class EditFileTool implements ICopilotTool<IEditFileParams> {
 	): Promise<IEditFileParams> {
 		this.promptContext = promptContext;
 		return input;
+	}
+
+	private recordEditSuccess(
+		options: vscode.LanguageModelToolInvocationOptions<IEditFileParams>,
+		success: boolean,
+	) {
+		if (options.model) {
+			this.editToolLearningService.didMakeEdit(
+				options.model,
+				ToolName.EditFile,
+				success,
+			);
+		}
 	}
 }
 

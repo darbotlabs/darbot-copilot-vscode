@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -15,6 +15,7 @@ import { Range } from '../../../util/vs/editor/common/core/range';
 import { OffsetLineColumnConverter } from '../../editing/common/offsetLineColumnConverter';
 import { IFileSystemService } from '../../filesystem/common/fileSystemService';
 import { ILanguageDiagnosticsService } from '../../languages/common/languageDiagnosticsService';
+import { ILogService } from '../../log/common/logService';
 import { IWorkspaceService } from '../../workspace/common/workspaceService';
 import { ITasksService, TaskResult, TaskStatus } from '../common/tasksService';
 
@@ -27,6 +28,7 @@ export class TasksService extends DisposableStore implements ITasksService {
 		@IWorkspaceService private readonly workspaceService: IWorkspaceService,
 		@IFileSystemService private readonly fileSystemService: IFileSystemService,
 		@ILanguageDiagnosticsService private readonly languageDiagnosticsService: ILanguageDiagnosticsService,
+		@ILogService private readonly logService: ILogService
 	) {
 		super();
 		this.add(vscode.tasks.onDidStartTask(e => {
@@ -76,33 +78,27 @@ export class TasksService extends DisposableStore implements ITasksService {
 		for (const [key, terminal] of this.latestTerminalForTaskDefinition.entries()) {
 			if (key.id) {
 				// Only some task definitions have IDs
-				const taskId = this._getTaskId(key);
+				const taskId = this._getTaskId(taskDefinition);
 				if (taskId === key.id) {
 					return terminal;
 				}
 			}
 			if ((taskDefinition.type === key.type &&
+				(key.label || key.script || key.command) &&
 				(!key.label || taskDefinition.label === key.label) &&
 				(!key.script || taskDefinition.script === key.script) &&
 				(!key.command || taskDefinition.command === key.command))) {
 				return terminal;
 			}
+			this.logService.debug(`getTerminalForTask: no terminal found for task definition: ${JSON.stringify(taskDefinition)} matching ${JSON.stringify(key)}`);
+			this.logService.debug(`getTerminalForTask: current stored terminals: ${[...this.latestTerminalForTaskDefinition.values()].map(t => t.name).join(', ')}`);
 		}
 	}
-	// This comes from: src/vs/workbench/contrib/tasks/common/tasks.ts#L1296-L1317
 	private _getTaskId(taskDefinition: vscode.TaskDefinition): string | undefined {
-		const keys = Object.keys(taskDefinition).sort();
-		let result: string = '';
-		for (const key of keys) {
-			let stringified = taskDefinition[key];
-			if (stringified instanceof Object) {
-				stringified = this._getTaskId(stringified);
-			} else if (typeof stringified === 'string') {
-				stringified = stringified.replace(/,/g, ',,');
-			}
-			result += key + ',' + stringified + ',';
+		if (!taskDefinition.type || (taskDefinition.command === undefined && taskDefinition.script === undefined)) {
+			return undefined;
 		}
-		return result;
+		return taskDefinition.type + ',' + (taskDefinition.command ?? taskDefinition.script) + ',';
 	}
 
 	async getTaskConfigPosition(workspaceFolder: URI, def: vscode.TaskDefinition) {

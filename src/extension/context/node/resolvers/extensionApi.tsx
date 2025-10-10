@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import {
@@ -9,6 +9,7 @@ import {
 	PromptSizing,
 	TextChunk,
 } from '@vscode/prompt-tsx';
+import { ChatResponsePart } from '@vscode/prompt-tsx/dist/base/vscodeTypes';
 import {
 	Embedding,
 	EmbeddingType,
@@ -24,7 +25,9 @@ import {
 	RemoteEmbeddingsCache,
 } from '../../../../platform/embeddings/common/embeddingsIndex';
 import { IEnvService } from '../../../../platform/env/common/envService';
+import { Progress } from '../../../../platform/notification/common/notificationService';
 import { createFencedCodeBlock } from '../../../../util/common/markdown';
+import { TelemetryCorrelationId } from '../../../../util/common/telemetryCorrelationId';
 import { sanitizeVSCodeVersion } from '../../../../util/common/vscodeVersion';
 import { CancellationToken } from '../../../../util/vs/base/common/cancellation';
 import {
@@ -141,34 +144,38 @@ export class VSCodeAPIContextElement extends PromptElement<VSCodeAPIContextProps
 	}
 
 	async renderAsString(): Promise<string> {
-		const snippets = await this.getSnippets();
+		const snippets = await this.getSnippets(undefined);
 		return `Below are some potentially relevant code samples related to VS Code extension development. You may use information from these samples to help you answer the question if you believe it is relevant.\n${snippets.join('\n\n')}`;
 	}
 
-	private async getSnippets(): Promise<string[]> {
+	private async getSnippets(
+		token: CancellationToken | undefined,
+	): Promise<string[]> {
 		await this.apiEmbeddingsIndex.updateIndex();
+		if (token?.isCancellationRequested) {
+			return [];
+		}
 
 		const embeddingResult = await this.embeddingsComputer.computeEmbeddings(
 			EmbeddingType.text3small_512,
 			[this.props.query],
 			{},
-			CancellationToken.None,
+			new TelemetryCorrelationId('VSCodeAPIContextElement::getSnippets'),
+			token,
 		);
-		if (embeddingResult && embeddingResult.values.length > 0) {
-			return this.apiEmbeddingsIndex.nClosestValues(
-				embeddingResult.values[0],
-				5,
-			);
-		}
-
-		return [];
+		return this.apiEmbeddingsIndex.nClosestValues(
+			embeddingResult.values[0],
+			5,
+		);
 	}
 
 	override async render(
 		state: undefined,
 		sizing: PromptSizing,
+		progress?: Progress<ChatResponsePart>,
+		token?: CancellationToken,
 	): Promise<PromptPiece<any, any> | undefined> {
-		const snippets = await this.getSnippets();
+		const snippets = await this.getSnippets(token);
 		if (snippets.length) {
 			return (
 				<>

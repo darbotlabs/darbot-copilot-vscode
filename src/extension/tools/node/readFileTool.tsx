@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as l10n from '@vscode/l10n';
@@ -49,7 +49,8 @@ export const readFileV2Description: vscode.LanguageModelToolInformation = {
 	name: ToolName.ReadFile,
 	description:
 		'Read the contents of a file. Line numbers are 1-indexed. This tool will truncate its output at 2000 lines and may be called repeatedly with offset and limit parameters to read larger files in chunks.',
-	tags: [],
+	tags: ['vscode_codesearch'],
+	source: undefined,
 	inputSchema: {
 		type: 'object',
 		required: ['filePath'],
@@ -126,7 +127,7 @@ const getParamRanges = (
 	return { start, end, truncated };
 };
 
-class ReadFileTool implements ICopilotTool<ReadFileParams> {
+export class ReadFileTool implements ICopilotTool<ReadFileParams> {
 	public static toolName = ToolName.ReadFile;
 	private _promptContext: IBuildPromptContext | undefined;
 

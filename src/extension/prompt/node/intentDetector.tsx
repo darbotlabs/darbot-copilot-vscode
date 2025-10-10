@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -303,7 +303,7 @@ export class IntentDetector implements ChatParticipantDetectionProvider {
 		thirdPartyParticipants?: ChatParticipantMetadata[],
 		history?: readonly Turn[],
 	): Promise<IIntent | ChatParticipantDetectionResult | undefined> {
-		this.logService.logger.trace('Building intent detector');
+		this.logService.trace('Building intent detector');
 
 		const endpoint =
 			await this.endpointProvider.getChatEndpoint('gpt-4o-mini');
@@ -337,7 +337,7 @@ export class IntentDetector implements ChatParticipantDetectionProvider {
 			undefined,
 			token,
 		);
-		this.logService.logger.trace('Built intent detector');
+		this.logService.trace('Built intent detector');
 
 		const fetchResult = await endpoint.makeChatRequest(
 			'intentDetection',
@@ -348,6 +348,7 @@ export class IntentDetector implements ChatParticipantDetectionProvider {
 			undefined,
 			{
 				stop: [';'],
+				max_tokens: 20,
 			},
 		);
 		const intent = this.validateResult(
@@ -522,7 +523,7 @@ export class IntentDetector implements ChatParticipantDetectionProvider {
 		const chosenIntent =
 			intent && 'id' in intent ? intent?.id : intent?.participant;
 
-		this.logService.logger.debug(
+		this.logService.debug(
 			`picked intent "${chosenIntent}" from ${JSON.stringify(fetchResult.value, null, '\t')}`,
 		);
 

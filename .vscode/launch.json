@@ -48,6 +48,34 @@
 			}
 		},
 		{
+			"type": "node",
+			"request": "launch",
+			"name": "Launch Copilot Extension - Watch Mode - Code OSS",
+			"runtimeExecutable": "${workspaceFolder}/../vscode/scripts/code.sh",
+			"windows": {
+				"runtimeExecutable": "${workspaceFolder}/../vscode/scripts/code.bat",
+			},
+
+			"attachSimplePort": 5870,
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}",
+			],
+			"smartStep": true,
+			"sourceMaps": true,
+			"preLaunchTask": "watch",
+			"env": {
+				"COPILOT_LOG_TELEMETRY": "true",
+				"VSCODE_DEV_DEBUG": "1",
+			},
+			"outFiles": [
+				"${workspaceFolder}/dist/**/*.js",
+				"!**/node_modules/**"
+			],
+			"presentation": {
+				"group": "0_launch",
+			}
+		},
+		{
 			// See `launchConfigName` in file://./extensions/visualization-runner/extension.ts
 			"name": "Test Visualization Runner",
 			"type": "node",
@@ -195,6 +223,44 @@
 			],
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen"
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug chat-lib vitest",
+			"cwd": "${workspaceFolder}/chat-lib",
+			"runtimeExecutable": "${workspaceFolder}/chat-lib/node_modules/.bin/vitest",
+			"runtimeArgs": [
+				"run",
+				"--reporter=verbose"
+			],
+			"console": "integratedTerminal",
+			"internalConsoleOptions": "neverOpen",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"presentation": {
+				"group": "1_launch"
+			}
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug vitest",
+			"cwd": "${workspaceFolder}",
+			"runtimeExecutable": "${workspaceFolder}/node_modules/.bin/vitest",
+			"runtimeArgs": [
+				"run",
+				"--reporter=verbose"
+			],
+			"console": "integratedTerminal",
+			"internalConsoleOptions": "neverOpen",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"presentation": {
+				"group": "1_launch"
+			}
 		},
 		{
 			"type": "extensionHost",

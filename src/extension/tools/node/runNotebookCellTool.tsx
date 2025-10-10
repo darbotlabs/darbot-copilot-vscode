@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -13,7 +13,10 @@ import type * as vscode from 'vscode';
 import { IEndpointProvider } from '../../../platform/endpoint/common/endpointProvider';
 import { IExtensionsService } from '../../../platform/extensions/common/extensionsService';
 import { IAlternativeNotebookContentService } from '../../../platform/notebook/common/alternativeContent';
-import { parseAndCleanStack } from '../../../platform/notebook/common/helpers';
+import {
+	getCellIdMap,
+	parseAndCleanStack,
+} from '../../../platform/notebook/common/helpers';
 import { INotebookService } from '../../../platform/notebook/common/notebookService';
 import { IPromptPathRepresentationService } from '../../../platform/prompts/common/promptPathRepresentationService';
 import { ITelemetryService } from '../../../platform/telemetry/common/telemetry';
@@ -355,12 +358,7 @@ export class RunNotebookCellTool
 			throw new Error(`Notebook ${resolvedUri} not found.`);
 		}
 
-		const altDocProvider = this.alternativeNotebookContent.create(
-			this.alternativeNotebookContent.getFormat(
-				this._promptContext?.request?.model,
-			),
-		);
-		const cell = altDocProvider.getCell(notebook, cellId);
+		const cell = getCellIdMap(notebook).get(cellId);
 		if (!cell) {
 			throw new Error(
 				`Cell ${cellId} not found in the notebook, use the ${ToolName.ReadFile} file tool to get the latest content of the notebook file`,

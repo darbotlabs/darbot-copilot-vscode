@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -173,7 +173,6 @@ describe('Edit Notebook Tool', () => {
 					newCode: 'print(1)',
 					language: 'python',
 					cellId: 'top',
-					explanation: '',
 				},
 			],
 			notebookEdits,
@@ -215,6 +214,7 @@ describe('Edit Notebook Tool', () => {
 				language: 'markdown',
 				filePath: notebook.uri.toString(),
 				explanation: 'Insert markdown header cell at the bottom',
+				cellId: 'bottom',
 			},
 			{
 				editType: 'insert' as const,
@@ -222,6 +222,7 @@ describe('Edit Notebook Tool', () => {
 				language: 'python',
 				filePath: notebook.uri.toString(),
 				explanation: 'Insert first Python code cell at the bottom',
+				cellId: 'bottom',
 			},
 			{
 				editType: 'insert' as const,
@@ -229,6 +230,7 @@ describe('Edit Notebook Tool', () => {
 				language: 'python',
 				filePath: notebook.uri.toString(),
 				explanation: 'Insert second Python code cell at the bottom',
+				cellId: 'bottom',
 			},
 		];
 
@@ -367,7 +369,7 @@ describe('Edit Notebook Tool', () => {
 		expect(edit.newCells[0].value).to.equal('print(2)');
 		expect(edit.newCells[0].kind).to.equal(NotebookCellKind.Code);
 	});
-	test(`Insert 3 cells at the bottom (with cell id for first insertion)`, async () => {
+	test(`Insert 1 cells at the bottom (with cell id for first insertion)`, async () => {
 		const notebookEdits: (NotebookEdit | [Uri, TextEdit])[] = [];
 		const notebook = createNotebook();
 		const [editTool, workspaceService] = initialize(notebook.document);
@@ -381,20 +383,6 @@ describe('Edit Notebook Tool', () => {
 				filePath: notebook.uri.toString(),
 				explanation: '',
 				cellId: getCellId(notebook.document.cellAt(cellCount - 1)),
-			},
-			{
-				editType: 'insert' as const,
-				newCode: 'print(1)',
-				language: 'python',
-				filePath: notebook.uri.toString(),
-				explanation: '',
-			},
-			{
-				editType: 'insert' as const,
-				newCode: 'print(2)',
-				language: 'python',
-				filePath: notebook.uri.toString(),
-				explanation: '',
 			},
 		];
 
@@ -424,30 +412,14 @@ describe('Edit Notebook Tool', () => {
 			await promise;
 		}
 
-		expect(notebookEdits.length).to.equal(3);
+		expect(notebookEdits.length).to.equal(1);
 		expect(notebookEdits[0]).to.be.instanceOf(NotebookEdit);
-		let edit = notebookEdits[0] as NotebookEdit;
+		const edit = notebookEdits[0] as NotebookEdit;
 		expect(edit.range.start).to.equal(cellCount);
 		expect(edit.range.end).to.equal(cellCount);
 		expect(edit.newCells.length).to.equal(1);
 		expect(edit.newCells[0].value).to.equal('# header');
 		expect(edit.newCells[0].kind).to.equal(NotebookCellKind.Markup);
-
-		expect(notebookEdits[1]).to.be.instanceOf(NotebookEdit);
-		edit = notebookEdits[1] as NotebookEdit;
-		expect(edit.range.start).to.equal(cellCount + 1);
-		expect(edit.range.end).to.equal(cellCount + 1);
-		expect(edit.newCells.length).to.equal(1);
-		expect(edit.newCells[0].value).to.equal('print(1)');
-		expect(edit.newCells[0].kind).to.equal(NotebookCellKind.Code);
-
-		expect(notebookEdits[2]).to.be.instanceOf(NotebookEdit);
-		edit = notebookEdits[2] as NotebookEdit;
-		expect(edit.range.start).to.equal(cellCount + 2);
-		expect(edit.range.end).to.equal(cellCount + 2);
-		expect(edit.newCells.length).to.equal(1);
-		expect(edit.newCells[0].value).to.equal('print(2)');
-		expect(edit.newCells[0].kind).to.equal(NotebookCellKind.Code);
 	});
 	test(`Insert 3 cells at the bottom (with cell id for all insertions)`, async () => {
 		const notebookEdits: (NotebookEdit | [Uri, TextEdit])[] = [];
@@ -547,7 +519,6 @@ describe('Edit Notebook Tool', () => {
 			[
 				{
 					filePath: notebook.uri.toString(),
-					explanation: '',
 					editType: 'insert',
 					newCode: 'print(1234)',
 					language: 'python',
@@ -840,7 +811,6 @@ describe('Edit Notebook Tool', () => {
 					filePath: notebook.document
 						.cellAt(0)
 						.document.uri.toString(),
-					explanation: '',
 					editType: 'insert',
 					newCode: 'print(1234)',
 					language: 'python',
@@ -1056,7 +1026,6 @@ describe('Edit Notebook Tool', () => {
 			[
 				{
 					filePath: notebook.uri.toString(),
-					explanation: '',
 					editType: 'edit',
 					cellId: getCellId(cell2),
 					newCode: 'print("Foo Bar")',

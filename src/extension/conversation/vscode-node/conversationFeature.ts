@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Darbot Labs. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -17,6 +17,7 @@ import { IGitCommitMessageService } from '../../../platform/git/common/gitCommit
 import { ILogService } from '../../../platform/log/common/logService';
 import { ISettingsEditorSearchService } from '../../../platform/settingsEditor/common/settingsEditorSearchService';
 import { ITelemetryService } from '../../../platform/telemetry/common/telemetry';
+import { isUri } from '../../../util/common/types';
 import { DeferredPromise } from '../../../util/vs/base/common/async';
 import { CancellationToken } from '../../../util/vs/base/common/cancellation';
 import { DisposableStore, IDisposable, combinedDisposable } from '../../../util/vs/base/common/lifecycle';
@@ -24,6 +25,7 @@ import { URI } from '../../../util/vs/base/common/uri';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
 import { ContributionCollection, IExtensionContribution } from '../../common/contributions';
 import { vscodeNodeChatContributions } from '../../extension/vscode-node/contributions';
+import { IMergeConflictService } from '../../git/common/mergeConflictService';
 import { registerInlineChatCommands } from '../../inlineChat/vscode-node/inlineChatCommands';
 import { INewWorkspacePreviewContentManager } from '../../intents/node/newIntent';
 import { FindInFilesArgs } from '../../intents/node/searchIntent';
@@ -34,7 +36,6 @@ import { InlineCodeSymbolLinkifier } from '../../linkify/vscode-node/inlineCodeS
 import { NotebookCellLinkifier } from '../../linkify/vscode-node/notebookCellLinkifier';
 import { SymbolLinkifier } from '../../linkify/vscode-node/symbolLinkifier';
 import { IntentDetector } from '../../prompt/node/intentDetector';
-import { ContributedToolName } from '../../tools/common/toolNames';
 import { SemanticSearchTextSearchProvider } from '../../workspaceSemanticSearch/node/semanticSearchTextSearchProvider';
 import { GitHubPullRequestProviders } from '../node/githubPullRequestProviders';
 import { startFeedbackCollection } from './feedbackCollection';
@@ -74,6 +75,7 @@ export class ConversationFeature implements IExtensionContribution {
 		@ICombinedEmbeddingIndex private readonly embeddingIndex: ICombinedEmbeddingIndex,
 		@IDevContainerConfigurationService private readonly devContainerConfigurationService: IDevContainerConfigurationService,
 		@IGitCommitMessageService private readonly gitCommitMessageService: IGitCommitMessageService,
+		@IMergeConflictService private readonly mergeConflictService: IMergeConflictService,
 		@ILinkifyService private readonly linkifyService: ILinkifyService,
 		@IVSCodeExtensionContext private readonly extensionContext: IVSCodeExtensionContext,
 		@INewWorkspacePreviewContentManager private readonly newWorkspacePreviewContentManager: INewWorkspacePreviewContentManager,
@@ -88,14 +90,14 @@ export class ConversationFeature implements IExtensionContribution {
 		const activationBlockerDeferred = new DeferredPromise<void>();
 		this.activationBlocker = activationBlockerDeferred.p;
 		if (authenticationService.copilotToken) {
-			this.logService.logger.debug(`ConversationFeature: Copilot token already available`);
+			this.logService.debug(`ConversationFeature: Copilot token already available`);
 			this.activated = true;
 			activationBlockerDeferred.complete();
 		}
 
 		this._disposables.add(authenticationService.onDidAuthenticationChange(async () => {
 			const hasSession = !!authenticationService.copilotToken;
-			this.logService.logger.debug(`ConversationFeature: onDidAuthenticationChange has token: ${hasSession}`);
+			this.logService.debug(`ConversationFeature: onDidAuthenticationChange has token: ${hasSession}`);
 			if (hasSession) {
 				this.activated = true;
 			} else {
@@ -117,7 +119,7 @@ export class ConversationFeature implements IExtensionContribution {
 		this._enabled = value;
 
 		// Set context value that is used to show/hide th sidebar icon
-		vscode.commands.executeCommand('setContext', 'darbot.interactiveSession.disabled', !value);
+		vscode.commands.executeCommand('setContext', 'github.copilot.interactiveSession.disabled', !value);
 	}
 
 	get activated() {
@@ -160,6 +162,13 @@ export class ConversationFeature implements IExtensionContribution {
 			return;
 		} else {
 			this._searchProviderRegistered = true;
+
+			// Don't register for no auth user
+			if (this.authenticationService.copilotToken?.isNoAuthUser) {
+				this.logService.debug('ConversationFeature: Skipping search provider registration - no GitHub session available');
+				return;
+			}
+
 			return vscode.workspace.registerAITextSearchProvider('file', this.instantiationService.createInstance(SemanticSearchTextSearchProvider));
 		}
 	}
@@ -191,7 +200,7 @@ export class ConversationFeature implements IExtensionContribution {
 				disposables.add(settingsSearchDisposable);
 			}
 		} catch (err: any) {
-			this.logService.logger.error(err, 'Registration of interactive providers failed');
+			this.logService.error(err, 'Registration of interactive providers failed');
 		}
 		return disposables;
 	}
@@ -207,15 +216,12 @@ export class ConversationFeature implements IExtensionContribution {
 		const disposables = new DisposableStore();
 
 		[
-			vscode.commands.registerCommand('darbot.interactiveSession.feedback', async () => {
+			vscode.commands.registerCommand('github.copilot.interactiveSession.feedback', async () => {
 				return vscode.env.openExternal(vscode.Uri.parse(FEEDBACK_URL));
 			}),
-			vscode.commands.registerCommand('darbot.terminal.explainTerminalSelection', async () => this.triggerTerminalChat({ query: `/${TerminalExplainIntent.intentName} #terminalSelection` })),
-			// This command is an alias to use a different title in the context menu
-			vscode.commands.registerCommand('darbot.terminal.explainTerminalSelectionContextMenu', () => vscode.commands.executeCommand('darbot.terminal.explainTerminalSelection')),
-			vscode.commands.registerCommand('darbot.terminal.explainTerminalLastCommand', async () => this.triggerTerminalChat({ query: `/${TerminalExplainIntent.intentName} #terminalLastCommand` })),
-			vscode.commands.registerCommand('darbot.terminal.fixTerminalLastCommand', async () => generateTerminalFixes(this.instantiationService)),
-			vscode.commands.registerCommand('darbot.terminal.generateCommitMessage', async () => {
+			vscode.commands.registerCommand('github.copilot.terminal.explainTerminalLastCommand', async () => this.triggerTerminalChat({ query: `/${TerminalExplainIntent.intentName} #terminalLastCommand` })),
+			vscode.commands.registerCommand('github.copilot.terminal.fixTerminalLastCommand', async () => generateTerminalFixes(this.instantiationService)),
+			vscode.commands.registerCommand('github.copilot.terminal.generateCommitMessage', async () => {
 				const workspaceFolders = vscode.workspace.workspaceFolders;
 
 				if (!workspaceFolders?.length) {
@@ -239,13 +245,7 @@ export class ConversationFeature implements IExtensionContribution {
 					vscode.window.activeTerminal?.sendText(message, false);
 				}
 			}),
-			vscode.commands.registerCommand('darbot.terminal.attachTerminalSelection', async () => {
-				await vscode.commands.executeCommand('workbench.action.chat.open', {
-					toolIds: [ContributedToolName.TerminalSelection],
-					isPartialQuery: true
-				});
-			}),
-			vscode.commands.registerCommand('darbot.git.generateCommitMessage', async (rootUri: vscode.Uri | undefined, _: vscode.SourceControlInputBoxValueProviderContext[], cancellationToken: vscode.CancellationToken | undefined) => {
+			vscode.commands.registerCommand('github.copilot.git.generateCommitMessage', async (rootUri: vscode.Uri | undefined, _: vscode.SourceControlInputBoxValueProviderContext[], cancellationToken: vscode.CancellationToken | undefined) => {
 				const repository = this.gitCommitMessageService.getRepository(rootUri);
 				if (!repository) {
 					return;
@@ -256,10 +256,14 @@ export class ConversationFeature implements IExtensionContribution {
 					repository.inputBox.value = commitMessage;
 				}
 			}),
-			vscode.commands.registerCommand('darbot.devcontainer.generateDevContainerConfig', async (args: DevContainerConfigGeneratorArguments, cancellationToken = new vscode.CancellationTokenSource().token) => {
+			vscode.commands.registerCommand('github.copilot.git.resolveMergeConflicts', async (...resourceStates: (vscode.Uri | vscode.SourceControlResourceState)[]) => {
+				const resources = resourceStates.filter(r => !!r).map(r => isUri(r) ? r : r.resourceUri);
+				await this.mergeConflictService.resolveMergeConflicts(resources, undefined);
+			}),
+			vscode.commands.registerCommand('github.copilot.devcontainer.generateDevContainerConfig', async (args: DevContainerConfigGeneratorArguments, cancellationToken = new vscode.CancellationTokenSource().token) => {
 				return this.devContainerConfigurationService.generateConfiguration(args, cancellationToken);
 			}),
-			vscode.commands.registerCommand('darbot.chat.openUserPreferences', async () => {
+			vscode.commands.registerCommand('github.copilot.chat.openUserPreferences', async () => {
 				const uri = URI.joinPath(this.extensionContext.globalStorageUri, 'copilotUserPreferences.md');
 				return vscode.commands.executeCommand('vscode.open', uri);
 			}),
@@ -322,7 +326,7 @@ export class ConversationFeature implements IExtensionContribution {
 	private registerCopilotTokenListener() {
 		this._disposables.add(this.authenticationService.onDidAuthenticationChange(() => {
 			const chatEnabled = this.authenticationService.copilotToken?.isChatEnabled();
-			this.logService.logger.info(`copilot token chat_enabled: ${chatEnabled}, sku: ${this.authenticationService.copilotToken?.sku ?? ''}`);
+			this.logService.info(`copilot token chat_enabled: ${chatEnabled}, sku: ${this.authenticationService.copilotToken?.sku ?? ''}`);
 			this.enabled = chatEnabled ?? false;
 		}));
 	}
@@ -330,7 +334,7 @@ export class ConversationFeature implements IExtensionContribution {
 	private registerTerminalQuickFixProviders() {
 		const isEnabled = () => this.enabled;
 		return combinedDisposable(
-			vscode.window.registerTerminalQuickFixProvider('darbot-copilot.fixWithCopilot', {
+			vscode.window.registerTerminalQuickFixProvider('copilot-chat.fixWithCopilot', {
 				provideTerminalQuickFixes(commandMatchResult, token) {
 					if (!isEnabled() || commandMatchResult.commandLine.endsWith('^C')) {
 						return [];
@@ -338,20 +342,20 @@ export class ConversationFeature implements IExtensionContribution {
 					setLastCommandMatchResult(commandMatchResult);
 					return [
 						{
-							command: 'darbot.terminal.fixTerminalLastCommand',
+							command: 'github.copilot.terminal.fixTerminalLastCommand',
 							title: vscode.l10n.t('Fix using Copilot')
 						},
 						{
-							command: 'darbot.terminal.explainTerminalLastCommand',
+							command: 'github.copilot.terminal.explainTerminalLastCommand',
 							title: vscode.l10n.t('Explain using Copilot')
 						}
 					];
 				}
 			}),
-			vscode.window.registerTerminalQuickFixProvider('darbot-copilot.generateCommitMessage', {
+			vscode.window.registerTerminalQuickFixProvider('copilot-chat.generateCommitMessage', {
 				provideTerminalQuickFixes: (commandMatchResult, token) => {
 					return this.enabled ? [{
-						command: 'darbot.terminal.generateCommitMessage',
+						command: 'github.copilot.terminal.generateCommitMessage',
 						title: vscode.l10n.t('Generate Commit Message')
 					}] : [];
 				},
@@ -361,7 +365,7 @@ export class ConversationFeature implements IExtensionContribution {
 }
 
 function registerSearchIntentCommand(): IDisposable {
-	return vscode.commands.registerCommand('darbot.executeSearch', async (arg: FindInFilesArgs) => {
+	return vscode.commands.registerCommand('github.copilot.executeSearch', async (arg: FindInFilesArgs) => {
 		const show = arg.filesToExclude.length > 0 || arg.filesToInclude.length > 0;
 		vscode.commands.executeCommand('workbench.view.search.focus').then(() =>
 			vscode.commands.executeCommand('workbench.action.search.toggleQueryDetails', { show })
